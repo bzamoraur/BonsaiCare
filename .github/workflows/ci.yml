@@ -1,0 +1,65 @@
+name: CI
+
+# Quality gate: typecheck, lint, test, build on every PR and push to main.
+# Phase 0 note: until Milestone M1 adds package.json, the build steps are
+# skipped (the guard below) so this passes on the docs-only foundation and
+# activates automatically once the app scaffold lands.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect app scaffold
+        id: app
+        run: |
+          if [ -f package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No package.json yet (Phase 0 foundation). Skipping build/test until Milestone M1."
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.app.outputs.exists == 'true'
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        if: steps.app.outputs.exists == 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        if: steps.app.outputs.exists == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        if: steps.app.outputs.exists == 'true'
+        run: pnpm typecheck
+
+      - name: Lint
+        if: steps.app.outputs.exists == 'true'
+        run: pnpm lint
+
+      - name: Test
+        if: steps.app.outputs.exists == 'true'
+        run: pnpm test
+
+      - name: Build
+        if: steps.app.outputs.exists == 'true'
+        run: pnpm build
