@@ -29,6 +29,13 @@ fastest to deploy, and gives the smoothest Next.js experience and per-PR preview
 deploys (great for review). The non-commercial restriction is **not violated** by
 personal/trusted use.
 
+> **Reaffirmed 2026-06-26** (owner asked for the expert call, commercial framed as
+> optional/future): hosting is the **most reversible** layer — a deploy target,
+> not the data model. Optimizing it for present-day velocity (and keeping the app
+> portable per the consequences below) beats paying Cloudflare's Next.js-adapter
+> tax now for a hypothetical commercial future. Flip to Cloudflare/Pro the moment
+> commercial intent is real.
+
 ## Consequences
 
 - **Positive:** zero-config, instant deploys, preview URLs per PR, best Next.js

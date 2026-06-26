@@ -35,6 +35,7 @@ manual steps get a click-by-click setup guide.
 - [0007 — Notifications strategy](decisions/0007-notifications-strategy.md)
 - [0008 — Data ownership & export](decisions/0008-data-ownership-and-export.md)
 - [0009 — Licensing (proprietary for now)](decisions/0009-licensing-proprietary-for-now.md)
+- [0010 — Auth via email magic-link first](decisions/0010-auth-magic-link-first.md)
 
 ## 🎨 UX
 - [Principles & Visual Direction](ux/principles.md)
@@ -46,6 +47,7 @@ manual steps get a click-by-click setup guide.
 - [Backlog](roadmap/backlog.md)
 
 ## 🛠️ Setup (click-by-click)
+- [00 — Developer Onboarding & Handover (VS Code + Claude Code)](setup/00-developer-onboarding-and-handover.md) ⭐ start here to build locally
 - [01 — Prerequisites & Local Dev](setup/01-prerequisites-and-local-dev.md)
 - [02 — Supabase Project (DB, auth, storage, migrations)](setup/02-supabase-project.md)
 - [03 — Deploy to Vercel](setup/03-vercel-deploy.md)

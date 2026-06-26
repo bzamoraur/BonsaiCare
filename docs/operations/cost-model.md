@@ -29,6 +29,11 @@ app goes **commercial** (Vercel) or photo storage outgrows 1 GB (Supabase).
    - **Client-side compression/resize** before upload (target a sensible max
      dimension, e.g. ~1600px long edge, ~80% quality). A typical compressed photo
      is a few hundred KB → ~1 GB holds **thousands** of photos.
+   - **Concrete budget (this collection):** ~50 trees × ~30 photos over a few
+     years ≈ 1,500 photos × ~300 KB ≈ **~450 MB** — comfortably within the 1 GB
+     free tier. Even a heavy ~50 photos/tree ≈ ~750 MB. So storage is the binding
+     free-tier constraint, but the real collection fits — provided compression is
+     on from day one.
    - Track usage in the Supabase dashboard; the upgrade to Pro (~$25/mo, 8 GB+) is
      the lever if/when needed.
 2. **Commerciality (Vercel license).** Hobby is non-commercial. The moment there's

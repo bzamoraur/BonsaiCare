@@ -79,8 +79,12 @@ native app gets the most reuse. Pure functions are trivial to unit-test.
 
 ## Cross-cutting concerns
 
-- **Auth:** Supabase Auth, email magic-link first (no passwords to leak), OAuth
-  optional later. Session persisted; no forced re-login (a competitor pain).
+- **Auth:** Supabase Auth, **email magic-link only for MVP** (no passwords to
+  leak; OAuth deferred to Phase 2 — [ADR-0010](../decisions/0010-auth-magic-link-first.md)).
+  Session persisted; no forced re-login (a competitor pain).
+- **Offline:** installable + offline-*tolerant* (cached app shell via the service
+  worker; TanStack Query softens brief drops). **Not** offline-first with sync in
+  MVP — a deliberate scope choice ([mvp-scope](../product/mvp-scope.md)).
 - **Authorization / privacy:** Postgres RLS — every owned row carries `owner_id`;
   policies restrict `select/insert/update/delete` to `auth.uid()`. The client
   *cannot* read another user's data even if the UI has a bug. See

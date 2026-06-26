@@ -59,7 +59,9 @@ Grouped by the user's stated MVP needs, refined by research.
 | **AI species ID / diagnosis** | Mediocre accuracy category-wide; high effort/cost. | Photos + species fields exist to build on. |
 | **Marketplace, valuation, pots-as-assets** | Commercial/collector features. | `current_pot` text now; normalize to a pot entity later if it earns its place. |
 | **Per-branch wiring tracker, decandling auto-windows** | Powerful but advanced; risks over-building. | Wiring/decandling exist as care-event types now; promote to structured tools in Phase 2. |
+| **Offline-first capture + sync** | Owner confirmed "installable + fast" is enough for v1; true offline sync is a large complexity step. MVP PWA is installable + offline-*tolerant* (cached shell), not offline-first. | TanStack Query caching + service worker already soften brief offline; full local-write+sync can be added later if needed. |
 | **Native iOS/Android apps** | $99/yr + review friction + second codebase. | PWA + clean backend → Capacitor/Expo path later. ([ADR-0001](../decisions/0001-platform-pwa-first.md)) |
+| **Google OAuth / password auth** | Magic-link is enough for 1–3 users with least setup/risk. | Additive in Supabase later, no data-model change. ([ADR-0010](../decisions/0010-auth-magic-link-first.md)) |
 | **Public landing page, monetization, analytics** | No users to monetize/measure yet. | Add when/if commercial. |
 
 ## Definition of done for the MVP
