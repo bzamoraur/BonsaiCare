@@ -92,28 +92,62 @@ code .
 
 In the repo, start Claude Code (`claude` in the integrated terminal, or the
 extension panel). `CLAUDE.md` is **auto-loaded** as project context, so Claude
-already knows the working agreement. Then paste this kickoff prompt:
+already knows the working agreement. Then paste the kickoff prompt below as your
+first message.
 
-> **Kickoff prompt (copy-paste):**
->
-> ```
-> You're picking up the Bonsai Companion project. The Phase 0 foundation is
-> already in this repo. Before doing anything, read: docs/README.md, then
-> docs/product/product-brief.md, docs/product/mvp-scope.md,
-> docs/architecture/overview.md, docs/architecture/domain-model.md, and the ADRs
-> in docs/decisions/ (esp. 0001–0010). Confirm you understand the decisions
-> (PWA + Next.js, Supabase + RLS, Vercel, magic-link auth, unified timeline event
-> model, editable recurrence, pull-first dashboard, data export).
->
-> Then begin Milestone M1 / Sprint 01 exactly as specified in
-> docs/roadmap/sprint-01.md: scaffold Next.js (App Router, TS strict) + Tailwind +
-> shadcn/ui + PWA, set up ESLint/Prettier/Vitest/Playwright and the GitHub Actions
-> CI, create the initial Supabase migrations (profiles, species, locations, trees,
-> tags) with RLS on every owned table, wire magic-link auth, and build the empty
-> app shell with the 5-tab navigation. Write the RLS isolation test first. Work in
-> small PRs, follow docs/development/workflow.md, and stop to confirm the plan with
-> me before writing large amounts of code.
-> ```
+**Kickoff prompt (copy-paste):**
+
+```text
+Take over development of Bonsai Companion — a production-grade personal bonsai
+care & tracking PWA. The Phase 0 foundation (research, architecture, decisions,
+roadmap) is already in this repo. Your job is to BUILD it per the plan, not
+redesign it.
+
+STEP 1 — Load context. Read these in order, then give me a 5–10 line summary
+confirming the locked decisions and flagging any gap or inconsistency you find
+BEFORE writing code:
+- CLAUDE.md (working agreement)
+- docs/README.md (doc map)
+- docs/product/product-brief.md, docs/product/mvp-scope.md
+- docs/architecture/overview.md, docs/architecture/domain-model.md,
+  docs/architecture/data-and-privacy.md
+- docs/decisions/ (ADRs 0000–0010)
+- docs/roadmap/sprint-01.md, docs/development/workflow.md,
+  docs/development/testing-strategy.md
+
+Locked decisions (do not re-litigate; a new significant decision needs a new
+ADR): PWA + Next.js (App Router, TS strict); Supabase (Postgres + Auth +
+Storage, RLS); Vercel hosting; email magic-link auth; unified timeline event
+model (typed core + validated JSONB); editable interval+season recurrence;
+pull-first dashboard (not push); data export as a first-class feature; scope =
+mvp-scope.md only.
+
+STEP 2 — Then begin Milestone M1 / Sprint 01 exactly as in docs/roadmap/sprint-01.md:
+1. First propose a short plan + PR/issue breakdown and WAIT for my OK before
+   writing significant code.
+2. Work on a new branch (e.g. feature/m1-skeleton), in small single-purpose PRs,
+   following the Definition of Done in docs/development/workflow.md. Keep CI green.
+3. Scaffold Next.js (App Router, TS strict) + Tailwind + shadcn/ui + PWA (manifest
+   + service worker); set up ESLint/Prettier/Vitest/Playwright; make the existing
+   GitHub Actions CI pass.
+4. Create initial Supabase migrations (profiles, species, locations, trees,
+   tags/tree_tags) with RLS enabled + owner policies on EVERY owned table, a
+   profile-on-signup trigger, and a small species seed. WRITE THE RLS CROSS-USER
+   ISOLATION TEST FIRST (a user must never read another's rows).
+5. Wire magic-link auth + session persistence; build the empty app shell with the
+   5-destination nav (Today, Collection, Calendar, +, Settings) and a
+   hemisphere/units setting.
+
+Guardrails: domain logic pure in src/domain/ (unit-tested); data access in
+src/server/ (RLS-aware); no secrets in the repo (env vars only, see .env.example);
+free-first; if anything is ambiguous or expands scope, ask me rather than
+guessing. If the superpowers plugin is installed, use its plan → TDD → review loop.
+
+Context to remember: Supabase project is EU region; ~40–50 trees; 1 user now
+(≤3 later); installable + fast PWA, no offline-sync in MVP.
+
+Start now with STEP 1.
+```
 
 Resume this session later with `claude --continue` (most recent) or
 `claude --resume` (pick one). Sessions are stored locally, per project.
