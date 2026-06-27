@@ -1,0 +1,16 @@
+# Normalize all text files to LF in the repository (consistent across Windows,
+# macOS, Linux, and CI). Prevents CRLF/LF churn and keeps Prettier happy.
+* text=auto eol=lf
+
+# Binary assets — never normalize or diff.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Lockfile: treat as text but don't show diffs (it's machine-generated).
+pnpm-lock.yaml -diff
