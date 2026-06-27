@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Bonsai Companion">
+  <rect width="512" height="512" rx="112" fill="#5a7d54" />
+  <g fill="#eef0e6">
+    <circle cx="256" cy="178" r="74" />
+    <circle cx="178" cy="230" r="56" />
+    <circle cx="334" cy="230" r="56" />
+    <path d="M248 230 q-4 72 -30 124 h76 q-26 -52 -30 -124 z" />
+    <rect x="176" y="352" width="160" height="38" rx="12" />
+    <path d="M192 390 h128 l-12 40 a14 14 0 0 1 -14 12 h-76 a14 14 0 0 1 -14 -12 z" />
+  </g>
+</svg>

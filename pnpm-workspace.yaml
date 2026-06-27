@@ -1,0 +1,8 @@
+# pnpm 11 requires an explicit decision on dependency build scripts.
+# sharp (Next image optimizer) and unrs-resolver both ship prebuilt platform
+# binaries via optionalDependencies, so their build scripts are unnecessary.
+# We decline them to keep installs deterministic and CI green. If local
+# next/image optimization ever needs it, flip `sharp: true`.
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
