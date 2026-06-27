@@ -6,3 +6,5 @@
 allowBuilds:
   sharp: false
   unrs-resolver: false
+  # The supabase CLI npm package downloads its platform binary on install.
+  supabase: true
