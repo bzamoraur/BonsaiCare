@@ -1,7 +1,9 @@
 name: CI
 
-# Quality gate: typecheck, lint, unit tests, and a production build on every PR
-# and push to main. (E2E runs locally / can be added as a separate job later.)
+# Quality gates on every PR and push to main:
+#  - build:   typecheck, lint, unit tests, production build
+#  - db-test: apply migrations to a local Supabase stack and run the pgTAP
+#             RLS isolation tests (Docker is preinstalled on ubuntu runners).
 
 on:
   push:
@@ -43,3 +45,31 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  db-test:
+    name: Database (RLS) tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Uses the supabase CLI pinned as a devDependency. Applies all migrations
+      # (+ seed) to a local Postgres, then runs supabase/tests/*.sql via pgTAP.
+      - name: Start Supabase
+        run: pnpm exec supabase start
+
+      - name: Run database tests (pgTAP)
+        run: pnpm exec supabase test db
+
+      - name: Stop Supabase
+        if: always()
+        run: pnpm exec supabase stop
