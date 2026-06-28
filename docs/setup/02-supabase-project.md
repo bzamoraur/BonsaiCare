@@ -64,14 +64,20 @@ ref**, and (optionally, server-only) `SUPABASE_SECRET_KEY`.
 > secret key is server-only and **optional** for the MVP. Full reference:
 > [setup/04-environment-variables.md](./04-environment-variables.md).
 
-1. **Project URL + project ref** — go to **Settings** (left sidebar, gear icon) →
-   **API**.
-   - Copy **Project URL** → it looks like `https://abcdefgh1234.supabase.co`.
-     → put in `NEXT_PUBLIC_SUPABASE_URL`.
-   - The `abcdefgh1234` part **is your project ref** (also shown in **Settings →
-     General** and in the dashboard's address bar). You'll need it for the CLI.
-2. **API keys** — go to **Settings → API Keys** (or click **Connect** at the top
-   of the dashboard).
+1. **Project ref + Project URL.** ⚠️ The **Project URL is NOT on the API Keys
+   page** — Supabase moved it. Two reliable ways to get both:
+   - **Read it off the address bar (easiest):** the dashboard URL is
+     `.../project/<project-ref>/...`. That `<project-ref>` slug (e.g.
+     `abcdefgh1234`) **is your project ref**, and your **Project URL** is just
+     `https://<project-ref>.supabase.co`.
+   - **Or use the green `Connect` button** (top of the dashboard) → **App
+     Frameworks** tab → it prints `NEXT_PUBLIC_SUPABASE_URL=https://…supabase.co`
+     and the publishable key, ready to copy.
+   - The Project URL is also shown under **Settings → Data API** (left sidebar,
+     *Integrations* group); the project ref is also under **Settings → General**.
+   - Put the URL in `NEXT_PUBLIC_SUPABASE_URL`.
+2. **API keys** — go to **Settings → API Keys** → **Publishable and secret API
+   keys** tab (or click **Connect** at the top of the dashboard).
    - **Publishable key** — starts with `sb_publishable_…`. **Safe for the
      browser.** → put in `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
    - **Secret keys** — starts with `sb_secret_…`. **Server-only, bypasses
