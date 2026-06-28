@@ -12,5 +12,5 @@
 - [ ] `pnpm typecheck && pnpm lint && pnpm test` pass locally / CI green
 - [ ] Docs updated if behavior/setup changed; **ADR** added for significant decisions
 - [ ] No secrets added; env vars documented
-- [ ] Privacy preserved (RLS on owned tables; no `service_role` in client)
+- [ ] Privacy preserved (RLS on owned tables; no secret key in client)
 - [ ] Tech debt (if any) logged in `docs/roadmap/backlog.md`

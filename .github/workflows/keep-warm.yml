@@ -2,7 +2,7 @@ name: Keep Supabase warm
 
 # Free Supabase projects pause after ~7 days of inactivity (Risk R1). This
 # scheduled ping keeps a personal "production" app responsive. It is a no-op
-# until you add the SUPABASE_URL and SUPABASE_ANON_KEY repository Action secrets
+# until you add the SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY repository Action secrets
 # (see docs/operations/runbook.md#keep-warm). Scheduled workflows run from the
 # default branch only.
 
@@ -21,14 +21,14 @@ jobs:
       - name: Ping Supabase REST endpoint
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
-            echo "::notice::Secrets SUPABASE_URL / SUPABASE_ANON_KEY not set yet — skipping keep-warm."
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::notice::Secrets SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY not set yet — skipping keep-warm."
             exit 0
           fi
           code=$(curl -s -o /dev/null -w "%{http_code}" \
             "$SUPABASE_URL/rest/v1/" \
-            -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $SUPABASE_ANON_KEY") || true
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_PUBLISHABLE_KEY") || true
           echo "Supabase REST responded with HTTP $code (any response counts as activity)."

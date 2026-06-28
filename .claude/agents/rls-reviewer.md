@@ -20,8 +20,9 @@ definitions, and any `src/server/` data-access code, and check:
    global `species` rows (`owner_id is null`) are read-only to users.
 4. **Storage policies** scope objects to the owner's path prefix; the
    `tree-photos` bucket is **private**.
-5. **service_role usage:** never referenced in client/browser code; only in
-   server-only modules. The anon key is never trusted as a secret.
+5. **Secret-key usage:** the `sb_secret_` key is never referenced in
+   client/browser code; only in server-only modules. The publishable key is
+   never trusted as a secret.
 6. **Integrity:** `owner_id` is `not null` and FK-bound; cascade/)archive
    behavior matches the domain model; cross-entity invariants (e.g. a tree's
    cover photo belongs to that tree) are enforced or tested.

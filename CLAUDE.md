@@ -16,7 +16,7 @@ A personal, production-grade **bonsai care & tracking PWA**. Currently in
    justification + an ADR (`docs/decisions/`) per the cost policy.
 3. **Privacy by construction.** Every user-owned table has `owner_id` + **RLS
    enabled with tested policies**. A user must never read another's data. The
-   `service_role` key is server-only, never in the client bundle or git.
+   `sb_secret_` (secret) key is server-only, never in the client bundle or git.
 4. **Domain logic is pure and isolated** in `src/domain/` (no React/Supabase) and
    **unit-tested** — especially season/recurrence/overdue logic. Data access
    lives in `src/server/` (RLS-aware), not in components.

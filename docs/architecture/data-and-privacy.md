@@ -40,8 +40,8 @@ Rules we hold ourselves to:
   test asserts that user B cannot read user A's rows.
 - Seeded global `species` rows (`owner_id is null`) are world-readable but not
   writable by users; a user's custom species are owner-scoped.
-- The **service-role key is server-only** and never shipped to the client. The
-  browser uses the anon key + the user's JWT, which RLS constrains.
+- The **secret key is server-only** and never shipped to the client. The
+  browser uses the publishable key + the user's JWT, which RLS constrains.
 
 ## Storage (photos)
 
@@ -57,9 +57,9 @@ Rules we hold ourselves to:
 
 - All secrets via environment variables; see
   [`.env.example`](../../.env.example) and
-  [setup/05](../setup/05-environment-variables.md).
+  [setup/04](../setup/04-environment-variables.md).
 - `NEXT_PUBLIC_*` vars are **public by definition** (shipped to the browser) —
-  only the Supabase URL and anon key go there. The **service-role key**,
+  only the Supabase URL and publishable key go there. The **secret key**,
   if ever needed, is a server-only secret.
 - `.gitignore` excludes all `.env*` files. CI uses GitHub Actions secrets.
 - If a secret leaks: rotate it immediately in the Supabase dashboard, then

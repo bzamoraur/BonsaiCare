@@ -24,7 +24,7 @@ the project so a personal "production" app stays responsive.
 - Workflow: `.github/workflows/keep-warm.yml` (runs on a cron, e.g. every 3 days).
 - It makes a tiny authenticated REST request to the Supabase project.
 - Needs GitHub **Action secrets**: `SUPABASE_URL` (or reuse project ref) and
-  `SUPABASE_ANON_KEY`.
+  `SUPABASE_PUBLISHABLE_KEY`.
 - **Verify:** check the Action's run history is green; the project stays "Active".
 - If the project still paused: open the Supabase dashboard once to resume, then
   confirm the cron is enabled and the secrets are set.

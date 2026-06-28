@@ -24,11 +24,11 @@ deploys from GitHub and per-PR preview deployments.
      auto-detects pnpm from the lockfile.
 5. **Environment Variables** — add these (from [setup/04](./04-environment-variables.md)):
    - `NEXT_PUBLIC_SUPABASE_URL` = your Supabase Project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = your anon public key
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = your publishable key (`sb_publishable_…`)
    - `NEXT_PUBLIC_SITE_URL` = your production URL (set after first deploy; see
      below)
-   - *(only if the server actually needs it)* `SUPABASE_SERVICE_ROLE_KEY` = secret
-     — add as a **non-`NEXT_PUBLIC`** variable so it stays server-only.
+   - *(only if the server actually needs it)* `SUPABASE_SECRET_KEY` = secret
+     (`sb_secret_…`) — add as a **non-`NEXT_PUBLIC`** variable so it stays server-only.
    - Set each for the appropriate environments (Production / Preview / Development).
 6. Click **Deploy**. Wait for the build. You'll get a URL like
    `https://bonsai-companion.vercel.app`.
