@@ -50,14 +50,15 @@ cp .env.example .env.local
 #    Then fill in the values — see docs/setup/04-environment-variables.md
 
 # 4. (Option A) Run against a hosted Supabase project (simplest)
-#    Put your project's URL + anon key in .env.local, then:
+#    Put your project's URL + publishable key in .env.local, then:
 pnpm dev
 #    App at http://localhost:3000
 
 # 4. (Option B) Run a fully local Supabase stack (no internet needed)
 supabase start                 # boots local Postgres/Auth/Storage in Docker
 supabase db reset              # applies migrations + seed
-#    Copy the printed local API URL + anon key into .env.local, then:
+#    Copy the printed local API URL + anon key into .env.local (the local stack
+#    still prints the legacy anon key — use it as the publishable-key value), then:
 pnpm dev
 ```
 
