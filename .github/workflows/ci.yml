@@ -44,7 +44,12 @@ jobs:
         run: pnpm test
 
       - name: Build
+        # Placeholder public env so the production build can evaluate modules
+        # that read them. No secrets and no network calls happen at build time.
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder_for_ci_build
 
   db-test:
     name: Database (RLS) tests
