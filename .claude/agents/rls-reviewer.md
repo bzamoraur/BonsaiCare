@@ -23,7 +23,7 @@ definitions, and any `src/server/` data-access code, and check:
 5. **Secret-key usage:** the `sb_secret_` key is never referenced in
    client/browser code; only in server-only modules. The publishable key is
    never trusted as a secret.
-6. **Integrity:** `owner_id` is `not null` and FK-bound; cascade/)archive
+6. **Integrity:** `owner_id` is `not null` and FK-bound; cascade/archive
    behavior matches the domain model; cross-entity invariants (e.g. a tree's
    cover photo belongs to that tree) are enforced or tested.
 7. **A test exists** asserting user B cannot read/modify user A's rows.
