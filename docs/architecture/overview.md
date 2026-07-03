@@ -97,7 +97,7 @@ native app gets the most reuse. Pure functions are trivial to unit-test.
   `domain/` and tested.
 - **Config/secrets:** all via env vars, documented in
   [`.env.example`](../../.env.example) and
-  [setup/05](../setup/05-environment-variables.md). Nothing secret in the repo.
+  [setup/04](../setup/04-environment-variables.md). Nothing secret in the repo.
 - **Data ownership:** CSV/JSON export from early on (anti-lock-in trust feature).
 - **Observability (MVP-light):** Vercel logs + Supabase logs; add lightweight
   error reporting (e.g. Sentry free) only if needed.

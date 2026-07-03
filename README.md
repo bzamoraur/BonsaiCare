@@ -4,10 +4,12 @@ A calm, photo-first companion for tracking, maintaining, and learning from a rea
 bonsai collection — built to be genuinely pleasant to use, not a generic CRUD
 admin panel.
 
-> **Status: Phase 0 — Foundation.** This repository currently contains the
-> product, architecture, and planning foundation (research, decisions, roadmap,
-> setup guides). **No application code yet** — by design. Building begins at
-> [Sprint 01](docs/roadmap/sprint-01.md) once the foundation is agreed.
+> **Status: Milestone M1 — building the spine.** The Phase 0 foundation
+> (research, decisions, roadmap, setup guides) is complete, and the first M1
+> increments are merged: the Next.js PWA skeleton + tooling, and the database
+> schema with Row-Level Security and a pgTAP isolation suite — all gated by CI.
+> **Next:** magic-link auth + the app shell. See
+> [Sprint 01](docs/roadmap/sprint-01.md).
 
 ## What it is
 
