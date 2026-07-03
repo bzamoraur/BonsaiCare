@@ -13,7 +13,7 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("display_name, hemisphere, units")
     .eq("id", user?.id ?? "")
@@ -23,11 +23,17 @@ export default async function SettingsPage() {
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 
-      <SettingsForm
-        displayName={profile?.display_name ?? ""}
-        hemisphere={profile?.hemisphere ?? "northern"}
-        units={profile?.units ?? "metric"}
-      />
+      {error || !profile ? (
+        <p role="alert" className="text-destructive text-sm">
+          We could not load your settings right now. Please refresh the page to try again.
+        </p>
+      ) : (
+        <SettingsForm
+          displayName={profile.display_name ?? ""}
+          hemisphere={profile.hemisphere}
+          units={profile.units}
+        />
+      )}
 
       <hr className="border-border" />
 

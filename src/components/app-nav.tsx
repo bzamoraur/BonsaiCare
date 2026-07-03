@@ -30,10 +30,20 @@ function TabLink({ tab, active }: { tab: Tab; active: boolean }) {
       href={tab.href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "focus-visible:ring-ring flex flex-1 flex-col items-center gap-1 rounded-md py-2 text-xs font-medium transition-colors outline-none focus-visible:ring-2",
-        active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+        "focus-visible:ring-ring relative flex flex-1 flex-col items-center gap-1 rounded-md py-2 text-xs transition-colors outline-none focus-visible:ring-2",
+        active
+          ? "text-primary font-semibold"
+          : "text-muted-foreground hover:text-foreground font-medium",
       )}
     >
+      {/* Non-color active indicator: a bar that is present only when active. */}
+      <span
+        aria-hidden
+        className={cn(
+          "absolute top-0 h-0.5 w-8 rounded-full",
+          active ? "bg-primary" : "bg-transparent",
+        )}
+      />
       <Icon className="size-5" aria-hidden />
       {tab.label}
     </Link>
@@ -42,8 +52,8 @@ function TabLink({ tab, active }: { tab: Tab; active: boolean }) {
 
 /**
  * Bottom tab bar (mobile-first) for the app shell: Today, Collection, Calendar,
- * Settings, plus a central quick-add action. Quick-add is disabled until the
- * capture flow ships in a later milestone.
+ * Settings, plus a central quick-add action. Quick-add is disabled — and shows a
+ * visible "Soon" label — until the capture flow ships in a later milestone.
  */
 export function AppNav() {
   const pathname = usePathname();
@@ -58,16 +68,16 @@ export function AppNav() {
         <TabLink tab={today} active={isActive(pathname, today.href)} />
         <TabLink tab={collection} active={isActive(pathname, collection.href)} />
 
-        <div className="flex flex-1 justify-center">
+        <div className="flex flex-1 flex-col items-center gap-0.5">
           <button
             type="button"
             disabled
-            aria-label="Quick add — coming in a later milestone"
-            title="Quick add — coming soon"
-            className="bg-primary text-primary-foreground -mt-6 flex size-14 items-center justify-center rounded-full shadow-lg disabled:opacity-60"
+            aria-label="Quick add — coming soon"
+            className="bg-primary/70 text-primary-foreground ring-background -mt-6 flex size-14 items-center justify-center rounded-full shadow-md ring-4"
           >
             <Plus className="size-6" aria-hidden />
           </button>
+          <span className="text-muted-foreground pb-1 text-[0.65rem] font-medium">Soon</span>
         </div>
 
         <TabLink tab={calendar} active={isActive(pathname, calendar.href)} />

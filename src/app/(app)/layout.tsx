@@ -7,7 +7,7 @@ import { AppNav } from "@/components/app-nav";
  */
 export default function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="min-h-dvh pb-24">
+    <div className="min-h-dvh pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
       {children}
       <AppNav />
     </div>

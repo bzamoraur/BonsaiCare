@@ -43,10 +43,16 @@ export function SettingsForm({ displayName, hemisphere, units }: Props) {
         <label htmlFor="hemisphere" className="text-sm font-medium">
           Hemisphere
         </label>
-        <p className="text-muted-foreground text-xs">
+        <p id="hemisphere-hint" className="text-muted-foreground text-xs">
           Drives seasonal care timing, so getting this right matters.
         </p>
-        <select id="hemisphere" name="hemisphere" defaultValue={hemisphere} className={fieldClass}>
+        <select
+          id="hemisphere"
+          name="hemisphere"
+          defaultValue={hemisphere}
+          aria-describedby="hemisphere-hint"
+          className={fieldClass}
+        >
           <option value="northern">Northern</option>
           <option value="southern">Southern</option>
         </select>
@@ -66,13 +72,12 @@ export function SettingsForm({ displayName, hemisphere, units }: Props) {
         <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save changes"}
         </Button>
-        {state.status === "success" ? (
-          <span className="text-primary text-sm" role="status">
-            Saved ✓
-          </span>
-        ) : null}
+        {/* Persistent live region so "Saved" is reliably announced by AT. */}
+        <span role="status" aria-live="polite" className="text-primary text-sm">
+          {state.status === "success" ? "Saved ✓" : ""}
+        </span>
         {state.status === "error" ? (
-          <span className="text-destructive text-sm" role="alert">
+          <span role="alert" className="text-destructive text-sm">
             {state.message}
           </span>
         ) : null}
