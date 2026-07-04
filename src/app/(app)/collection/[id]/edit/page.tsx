@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { getLocationName, listLocations } from "@/server/locations";
 import { getTree } from "@/server/trees";
 
 import { updateTreeAction } from "../actions";
@@ -20,6 +21,11 @@ export default async function EditTreePage({ params }: { params: Promise<Params>
   const tree = await getTree(id);
   if (!tree) notFound();
 
+  const [locations, locationValue] = await Promise.all([
+    listLocations(),
+    tree.location_id ? getLocationName(tree.location_id) : Promise.resolve(null),
+  ]);
+
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
       <div className="flex flex-col gap-2">
@@ -37,6 +43,8 @@ export default async function EditTreePage({ params }: { params: Promise<Params>
         tree={tree}
         action={updateTreeAction.bind(null, id)}
         cancelHref={`/collection/${id}`}
+        locationValue={locationValue ?? ""}
+        locationOptions={locations.map((l) => l.name)}
       />
     </main>
   );

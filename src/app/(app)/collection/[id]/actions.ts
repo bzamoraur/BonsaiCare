@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { parseTreeForm } from "@/domain/tree-form";
+import { findOrCreateLocation } from "@/server/locations";
 import { archiveTree, updateTree } from "@/server/trees";
 
 import type { TreeFormState } from "./types";
@@ -41,8 +42,13 @@ export async function updateTreeAction(
     return { status: "error", message: parsed.message };
   }
 
+  const locationName = formData.get("location");
+
   try {
-    await updateTree(id, parsed.value);
+    const locationId = await findOrCreateLocation(
+      typeof locationName === "string" ? locationName : "",
+    );
+    await updateTree(id, parsed.value, locationId);
   } catch {
     return { status: "error", message: "We couldn't save your changes. Please try again." };
   }

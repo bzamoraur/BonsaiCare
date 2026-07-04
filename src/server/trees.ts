@@ -109,10 +109,18 @@ export async function createTree(input: TreeFormInput): Promise<{ id: string }> 
   return data;
 }
 
-/** Updates an existing tree. RLS + the id filter scope the write to the owner. */
-export async function updateTree(id: string, input: TreeFormInput): Promise<void> {
+/** Updates an existing tree (including its location). RLS + the id filter scope
+ * the write to the owner. */
+export async function updateTree(
+  id: string,
+  input: TreeFormInput,
+  locationId: string | null,
+): Promise<void> {
   const supabase = await createClient();
-  const { error } = await supabase.from("trees").update(toRow(input)).eq("id", id);
+  const { error } = await supabase
+    .from("trees")
+    .update({ ...toRow(input), location_id: locationId })
+    .eq("id", id);
   if (error) throw new Error(`Failed to update tree: ${error.message}`);
 }
 

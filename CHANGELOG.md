@@ -7,6 +7,9 @@ All notable changes to this project are documented here. Format follows
 ## [Unreleased]
 
 ### Added — Milestone M2: trees & photos
+- **Locations** — assign where a tree lives from the edit form: a type-to-create field
+  that autocompletes your existing locations (case-insensitive, so they don't split
+  into near-duplicates) and creates new ones on save. Shown on the tree's detail.
 - **Photos** — add a photo to any tree (downscaled and re-encoded to **WebP in the
   browser** before upload, so storage stays tiny), browse them in a gallery, **set a
   cover** (shown as the detail hero), and delete. Files live in the private
