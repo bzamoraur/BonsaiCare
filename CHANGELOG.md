@@ -6,7 +6,24 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
-### Added — Milestone M1: skeleton & data spine
+### Added — Milestone M2: trees & photos
+- **Collection — list & add trees** — the Collection tab lists your (non-archived)
+  trees in a photo-first grid with a friendly empty state, plus an **Add a tree** form
+  (name required; species, development stage, and health status optional). Backed by a
+  typed `src/server` data-access layer, owner-scoped Server Action inserts, and a pure,
+  unit-tested `parseNewTree` validator.
+- **Photos table & private Storage** (`supabase/migrations`) — a `photos` table tied to
+  trees with `trees.cover_photo_id`, plus a private `tree-photos` bucket. Owner-scoped
+  RLS on both the table and Storage objects (object path prefixed by the owner's user
+  id), proven by an **11-assertion pgTAP isolation suite**.
+
+### Added — Milestone M1: skeleton, spine & auth
+- **Email magic-link authentication** — passwordless sign-in (Supabase OTP with a PKCE
+  `/auth/callback`), a session-refreshing proxy (`src/proxy.ts`) that gates every
+  non-public route, and sign-out.
+- **Installed app shell** — an authenticated layout with a mobile-first bottom tab bar
+  (Today, Collection, Calendar, Settings) and a **Settings** screen to edit display
+  name, hemisphere, and units (owner-scoped Server Action).
 - **Next.js 16 (App Router) + TypeScript PWA skeleton** with tooling — Tailwind v4,
   shadcn/ui, ESLint, Prettier, Husky + lint-staged pre-commit, Vitest + Playwright,
   an installable web manifest and service worker, and the first pure-domain unit
@@ -50,5 +67,4 @@ All notable changes to this project are documented here. Format follows
   Sprint 01 locally.
 - Updated MVP scope, cost model, architecture overview, and risk register to match.
 
-_Milestone M1 is in progress: the data spine (schema, RLS, CI) is in place; the
-app UI and magic-link auth are being built next._
+_Milestone M1 is complete; Milestone M2 (trees & photos) is in progress._
