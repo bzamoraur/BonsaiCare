@@ -21,9 +21,17 @@ type Props = {
   cancelHref: string;
   locationValue: string;
   locationOptions: string[];
+  tagsValue: string;
 };
 
-export function EditTreeForm({ tree, action, cancelHref, locationValue, locationOptions }: Props) {
+export function EditTreeForm({
+  tree,
+  action,
+  cancelHref,
+  locationValue,
+  locationOptions,
+  tagsValue,
+}: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
@@ -170,6 +178,17 @@ export function EditTreeForm({ tree, action, cancelHref, locationValue, location
           />
         </Field>
       </div>
+
+      <Field id="tags" label="Tags" optional>
+        <input
+          id="tags"
+          name="tags"
+          type="text"
+          defaultValue={tagsValue}
+          placeholder="Comma-separated, e.g. shohin, show-candidate"
+          className={inputClass}
+        />
+      </Field>
 
       <Field id="notes" label="Notes" optional>
         <textarea

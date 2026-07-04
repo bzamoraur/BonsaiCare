@@ -7,6 +7,10 @@ All notable changes to this project are documented here. Format follows
 ## [Unreleased]
 
 ### Added — Milestone M2: trees & photos
+- **Tags** — attach freeform tags to a tree from the edit form (comma-separated,
+  type-to-create, case-insensitively de-duplicated). Shown as chips on the detail.
+  A pure, unit-tested `parseTagInput` normalises the input; `syncTreeTags` resolves
+  names to ids (creating new ones) and replaces the join rows, all owner-scoped.
 - **Locations** — assign where a tree lives from the edit form: a type-to-create field
   that autocompletes your existing locations (case-insensitive, so they don't split
   into near-duplicates) and creates new ones on save. Shown on the tree's detail.
