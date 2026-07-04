@@ -2,15 +2,25 @@ import { ChevronLeft, Leaf, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@/lib/tree-labels";
 import { cn } from "@/lib/utils";
+import { listTreePhotos } from "@/server/photos";
 import { getTree } from "@/server/trees";
 
 import { archiveTreeAction } from "./actions";
 import { ArchiveTreeForm } from "./archive-tree-form";
+import { DeletePhotoButton } from "./delete-photo-button";
+import { deletePhotoAction, setCoverAction } from "./photo-actions";
+import { PhotoUploader } from "./photo-uploader";
 
 type Params = { id: string };
+
+const ERROR_MESSAGES: Record<string, string> = {
+  archive: "We couldn't archive this tree. Please try again.",
+  cover: "We couldn't set that cover photo. Please try again.",
+  photo: "We couldn't delete that photo. Please try again.",
+};
 
 const dateFormatter = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
@@ -38,7 +48,8 @@ export default async function TreeDetailPage({
 }) {
   const { id } = await params;
   const { error } = await searchParams;
-  const tree = await getTree(id);
+
+  const [tree, photos] = await Promise.all([getTree(id), listTreePhotos(id)]);
   if (!tree) notFound();
 
   const facts = [
@@ -59,6 +70,8 @@ export default async function TreeDetailPage({
   ].filter((f): f is { label: string; value: string } => Boolean(f.value));
 
   const isArchived = Boolean(tree.archived_at);
+  const heroPhoto = photos.find((p) => p.id === tree.cover_photo_id) ?? photos[0] ?? null;
+  const errorMessage = error ? ERROR_MESSAGES[error] : null;
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
@@ -70,15 +83,20 @@ export default async function TreeDetailPage({
         Collection
       </Link>
 
-      {error === "archive" ? (
+      {errorMessage ? (
         <p role="alert" className="text-destructive text-sm">
-          We couldn&apos;t archive this tree. Please try again.
+          {errorMessage}
         </p>
       ) : null}
 
-      {/* Hero — cover photo lands in the photo slice. */}
-      <div className="bg-muted flex aspect-video items-center justify-center rounded-2xl">
-        <Leaf className="text-muted-foreground/40 size-16" aria-hidden />
+      {/* Hero — the cover photo (or first photo), else a placeholder. */}
+      <div className="bg-muted flex aspect-video items-center justify-center overflow-hidden rounded-2xl">
+        {heroPhoto?.url ? (
+          // eslint-disable-next-line @next/next/no-img-element -- private signed URL, next/image caching doesn't fit
+          <img src={heroPhoto.url} alt={tree.name} className="h-full w-full object-cover" />
+        ) : (
+          <Leaf className="text-muted-foreground/40 size-16" aria-hidden />
+        )}
       </div>
 
       <header className="flex flex-col gap-1">
@@ -111,11 +129,49 @@ export default async function TreeDetailPage({
         </section>
       ) : null}
 
-      {facts.length === 0 && !tree.notes ? (
-        <p className="text-muted-foreground text-sm text-balance">
-          No details yet. Use Edit to add species, stage, notes and more.
-        </p>
-      ) : null}
+      {/* Photos */}
+      <section className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-sm font-medium">Photos</h2>
+          <PhotoUploader treeId={tree.id} ownerId={tree.owner_id} />
+        </div>
+
+        {photos.length === 0 ? (
+          <p className="text-muted-foreground text-sm text-balance">
+            No photos yet. Add one to start this tree&apos;s visual history.
+          </p>
+        ) : (
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {photos.map((photo) => (
+              <li key={photo.id} className="flex flex-col gap-1.5">
+                <div className="bg-muted aspect-square overflow-hidden rounded-xl">
+                  {photo.url ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- private signed URL, next/image caching doesn't fit
+                    <img
+                      src={photo.url}
+                      alt={`${tree.name} photo`}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null}
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  {photo.id === tree.cover_photo_id ? (
+                    <span className="text-muted-foreground px-1 text-xs font-medium">Cover</span>
+                  ) : (
+                    <form action={setCoverAction.bind(null, tree.id, photo.id)}>
+                      <Button type="submit" variant="ghost" size="sm">
+                        Set cover
+                      </Button>
+                    </form>
+                  )}
+                  <DeletePhotoButton action={deletePhotoAction.bind(null, photo.id, tree.id)} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <hr className="border-border" />
 

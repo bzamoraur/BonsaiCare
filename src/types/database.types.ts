@@ -57,6 +57,50 @@ export type Database = {
         };
         Relationships: [];
       };
+      photos: {
+        Row: {
+          caption: string | null;
+          created_at: string;
+          height: number | null;
+          id: string;
+          owner_id: string;
+          storage_path: string;
+          taken_at: string;
+          tree_id: string;
+          width: number | null;
+        };
+        Insert: {
+          caption?: string | null;
+          created_at?: string;
+          height?: number | null;
+          id?: string;
+          owner_id: string;
+          storage_path: string;
+          taken_at?: string;
+          tree_id: string;
+          width?: number | null;
+        };
+        Update: {
+          caption?: string | null;
+          created_at?: string;
+          height?: number | null;
+          id?: string;
+          owner_id?: string;
+          storage_path?: string;
+          taken_at?: string;
+          tree_id?: string;
+          width?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "photos_tree_id_fkey";
+            columns: ["tree_id"];
+            isOneToOne: false;
+            referencedRelation: "trees";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           climate_zone: string | null;
@@ -179,6 +223,7 @@ export type Database = {
           acquired_from: string | null;
           acquired_on: string | null;
           archived_at: string | null;
+          cover_photo_id: string | null;
           created_at: string;
           current_pot: string | null;
           current_substrate: string | null;
@@ -199,6 +244,7 @@ export type Database = {
           acquired_from?: string | null;
           acquired_on?: string | null;
           archived_at?: string | null;
+          cover_photo_id?: string | null;
           created_at?: string;
           current_pot?: string | null;
           current_substrate?: string | null;
@@ -219,6 +265,7 @@ export type Database = {
           acquired_from?: string | null;
           acquired_on?: string | null;
           archived_at?: string | null;
+          cover_photo_id?: string | null;
           created_at?: string;
           current_pot?: string | null;
           current_substrate?: string | null;
@@ -236,6 +283,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "trees_cover_photo_id_fkey";
+            columns: ["cover_photo_id"];
+            isOneToOne: false;
+            referencedRelation: "photos";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "trees_location_id_fkey";
             columns: ["location_id"];
