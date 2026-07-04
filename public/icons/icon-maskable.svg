@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Bonsai Companion">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#719a68" />
+      <stop offset="1" stop-color="#48653f" />
+    </linearGradient>
+    <linearGradient id="foliage" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5f3e7" />
+      <stop offset="1" stop-color="#dde3cd" />
+    </linearGradient>
+    <linearGradient id="pot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dcbb96" />
+      <stop offset="1" stop-color="#c39a6f" />
+    </linearGradient>
+  </defs>
+
+  <!-- Full-bleed background (no rounded corners): the platform applies its own
+       mask. The tree is scaled to ~86% around centre so a circular mask keeps
+       the whole silhouette inside the safe zone. -->
+  <rect width="512" height="512" fill="url(#tile)" />
+
+  <g transform="translate(256 256) scale(0.86) translate(-256 -256)">
+    <ellipse cx="256" cy="398" rx="118" ry="14" fill="#2f4429" opacity="0.35" />
+
+    <path d="M256 244 C 236 286, 288 300, 262 352" fill="none" stroke="#eae7d6" stroke-width="22" stroke-linecap="round" />
+    <path d="M262 296 C 292 288, 312 278, 330 264" fill="none" stroke="#eae7d6" stroke-width="12" stroke-linecap="round" />
+
+    <g fill="url(#foliage)">
+      <circle cx="256" cy="176" r="86" />
+      <circle cx="176" cy="214" r="58" />
+      <circle cx="336" cy="210" r="64" />
+      <circle cx="298" cy="150" r="46" />
+      <circle cx="216" cy="150" r="40" />
+    </g>
+    <circle cx="222" cy="150" r="26" fill="#ffffff" opacity="0.35" />
+
+    <path d="M186 366 h140 l-14 44 a16 16 0 0 1 -15 11 h-82 a16 16 0 0 1 -15 -11 z" fill="url(#pot)" />
+    <rect x="172" y="344" width="168" height="22" rx="9" fill="url(#pot)" />
+    <rect x="172" y="344" width="168" height="7" rx="3.5" fill="#ffffff" opacity="0.18" />
+  </g>
+</svg>

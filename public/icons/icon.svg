@@ -1,11 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Bonsai Companion">
-  <rect width="512" height="512" rx="112" fill="#5a7d54" />
-  <g fill="#eef0e6">
-    <circle cx="256" cy="178" r="74" />
-    <circle cx="178" cy="230" r="56" />
-    <circle cx="334" cy="230" r="56" />
-    <path d="M248 230 q-4 72 -30 124 h76 q-26 -52 -30 -124 z" />
-    <rect x="176" y="352" width="160" height="38" rx="12" />
-    <path d="M192 390 h128 l-12 40 a14 14 0 0 1 -14 12 h-76 a14 14 0 0 1 -14 -12 z" />
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Bonsai Companion">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#719a68" />
+      <stop offset="1" stop-color="#48653f" />
+    </linearGradient>
+    <linearGradient id="foliage" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5f3e7" />
+      <stop offset="1" stop-color="#dde3cd" />
+    </linearGradient>
+    <linearGradient id="pot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dcbb96" />
+      <stop offset="1" stop-color="#c39a6f" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="116" fill="url(#tile)" />
+
+  <!-- soft ground shadow -->
+  <ellipse cx="256" cy="398" rx="118" ry="14" fill="#2f4429" opacity="0.35" />
+
+  <!-- trunk + branch (behind the canopy so they read as emerging from it) -->
+  <path d="M256 244 C 236 286, 288 300, 262 352" fill="none" stroke="#eae7d6" stroke-width="22" stroke-linecap="round" />
+  <path d="M262 296 C 292 288, 312 278, 330 264" fill="none" stroke="#eae7d6" stroke-width="12" stroke-linecap="round" />
+
+  <!-- asymmetric canopy -->
+  <g fill="url(#foliage)">
+    <circle cx="256" cy="176" r="86" />
+    <circle cx="176" cy="214" r="58" />
+    <circle cx="336" cy="210" r="64" />
+    <circle cx="298" cy="150" r="46" />
+    <circle cx="216" cy="150" r="40" />
   </g>
+  <circle cx="222" cy="150" r="26" fill="#ffffff" opacity="0.35" />
+
+  <!-- pot -->
+  <path d="M186 366 h140 l-14 44 a16 16 0 0 1 -15 11 h-82 a16 16 0 0 1 -15 -11 z" fill="url(#pot)" />
+  <rect x="172" y="344" width="168" height="22" rx="9" fill="url(#pot)" />
+  <rect x="172" y="344" width="168" height="7" rx="3.5" fill="#ffffff" opacity="0.18" />
 </svg>
