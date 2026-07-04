@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { parseTagInput } from "@/domain/tags";
 import { parseTreeForm } from "@/domain/tree-form";
 import { findOrCreateLocation } from "@/server/locations";
+import { syncTreeTags } from "@/server/tags";
 import { archiveTree, updateTree } from "@/server/trees";
 
 import type { TreeFormState } from "./types";
@@ -43,12 +45,14 @@ export async function updateTreeAction(
   }
 
   const locationName = formData.get("location");
+  const tagNames = parseTagInput(formData.get("tags"));
 
   try {
     const locationId = await findOrCreateLocation(
       typeof locationName === "string" ? locationName : "",
     );
     await updateTree(id, parsed.value, locationId);
+    await syncTreeTags(id, tagNames);
   } catch {
     return { status: "error", message: "We couldn't save your changes. Please try again." };
   }

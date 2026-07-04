@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getLocationName, listLocations } from "@/server/locations";
+import { getTreeTags } from "@/server/tags";
 import { getTree } from "@/server/trees";
 
 import { updateTreeAction } from "../actions";
@@ -21,9 +22,10 @@ export default async function EditTreePage({ params }: { params: Promise<Params>
   const tree = await getTree(id);
   if (!tree) notFound();
 
-  const [locations, locationValue] = await Promise.all([
+  const [locations, locationValue, treeTags] = await Promise.all([
     listLocations(),
     tree.location_id ? getLocationName(tree.location_id) : Promise.resolve(null),
+    getTreeTags(id),
   ]);
 
   return (
@@ -45,6 +47,7 @@ export default async function EditTreePage({ params }: { params: Promise<Params>
         cancelHref={`/collection/${id}`}
         locationValue={locationValue ?? ""}
         locationOptions={locations.map((l) => l.name)}
+        tagsValue={treeTags.map((t) => t.name).join(", ")}
       />
     </main>
   );

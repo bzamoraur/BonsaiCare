@@ -7,6 +7,7 @@ import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@
 import { cn } from "@/lib/utils";
 import { getLocationName } from "@/server/locations";
 import { listTreePhotos } from "@/server/photos";
+import { getTreeTags } from "@/server/tags";
 import { getTree } from "@/server/trees";
 
 import { archiveTreeAction } from "./actions";
@@ -50,7 +51,11 @@ export default async function TreeDetailPage({
   const { id } = await params;
   const { error } = await searchParams;
 
-  const [tree, photos] = await Promise.all([getTree(id), listTreePhotos(id)]);
+  const [tree, photos, tags] = await Promise.all([
+    getTree(id),
+    listTreePhotos(id),
+    getTreeTags(id),
+  ]);
   if (!tree) notFound();
 
   const locationName = tree.location_id ? await getLocationName(tree.location_id) : null;
@@ -114,6 +119,19 @@ export default async function TreeDetailPage({
         </div>
         {tree.species_label ? <p className="text-muted-foreground">{tree.species_label}</p> : null}
       </header>
+
+      {tags.length > 0 ? (
+        <ul className="flex flex-wrap gap-1.5">
+          {tags.map((tag) => (
+            <li
+              key={tag.id}
+              className="border-border text-muted-foreground rounded-full border px-2.5 py-0.5 text-xs"
+            >
+              {tag.name}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {facts.length > 0 ? (
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
