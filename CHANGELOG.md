@@ -6,6 +6,14 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Milestone M3: timeline & care logging
+- **Care log schema** (`supabase/migrations`) — a `care_log_entries` table (per
+  [ADR-0005](docs/decisions/0005-unified-timeline-event-model.md)): a `type`
+  discriminator + typed core columns (`occurred_at`, `title`, `notes`, `task_id`) and
+  a validated `details` JSONB per event type, with owner-scoped RLS proven by a
+  9-assertion pgTAP suite. Also wires `photos.care_log_entry_id` so a photo can
+  document an event.
+
 ### Added — Milestone M2: trees & photos
 - **Filter, sort & search the collection** — search by name/species, filter by
   location, tag, development stage, or health, and sort (newest / oldest / name). All
@@ -98,4 +106,4 @@ All notable changes to this project are documented here. Format follows
   Sprint 01 locally.
 - Updated MVP scope, cost model, architecture overview, and risk register to match.
 
-_Milestone M1 is complete; Milestone M2 (trees & photos) is in progress._
+_Milestones M1 and M2 are complete; Milestone M3 (timeline & care logging) is in progress._

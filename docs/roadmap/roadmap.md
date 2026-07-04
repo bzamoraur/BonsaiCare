@@ -16,7 +16,7 @@ foundation is reviewed and the stack/scope are agreed. No production code yet.
 Goal: **the owner runs their real collection on it for a season.** Built as
 milestones; each is independently demoable and merges behind CI.
 
-### M1 — Skeleton & spine *(infra + auth + schema)*
+### M1 — Skeleton & spine *(infra + auth + schema)* ✅
 - Scaffold Next.js + TS (strict) + Tailwind + shadcn/ui + PWA manifest/SW.
 - ESLint/Prettier/Vitest/Playwright + GitHub Actions CI green.
 - Supabase project (EU region); first migrations: `profiles`, `species`,
@@ -25,7 +25,7 @@ milestones; each is independently demoable and merges behind CI.
 - **Exit:** sign in, see an empty Today, RLS isolation test passes, CI green,
   deployed preview works.
 
-### M2 — Trees & photos *(the collection)*
+### M2 — Trees & photos *(the collection)* ✅
 - Trees CRUD; structured profile with progressive disclosure; archive.
 - Collection grid (photo-first); filter/sort/search; tags & locations.
 - Photo upload/capture → client compression → private bucket + signed URLs;
