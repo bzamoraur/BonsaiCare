@@ -17,6 +17,12 @@ All notable changes to this project are documented here. Format follows
   RLS on both the table and Storage objects (object path prefixed by the owner's user
   id), proven by an **11-assertion pgTAP isolation suite**.
 
+### Changed
+- **Refined the installable app icon** — a redesigned bonsai mark (gradient tile,
+  layered canopy, curved trunk, clay pot) rasterised to every PWA size via a committed
+  Playwright generator (`pnpm icons`), adding a safe-zone **maskable** variant and a
+  dedicated **180×180 iOS apple-touch-icon**.
+
 ### Added — Milestone M1: skeleton, spine & auth
 - **Email magic-link authentication** — passwordless sign-in (Supabase OTP with a PKCE
   `/auth/callback`), a session-refreshing proxy (`src/proxy.ts`) that gates every
