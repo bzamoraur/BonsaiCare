@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@/lib/tree-labels";
 import { cn } from "@/lib/utils";
+import { getLocationName } from "@/server/locations";
 import { listTreePhotos } from "@/server/photos";
 import { getTree } from "@/server/trees";
 
@@ -52,6 +53,8 @@ export default async function TreeDetailPage({
   const [tree, photos] = await Promise.all([getTree(id), listTreePhotos(id)]);
   if (!tree) notFound();
 
+  const locationName = tree.location_id ? await getLocationName(tree.location_id) : null;
+
   const facts = [
     {
       label: "Development stage",
@@ -61,6 +64,7 @@ export default async function TreeDetailPage({
       label: "Health",
       value: tree.health_status ? HEALTH_STATUS_LABELS[tree.health_status] : null,
     },
+    { label: "Location", value: locationName },
     { label: "Origin", value: tree.origin ? ORIGIN_LABELS[tree.origin] : null },
     { label: "Style", value: tree.style },
     { label: "Pot", value: tree.current_pot },

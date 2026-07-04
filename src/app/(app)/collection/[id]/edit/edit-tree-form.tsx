@@ -19,9 +19,11 @@ type Props = {
   tree: Tables<"trees">;
   action: (prev: TreeFormState, formData: FormData) => Promise<TreeFormState>;
   cancelHref: string;
+  locationValue: string;
+  locationOptions: string[];
 };
 
-export function EditTreeForm({ tree, action, cancelHref }: Props) {
+export function EditTreeForm({ tree, action, cancelHref, locationValue, locationOptions }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
@@ -48,6 +50,24 @@ export function EditTreeForm({ tree, action, cancelHref }: Props) {
           placeholder="e.g. Juniperus procumbens"
           className={inputClass}
         />
+      </Field>
+
+      <Field id="location" label="Location" optional>
+        <input
+          id="location"
+          name="location"
+          type="text"
+          list="location-options"
+          maxLength={60}
+          defaultValue={locationValue}
+          placeholder="e.g. South bench"
+          className={inputClass}
+        />
+        <datalist id="location-options">
+          {locationOptions.map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
