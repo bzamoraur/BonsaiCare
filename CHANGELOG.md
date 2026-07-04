@@ -7,6 +7,12 @@ All notable changes to this project are documented here. Format follows
 ## [Unreleased]
 
 ### Added — Milestone M2: trees & photos
+- **Tree detail, edit & archive** — tapping a card opens a detail screen with the
+  tree's facts and notes; a full **edit** form (species, development stage, health,
+  origin, style, pot, substrate, acquired date/source, notes); and a confirm-guarded
+  **archive** (soft delete that hides the tree from the collection but preserves its
+  history). Data-access grows `getTree` / `updateTree` / `archiveTree`, and the add +
+  edit forms now share one validated `parseTreeForm`.
 - **Collection — list & add trees** — the Collection tab lists your (non-archived)
   trees in a photo-first grid with a friendly empty state, plus an **Add a tree** form
   (name required; species, development stage, and health status optional). Backed by a
