@@ -18,11 +18,14 @@ export type Tree = Tables<"trees">;
 export type TreeCard = Pick<
   Tree,
   "id" | "name" | "species_label" | "development_stage" | "health_status"
->;
+> & { coverUrl: string | null };
 
-const TREE_CARD_COLUMNS = "id, name, species_label, development_stage, health_status";
+const TREE_CARD_COLUMNS =
+  "id, name, species_label, development_stage, health_status, cover_photo_id";
+const COVER_URL_TTL_SECONDS = 60 * 60; // 1 hour
 
-/** Non-archived trees for the current user, newest first. */
+/** Non-archived trees for the current user, newest first, each with a signed
+ * cover-photo URL (batched into one Storage call). */
 export async function listTrees(): Promise<TreeCard[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -32,7 +35,32 @@ export async function listTrees(): Promise<TreeCard[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(`Failed to load trees: ${error.message}`);
-  return data ?? [];
+  const rows = data ?? [];
+
+  // Resolve cover photos → signed URLs in two batched queries (paths, then signs).
+  const coverIds = rows.map((r) => r.cover_photo_id).filter((v): v is string => Boolean(v));
+  const pathById = new Map<string, string>();
+  if (coverIds.length > 0) {
+    const { data: covers } = await supabase
+      .from("photos")
+      .select("id, storage_path")
+      .in("id", coverIds);
+    for (const cover of covers ?? []) pathById.set(cover.id, cover.storage_path);
+  }
+
+  const paths = [...pathById.values()];
+  const urlByPath = new Map<string, string>();
+  if (paths.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from("tree-photos")
+      .createSignedUrls(paths, COVER_URL_TTL_SECONDS);
+    for (const s of signed ?? []) if (s.path && s.signedUrl) urlByPath.set(s.path, s.signedUrl);
+  }
+
+  return rows.map(({ cover_photo_id, ...card }) => {
+    const path = cover_photo_id ? pathById.get(cover_photo_id) : undefined;
+    return { ...card, coverUrl: path ? (urlByPath.get(path) ?? null) : null };
+  });
 }
 
 /**

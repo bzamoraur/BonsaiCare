@@ -13,7 +13,8 @@ All notable changes to this project are documented here. Format follows
   `tree-photos` bucket and are served via short-lived **signed URLs**; uploads go
   browser → Storage directly (Storage RLS enforces the owner's folder), then a Server
   Action records the row. The bucket also carries a 5 MB size cap and an image-only
-  MIME allowlist as a server-side guardrail.
+  MIME allowlist as a server-side guardrail. Cover thumbnails appear on the collection
+  grid too (signed URLs batched into one Storage call per page).
 - **Tree detail, edit & archive** — tapping a card opens a detail screen with the
   tree's facts and notes; a full **edit** form (species, development stage, health,
   origin, style, pot, substrate, acquired date/source, notes); and a confirm-guarded

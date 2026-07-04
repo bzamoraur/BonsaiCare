@@ -19,8 +19,13 @@ export function TreeCard({ tree }: { tree: TreeCardData }) {
       className="focus-visible:ring-ring block rounded-2xl outline-none focus-visible:ring-2"
     >
       <article className="border-border bg-card hover:border-foreground/20 overflow-hidden rounded-2xl border transition-colors">
-        <div className="bg-muted flex aspect-square items-center justify-center">
-          <Leaf className="text-muted-foreground/40 size-10" aria-hidden />
+        <div className="bg-muted flex aspect-square items-center justify-center overflow-hidden">
+          {tree.coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- private signed URL, next/image caching doesn't fit
+            <img src={tree.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+          ) : (
+            <Leaf className="text-muted-foreground/40 size-10" aria-hidden />
+          )}
         </div>
         <div className="flex flex-col gap-1 p-3">
           <h2 className="truncate text-sm font-medium" title={tree.name}>
