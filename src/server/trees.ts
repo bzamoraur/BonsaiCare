@@ -2,7 +2,7 @@ import { cache } from "react";
 
 import type { TreeFormInput } from "@/domain/tree-form";
 import { createClient } from "@/lib/supabase/server";
-import type { Tables } from "@/types/database.types";
+import type { Enums, Tables } from "@/types/database.types";
 
 /**
  * Server-side data access for trees. Every query runs through the request-scoped
@@ -24,16 +24,62 @@ const TREE_CARD_COLUMNS =
   "id, name, species_label, development_stage, health_status, cover_photo_id";
 const COVER_URL_TTL_SECONDS = 60 * 60; // 1 hour
 
-/** Non-archived trees for the current user, newest first, each with a signed
- * cover-photo URL (batched into one Storage call). */
-export async function listTrees(): Promise<TreeCard[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("trees")
-    .select(TREE_CARD_COLUMNS)
-    .is("archived_at", null)
-    .order("created_at", { ascending: false });
+export type TreeSort = "newest" | "oldest" | "name";
+export type TreeFilters = {
+  q?: string;
+  locationId?: string;
+  tagId?: string;
+  stage?: Enums<"development_stage">;
+  health?: Enums<"health_status">;
+  sort?: TreeSort;
+};
 
+/** Strips characters that are special in a PostgREST `.or()` filter (and ilike
+ * wildcards), leaving a safe "contains" search term. */
+function sanitizeSearch(q: string): string {
+  return q
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .trim()
+    .slice(0, 60);
+}
+
+/**
+ * Non-archived trees for the current user, filtered/sorted, each with a signed
+ * cover-photo URL (batched into one Storage call). All inputs are owner-scoped by
+ * RLS; enum filters are validated by the caller before reaching Postgres.
+ */
+export async function listTrees(filters: TreeFilters = {}): Promise<TreeCard[]> {
+  const supabase = await createClient();
+
+  // Tag filter → the set of tree ids carrying that tag (empty ⇒ no matches).
+  let tagTreeIds: string[] | null = null;
+  if (filters.tagId) {
+    const { data: rels, error: relError } = await supabase
+      .from("tree_tags")
+      .select("tree_id")
+      .eq("tag_id", filters.tagId);
+    if (relError) throw new Error(`Failed to filter by tag: ${relError.message}`);
+    tagTreeIds = (rels ?? []).map((r) => r.tree_id);
+    if (tagTreeIds.length === 0) return [];
+  }
+
+  let query = supabase.from("trees").select(TREE_CARD_COLUMNS).is("archived_at", null);
+
+  if (filters.locationId) query = query.eq("location_id", filters.locationId);
+  if (filters.stage) query = query.eq("development_stage", filters.stage);
+  if (filters.health) query = query.eq("health_status", filters.health);
+  if (tagTreeIds) query = query.in("id", tagTreeIds);
+
+  const term = filters.q ? sanitizeSearch(filters.q) : "";
+  if (term) query = query.or(`name.ilike.%${term}%,species_label.ilike.%${term}%`);
+
+  const sort = filters.sort ?? "newest";
+  query =
+    sort === "name"
+      ? query.order("name", { ascending: true })
+      : query.order("created_at", { ascending: sort === "oldest" });
+
+  const { data, error } = await query;
   if (error) throw new Error(`Failed to load trees: ${error.message}`);
   const rows = data ?? [];
 

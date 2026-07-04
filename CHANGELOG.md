@@ -7,6 +7,10 @@ All notable changes to this project are documented here. Format follows
 ## [Unreleased]
 
 ### Added — Milestone M2: trees & photos
+- **Filter, sort & search the collection** — search by name/species, filter by
+  location, tag, development stage, or health, and sort (newest / oldest / name). All
+  URL-driven, so a filtered view is shareable and survives refresh; search is
+  debounced and the search term is sanitised before it reaches the query.
 - **Tags** — attach freeform tags to a tree from the edit form (comma-separated,
   type-to-create, case-insensitively de-duplicated). Shown as chips on the detail.
   A pure, unit-tested `parseTagInput` normalises the input; `syncTreeTags` resolves
