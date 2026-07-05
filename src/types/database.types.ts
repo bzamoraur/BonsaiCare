@@ -443,6 +443,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      delete_my_account: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
     };
     Enums: {
       care_event_type:

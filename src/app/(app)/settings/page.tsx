@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
+import { DeleteAccountSection } from "./delete-account-section";
 import { SettingsForm } from "./settings-form";
 
 export const metadata = {
@@ -90,6 +91,10 @@ export default async function SettingsPage() {
           </Button>
         </form>
       </div>
+
+      <hr className="border-border" />
+
+      <DeleteAccountSection />
     </main>
   );
 }
