@@ -10,6 +10,16 @@ export type DashboardTask = Tables<"tasks"> & {
   tree: { id: string; name: string } | null;
 };
 
+/** Normalize the `tree` embed: a to-one FK yields an object, but be robust to an
+ * array or null so a card never dereferences the wrong shape. */
+function normalizeTasks(data: unknown[] | null): DashboardTask[] {
+  return (data ?? []).map((row) => {
+    const { tree, ...task } = row as Tables<"tasks"> & { tree: unknown };
+    const one = Array.isArray(tree) ? (tree[0] ?? null) : (tree ?? null);
+    return { ...task, tree: one as DashboardTask["tree"] };
+  });
+}
+
 /**
  * Pending tasks due on/before `horizonDays` from now — so **all overdue** plus the
  * near future — soonest first, each with its tree's name (null for a
@@ -33,11 +43,25 @@ export async function listDashboardTasks(horizonDays = 8): Promise<DashboardTask
     .order("due_on", { ascending: true });
   if (error) throw new Error(`Failed to load your day: ${error.message}`);
 
-  // Normalize the embed: a to-one FK yields an object, but be robust to an array
-  // or null so a card never dereferences the wrong shape.
-  return (data ?? []).map((row) => {
-    const { tree, ...task } = row as Tables<"tasks"> & { tree: unknown };
-    const one = Array.isArray(tree) ? (tree[0] ?? null) : (tree ?? null);
-    return { ...task, tree: one as DashboardTask["tree"] };
-  });
+  return normalizeTasks(data);
+}
+
+/**
+ * Pending tasks with `due_on` in `[fromIso, toIso]` (inclusive), soonest first,
+ * each with its tree name — for the calendar's month grid + agenda. Same indexed
+ * range scan, owner-scoped by RLS.
+ */
+export async function listCalendarTasks(fromIso: string, toIso: string): Promise<DashboardTask[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*, tree:trees(id, name)")
+    .eq("status", "pending")
+    .gte("due_on", fromIso)
+    .lte("due_on", toIso)
+    .order("due_on", { ascending: true });
+  if (error) throw new Error(`Failed to load the calendar: ${error.message}`);
+
+  return normalizeTasks(data);
 }
