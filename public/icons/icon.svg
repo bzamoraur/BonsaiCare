@@ -1,40 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Bonsai Companion">
   <defs>
     <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#719a68" />
-      <stop offset="1" stop-color="#48653f" />
+      <stop offset="0" stop-color="#6f9a63" />
+      <stop offset="1" stop-color="#46623d" />
     </linearGradient>
     <linearGradient id="foliage" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f5f3e7" />
-      <stop offset="1" stop-color="#dde3cd" />
+      <stop offset="0" stop-color="#f4f2e6" />
+      <stop offset="1" stop-color="#dbe0cc" />
     </linearGradient>
     <linearGradient id="pot" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#dcbb96" />
-      <stop offset="1" stop-color="#c39a6f" />
+      <stop offset="0" stop-color="#dcb890" />
+      <stop offset="1" stop-color="#bd8f68" />
     </linearGradient>
   </defs>
 
   <rect width="512" height="512" rx="116" fill="url(#tile)" />
 
-  <!-- soft ground shadow -->
-  <ellipse cx="256" cy="398" rx="118" ry="14" fill="#2f4429" opacity="0.35" />
+  <!-- ground shadow beneath the pot -->
+  <ellipse cx="256" cy="420" rx="120" ry="13" fill="#2c4126" opacity="0.30" />
 
-  <!-- trunk + branch (behind the canopy so they read as emerging from it) -->
-  <path d="M256 244 C 236 286, 288 300, 262 352" fill="none" stroke="#eae7d6" stroke-width="22" stroke-linecap="round" />
-  <path d="M262 296 C 292 288, 312 278, 330 264" fill="none" stroke="#eae7d6" stroke-width="12" stroke-linecap="round" />
+  <!-- shallow pot (the defining bonsai cue): a wide, low trapezoid + rim + feet -->
+  <rect x="212" y="406" width="26" height="12" rx="3" fill="#a97f59" />
+  <rect x="274" y="406" width="26" height="12" rx="3" fill="#a97f59" />
+  <path d="M180 366 h152 l-16 42 a8 8 0 0 1 -7.5 5 h-105 a8 8 0 0 1 -7.5 -5 z" fill="url(#pot)" />
+  <rect x="168" y="352" width="176" height="20" rx="8" fill="url(#pot)" />
+  <rect x="168" y="352" width="176" height="6" rx="3" fill="#ffffff" opacity="0.18" />
 
-  <!-- asymmetric canopy -->
+  <!-- curved, tapering trunk (emerges from behind the rim, up into the canopy) -->
+  <path
+    d="M242 360 C232 322, 258 312, 246 282 C238 262, 258 250, 252 212 L268 212 C274 250, 260 268, 272 288 C284 316, 252 324, 270 360 Z"
+    fill="#ece7d6"
+  />
+  <path d="M258 296 C292 288, 312 274, 332 256" fill="none" stroke="#ece7d6" stroke-width="13" stroke-linecap="round" />
+
+  <!-- asymmetric, flattened foliage pads (informal-upright styling) -->
   <g fill="url(#foliage)">
-    <circle cx="256" cy="176" r="86" />
-    <circle cx="176" cy="214" r="58" />
-    <circle cx="336" cy="210" r="64" />
-    <circle cx="298" cy="150" r="46" />
-    <circle cx="216" cy="150" r="40" />
+    <ellipse cx="188" cy="214" rx="62" ry="38" />
+    <ellipse cx="344" cy="236" rx="44" ry="26" />
+    <ellipse cx="322" cy="196" rx="92" ry="52" />
+    <ellipse cx="258" cy="150" rx="80" ry="47" />
   </g>
-  <circle cx="222" cy="150" r="26" fill="#ffffff" opacity="0.35" />
-
-  <!-- pot -->
-  <path d="M186 366 h140 l-14 44 a16 16 0 0 1 -15 11 h-82 a16 16 0 0 1 -15 -11 z" fill="url(#pot)" />
-  <rect x="172" y="344" width="168" height="22" rx="9" fill="url(#pot)" />
-  <rect x="172" y="344" width="168" height="7" rx="3.5" fill="#ffffff" opacity="0.18" />
+  <ellipse cx="230" cy="134" rx="30" ry="15" fill="#ffffff" opacity="0.30" />
 </svg>
