@@ -8,9 +8,9 @@ import type { Json, Tables } from "@/types/database.types";
 /**
  * Server-side data access for tasks. Every query runs through the request-scoped
  * Supabase client, so RLS restricts rows to the signed-in owner; the explicit
- * `owner_id` on insert matches the RLS `with check`. Completion and skip are NOT
- * here — they mutate status *and* spawn the next occurrence atomically, so they
- * go through a Postgres RPC (next slice), not a plain update.
+ * `owner_id` on insert matches the RLS `with check`. Completion and skip don't
+ * use a plain update — they mutate status *and* spawn the next occurrence, so
+ * they go through the atomic `complete_task` RPC (see `resolveTask`).
  *
  * Imports `next/headers` (via the server client) → Server-only.
  */
