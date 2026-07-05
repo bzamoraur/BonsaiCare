@@ -1,10 +1,17 @@
 # Sprint 05 — "The daily loop" (Milestone M4, dashboard half)
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Historical · **Updated:** 2026-07-06
 >
-> Second sprint of M4; closes the milestone. Sprint 04 made schedules correct;
-> this sprint makes them **visible** — the dashboard that answers "what needs
-> attention today?" the moment the app opens.
+> **Outcome: shipped (PRs #34–#36).** Closes M4. The **Today dashboard**
+> (overdue / due today / next-7 + a struggling/critical triage strip, bucketed by
+> the viewer's *local* today, one-tap Done/Skip), the **Calendar** (month grid
+> with due-count dots + a day-grouped agenda, URL-driven month nav), and the
+> one-tap **fertilization template** (multi-tree bulk-create of the canonical
+> "every 14 days, Mar–Oct" schedule). All feature DoD met. **One DoD deferred:**
+> the automated daily-loop **e2e** waits on the Playwright auth harness (backlog)
+> — the same blocker as M3's e2e; the loop is meanwhile proven by the Sprint-04
+> unit tests + the `complete_task` pgTAP suite. Phase 1's feature work is complete;
+> next is M5 (trust, export & production hardening).
 
 ## Sprint goal
 
@@ -14,19 +21,23 @@
 
 ## Definition of done (sprint = M4 exit)
 
-- [ ] The Today tab shows overdue / due today / upcoming (next 7 days) across
+- [x] The Today tab shows overdue / due today / upcoming (next 7 days) across
       the collection, plus a health triage strip (trees marked struggling /
       critical), with one-tap complete on every card.
-- [ ] Overdue is **derived at read time** from live task rows — never stored,
+- [x] Overdue is **derived at read time** from live task rows — never stored,
       no nightly job ([ADR-0006](../decisions/0006-task-scheduling-and-recurrence.md) /
-      [ADR-0007](../decisions/0007-notifications-strategy.md)).
-- [ ] Calendar tab: agenda list grouped by day, plus a month grid with
+      [ADR-0007](../decisions/0007-notifications-strategy.md)). Bucketed by the
+      viewer's local today (client-side), not the server's UTC day.
+- [x] Calendar tab: agenda list grouped by day, plus a month grid with
       due-count dots.
-- [ ] A one-tap **fertilization template** ("every 14 days, Mar–Oct, these
+- [x] A one-tap **fertilization template** ("every 14 days, Mar–Oct, these
       trees") creates a real working schedule.
 - [ ] E2e covers the daily loop: create recurring → complete from Today →
       next occurrence lands correctly (incl. an out-of-season skip case).
-- [ ] M4 exit criteria in the [roadmap](./roadmap.md) all check out.
+      **Deferred** — needs the Playwright auth harness (backlog); the loop is
+      proven by unit tests + the `complete_task` pgTAP suite meanwhile.
+- [x] M4 exit criteria in the [roadmap](./roadmap.md) all check out (bar the
+      deferred e2e).
 
 ## Slices (one PR each, in order)
 
