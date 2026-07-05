@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { rowsToCsv } from "@/lib/csv";
 import type { Database } from "@/types/database.types";
 
 /**
@@ -85,6 +86,44 @@ export function buildExportBundle(
     },
     ...tables,
   };
+}
+
+/** Excel reads UTF-8 CSV correctly only with a BOM — matters for accented notes. */
+const UTF8_BOM = String.fromCharCode(0xfeff);
+
+function buildCsvReadme(meta: ExportBundle["meta"]): string {
+  const counts = EXPORTED_TABLES.map((t) => `  ${t}: ${meta.counts[t]}`).join("\n");
+  return [
+    "Bonsai Companion — data export",
+    "",
+    `Exported:        ${meta.exported_at}`,
+    `Account:         ${meta.user_id}`,
+    `Format version:  ${meta.format_version}`,
+    "",
+    "This archive contains one CSV per table. The JSON export (Settings →",
+    "Export as JSON) is the complete, lossless format for backup and future",
+    "import; CSV is a spreadsheet-friendly view. JSON columns (e.g. care",
+    "details, task recurrence) appear as compact JSON text within a single cell.",
+    "",
+    "Row counts:",
+    counts,
+    "",
+  ].join("\n");
+}
+
+/**
+ * Maps an export bundle to a set of `filename → text` entries for a CSV archive:
+ * one CSV per table (BOM-prefixed for Excel) plus a README. Pure — the route
+ * turns these into a zip.
+ */
+export function csvFilesFromBundle(bundle: ExportBundle): Record<string, string> {
+  const files: Record<string, string> = {};
+  for (const table of EXPORTED_TABLES) {
+    const rows = bundle[table] as Array<Record<string, unknown>>;
+    files[`${table}.csv`] = UTF8_BOM + rowsToCsv(rows);
+  }
+  files["README.txt"] = buildCsvReadme(bundle.meta);
+  return files;
 }
 
 function unwrap<T>(

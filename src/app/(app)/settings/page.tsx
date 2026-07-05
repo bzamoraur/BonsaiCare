@@ -45,17 +45,28 @@ export default async function SettingsPage() {
           <h2 className="text-sm font-medium">Your data</h2>
           <p className="text-muted-foreground text-sm">
             Export a complete, portable copy of your collection — trees, care history, tasks, and
-            photo details — as a JSON file. Your record is always yours to keep.
+            photo details. Your record is always yours to keep. JSON is the lossless format for
+            backup; CSV opens in any spreadsheet.
           </p>
         </div>
-        <a
-          href="/settings/export?format=json"
-          download
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
-        >
-          <Download aria-hidden="true" />
-          Export as JSON
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/settings/export?format=json"
+            download
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
+          >
+            <Download aria-hidden="true" />
+            Export as JSON
+          </a>
+          <a
+            href="/settings/export?format=csv"
+            download
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
+          >
+            <Download aria-hidden="true" />
+            Export as CSV
+          </a>
+        </div>
       </section>
 
       <hr className="border-border" />

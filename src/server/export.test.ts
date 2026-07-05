@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildExportBundle, EXPORTED_TABLES, type ExportRows } from "./export";
+import { buildExportBundle, csvFilesFromBundle, EXPORTED_TABLES, type ExportRows } from "./export";
 
 /**
  * The compile-time exhaustiveness check lives in `export.ts` (a failing build if
@@ -77,5 +77,30 @@ describe("buildExportBundle", () => {
     });
 
     expect(bundle.trees[0]).toEqual(tree);
+  });
+});
+
+describe("csvFilesFromBundle", () => {
+  const bundle = buildExportBundle(
+    { ...emptyRows(), trees: [{ id: "t1", name: "Juniper" }] },
+    { userId: "u1", exportedAt: "2026-07-05T00:00:00.000Z" },
+  );
+  const files = csvFilesFromBundle(bundle);
+
+  it("emits one CSV per table plus a README", () => {
+    for (const table of EXPORTED_TABLES) {
+      expect(files).toHaveProperty(`${table}.csv`);
+    }
+    expect(files).toHaveProperty("README.txt");
+    expect(Object.keys(files)).toHaveLength(EXPORTED_TABLES.length + 1);
+  });
+
+  it("prefixes CSVs with a UTF-8 BOM for Excel", () => {
+    expect(files["trees.csv"]!.charCodeAt(0)).toBe(0xfeff);
+    expect(files["trees.csv"]).toContain("id,name");
+  });
+
+  it("puts row counts in the README", () => {
+    expect(files["README.txt"]).toContain("trees: 1");
   });
 });
