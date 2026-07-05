@@ -1,6 +1,6 @@
 # Backlog
 
-> **Status:** Living · **Updated:** 2026-07-05
+> **Status:** Living · **Updated:** 2026-07-06
 >
 > The ordered holding pen for everything not in the current milestone. Items
 > graduate into a sprint when their phase is active. Format: concise user
@@ -92,13 +92,46 @@ list for the reasoning). Re-order from real usage evidence.
 - **Locations as care context** — sun/shade, winter-protection attributes →
   seasonal prompts ("frost forecast → move tender trees"). (P2, S–M)
 - **Trusted-user invites & polish** for 1→3 users. (P2, M)
+- **First-run tutorial / onboarding tour** — the moment a friend opens the app
+  cold, a short guided walk-through (add a tree → log care → read the timeline)
+  turns "empty app" into "I get it." Skippable, re-openable from Settings, and
+  never shown twice unless asked. State lives in a `profiles` flag so it's
+  per-user, not per-device. Gate the *friends* release on this. (P1 for the
+  friends stage, M)
+- **Language switch (ES / EN)** — the app is English-only; a Spanish-speaking
+  friend needs Spanish. Introduce an i18n layer (dictionary + a `next-intl`-style
+  message catalog), a user-preference toggle in Settings persisted on `profiles`,
+  and Spanish translations of all UI + care-type/label strings. New ADR for the
+  i18n approach and where locale is resolved (cookie vs profile). Do this *before*
+  the friends release, not after strings have sprawled. (P1 for the friends
+  stage, M–L)
 - **Google OAuth** — additive per [ADR-0010](../decisions/0010-auth-magic-link-first.md). (P3, S)
 
 ## Phase 3 — optional commercial (P3)
 
-- Public landing page; transparent monetization; native shell (Capacitor/Expo);
+Only after the app is genuinely *done* and has survived real self-use +
+friends-testing. Sequence and gate every step behind evidence of demand — don't
+build a store presence for an app nobody has asked to pay for.
+
+- Public landing page; native shell (Capacitor/Expo — reuse the PWA);
   read-only shareable progression link per tree; AI species-ID/diagnosis (only
   if accuracy/cost justify); analytics. Move off Vercel Hobby first (R5).
+- **Monetization (only when the app is finished and wanted).** Options, roughly
+  in order of least-to-most intrusive:
+  - **App-store publication** — ship the native shell to the Apple App Store /
+    Google Play. Requires developer accounts (annual fee), store-review
+    compliance, privacy-nutrition labels, and account-deletion parity (already
+    an M5 promise — good).
+  - **Freemium with Pro features** — the core stays free; a subscription unlocks
+    Pro (candidate gates: unlimited trees beyond a free cap, advanced
+    scheduling/season templates, data-export automation, AI diagnosis, cross-tree
+    analytics). Needs a billing provider (Stripe / RevenueCat for stores), an
+    entitlements model on `profiles`, and server-side feature-gating — never
+    trust the client. New ADR for the billing + entitlement architecture.
+  - **Ads** — lowest-effort revenue but highest UX cost for a calm, personal
+    care app; if ever used, keep them out of the core loop (never on the Today
+    dashboard or logging flow). Evaluate against the product's whole "calm tool,
+    not attention casino" premise before committing. (P3, last resort.)
 
 ## Technical debt & hardening register
 
