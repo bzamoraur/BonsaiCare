@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-06-26
-- **Deciders:** Owner + Claude (owner confirmed: "your call as an expert")
+- **Deciders:** Owner + Claude
 
 ## Context
 
@@ -10,7 +10,8 @@ We need authentication for 1 user now, up to ~3 trusted users later
 ([risks](../product/risks-and-assumptions.md)). Privacy/minimization is a core
 principle, and a competitor pain point was **forced re-login**. Supabase Auth
 ([ADR-0002](./0002-backend-supabase.md)) supports magic-link, email+password, and
-OAuth providers.
+OAuth providers. The owner delegated the method choice to Claude ("your call as
+an expert").
 
 ## Options considered
 

@@ -1,8 +1,9 @@
 # Data, Security & Privacy
 
-> Status: v1, 2026-06-26. This app holds personal photos and private collection
-> data for an EU-based owner. Privacy is treated as a first-class constraint, not
-> an afterthought.
+> **Status:** Current · **Updated:** 2026-07-05
+>
+> This app holds personal photos and private collection data for an EU-based
+> owner. Privacy is treated as a first-class constraint, not an afterthought.
 
 ## Principles
 
@@ -90,7 +91,7 @@ For personal + trusted-user use this is light, but we build the right habits:
   objects (implement a real delete path, not a soft flag, for *account* deletion;
   trees use soft-archive but that's user-facing, not legal deletion).
 - **Data residency:** choose an **EU region** for the Supabase project at
-  creation (see [setup/02](../setup/02-supabase-setup.md)). Document where data
+  creation (see [setup/02](../setup/02-supabase-project.md)). Document where data
   lives.
 - If the app ever becomes commercial/multi-tenant beyond trusted users, revisit
   with a proper privacy policy and DPA review. Tracked as a future task.

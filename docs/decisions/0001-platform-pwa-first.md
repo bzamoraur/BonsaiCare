@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-06-26
-- **Deciders:** Owner + Claude (architecture partner)
+- **Deciders:** Owner + Claude
 
 ## Context
 

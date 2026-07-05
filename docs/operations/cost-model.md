@@ -1,22 +1,28 @@
 # Cost Model
 
-> Status: v1, 2026-06-26. Free-first by policy. This documents what's free, the
-> limits, and the **exact triggers** that would push us to pay — so cost is a
-> deliberate decision, never a surprise bill.
+> **Status:** Current · **Updated:** 2026-07-05
+>
+> Free-first by policy. This documents what's free, the limits, and the **exact
+> triggers** that would push us to pay — so cost is a deliberate decision, never
+> a surprise bill.
 
-## TL;DR
+Vendor prices in this doc are USD-native; € figures are approximations, labelled
+with ≈.
+
+## Summary
+
 **The MVP runs at €0/month** for personal + a few trusted users. Every component
-is on a free tier. The first realistic paid cost (~€20/mo) only appears if the
+is on a free tier. The first realistic paid cost (≈ €20/mo) only appears if the
 app goes **commercial** (Vercel) or photo storage outgrows 1 GB (Supabase).
 
 ## Per-service breakdown (free-tier limits as understood 2026-06; re-verify)
 
 | Service | Free tier (approx) | Our usage (personal) | First paid trigger | Paid cost |
 |---|---|---|---|---|
-| **Vercel** (Hobby) | Generous bandwidth/builds; **non-commercial only** | Tiny | **Going commercial** (R5) → must move plan | **Pro ~$20/mo** (or migrate to Cloudflare Pages free) |
-| **Supabase** | ~500 MB DB, **1 GB storage**, 50k MAU; **pauses after ~7 days idle** | A few users, mostly photos | **Storage > 1 GB** (R4) or needing no-pause/backups | **Pro ~$25/mo** |
+| **Vercel** (Hobby) | Generous bandwidth/builds; **non-commercial only** | Tiny | **Going commercial** ([R5](../product/risks-and-assumptions.md)) → must move plan | **Pro ~$20/mo** (or migrate to Cloudflare Pages free) |
+| **Supabase** | ~500 MB DB, **1 GB storage**, 50k MAU; **pauses after ~7 days idle** | A few users, mostly photos | **Storage > 1 GB** ([R4](../product/risks-and-assumptions.md)) or needing no-pause/backups | **Pro ~$25/mo** |
 | **GitHub** | Free private repos + Actions minutes (ample for solo) | CI + keep-warm | Heavy CI minutes (unlikely) | Usage-based |
-| **Domain** (optional) | — | Optional custom domain | If you want a custom domain | ~€10–15/yr |
+| **Domain** (optional) | — | Optional custom domain | If you want a custom domain | ≈ €10–15/yr |
 | **Email (auth)** | Supabase built-in sender (rate-limited) | Low volume | Reliable delivery / volume | Custom SMTP, often free tiers (e.g. Resend) |
 
 > Numbers are from research and may be stale — **verify against current pricing

@@ -1,4 +1,11 @@
-# PROJECT_EXPORT — Bonsai Companion (BonsaiCare)
+# Project Export — Bonsai Companion (BonsaiCare)
+
+> **Status:** Historical · **Updated:** 2026-07-05
+>
+> Point-in-time repo-audit snapshot pinned to commit `0f08a42`; not maintained.
+> Current status lives in the [Roadmap](../roadmap/roadmap.md) and
+> [CHANGELOG](../../CHANGELOG.md). Several stale-doc findings it reports were
+> fixed by the 2026-07-05 documentation-standardization pass.
 
 Audit date: **2026-07-05** · Auditor: Claude (multi-agent repo audit: 5 parallel readers over docs/code/db/CI + a verifier that executed the toolchain) · Repo: `github.com/bzamoraur/BonsaiCare`, branch `main` @ `0f08a42`
 

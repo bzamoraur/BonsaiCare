@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-06-26
-- **Deciders:** Project owner (with Claude Code as architecture partner)
+- **Deciders:** Owner + Claude
 
 ## Context
 
@@ -29,9 +29,9 @@ naming) do **not** need an ADR — keep them in code and `CLAUDE.md`.
 ```
 # ADR-NNNN: <short imperative title>
 
-- Status: Proposed | Accepted | Superseded by ADR-XXXX | Deprecated
-- Date: YYYY-MM-DD
-- Deciders: <who>
+- **Status:** Proposed | Accepted | Amended by ADR-XXXX | Superseded by ADR-XXXX | Deprecated
+- **Date:** YYYY-MM-DD
+- **Deciders:** Owner + Claude
 
 ## Context
 What is the decision and why now? What constraints apply (cost, time, skill,
@@ -47,6 +47,9 @@ The option chosen, stated plainly.
 Positive, negative, and the risks we are knowingly accepting. What this makes
 easy and what it makes hard later. How we would reverse it if wrong.
 ```
+
+Options considered is required for new ADRs; ADR-0011 onward complies strictly;
+some early ADRs folded alternatives into the Decision and stand as accepted.
 
 ## Consequences
 

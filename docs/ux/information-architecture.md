@@ -1,7 +1,9 @@
 # Information Architecture & Key Flows
 
-> Status: v1, 2026-06-26. The navigation skeleton and the handful of flows that
-> must be excellent. Screens are described by intent, not pixels.
+> **Status:** Current · **Updated:** 2026-07-05
+>
+> The navigation skeleton and the handful of flows that must be excellent.
+> Screens are described by intent, not pixels.
 
 ## Top-level navigation (mobile-first, ≤5 destinations)
 

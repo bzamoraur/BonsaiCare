@@ -4,12 +4,12 @@ A calm, photo-first companion for tracking, maintaining, and learning from a rea
 bonsai collection — built to be genuinely pleasant to use, not a generic CRUD
 admin panel.
 
-> **Status: Milestone M1 — building the spine.** The Phase 0 foundation
-> (research, decisions, roadmap, setup guides) is complete, and the first M1
-> increments are merged: the Next.js PWA skeleton + tooling, and the database
-> schema with Row-Level Security and a pgTAP isolation suite — all gated by CI.
-> **Next:** magic-link auth + the app shell. See
-> [Sprint 01](docs/roadmap/sprint-01.md).
+> **Status: Milestone M3 — timeline & care logging** *(updated 2026-07-05)*.
+> **M1** (magic-link auth, app shell, schema + RLS, CI) and **M2** (trees,
+> photos with private storage, tags, locations, search/filter/sort) are
+> **shipped and live** on Vercel. The M3 care-log schema is merged; the logging
+> UI and per-tree timeline are next. See the
+> [Roadmap](docs/roadmap/roadmap.md) and [Sprint 02](docs/roadmap/sprint-02.md).
 
 ## What it is
 
@@ -32,15 +32,15 @@ keep getting abandoned, so serious growers fall back to spreadsheets. We aim to
 data.** The reasoning is evidence-based — see the
 [Competitive Benchmark](docs/research/benchmark.md).
 
-## Planned stack (free-first)
+## Stack (free-first)
 
-| | |
+| Layer | Choice |
 |---|---|
 | **App** | Next.js (App Router) + TypeScript, PWA — installable, mobile-first |
 | **UI** | Tailwind CSS + shadcn/ui |
 | **Backend** | Supabase — Postgres + Auth + Storage, Row-Level Security |
 | **Hosting** | Vercel (Hobby, free) |
-| **Tests/CI** | Vitest + Playwright + GitHub Actions |
+| **Tests/CI** | Vitest + Playwright + pgTAP + GitHub Actions |
 
 All on free tiers (~€0/mo for personal use). Rationale lives in the
 [Architecture Overview](docs/architecture/overview.md) and
@@ -52,10 +52,10 @@ Start at the **[Documentation Map](docs/README.md)**. Highlights:
 - [Product Brief](docs/product/product-brief.md) · [MVP Scope](docs/product/mvp-scope.md) · [Risks & Assumptions](docs/product/risks-and-assumptions.md)
 - [Architecture Overview](docs/architecture/overview.md) · [Domain Model](docs/architecture/domain-model.md) · [Data & Privacy](docs/architecture/data-and-privacy.md)
 - [Decision Records (ADRs)](docs/decisions/)
-- [Roadmap](docs/roadmap/roadmap.md) · [Sprint 01](docs/roadmap/sprint-01.md) · [Backlog](docs/roadmap/backlog.md)
-- [Setup guides](docs/setup/) (click-by-click) · [UX principles](docs/ux/principles.md)
+- [Roadmap](docs/roadmap/roadmap.md) · [Sprint plans](docs/roadmap/) · [Backlog](docs/roadmap/backlog.md)
+- [Setup guides](docs/setup/) (click-by-click) · [UX principles](docs/ux/principles.md) · [Docs style guide](docs/STYLE-GUIDE.md)
 
-## Getting started (from Milestone M1 onward)
+## Getting started
 
 ```bash
 pnpm install

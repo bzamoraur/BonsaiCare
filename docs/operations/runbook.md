@@ -1,7 +1,9 @@
 # Operations Runbook
 
-> Status: v1, 2026-06-26. How to keep the app healthy and recover from problems.
-> Grows as we hit (and document) real situations.
+> **Status:** Current · **Updated:** 2026-07-05
+>
+> How to keep the app healthy and recover from problems. Grows as we hit (and
+> document) real situations.
 
 ## Environments
 - **Local:** `pnpm dev` + local or hosted Supabase.
@@ -13,11 +15,12 @@
   smoke-test sign-in + a read/write after a notable release.
 - **Backups:** run a **data export** periodically (it doubles as a backup,
   [ADR-0008](../decisions/0008-data-ownership-and-export.md)); store the file
-  somewhere safe. Verify the free-tier DB backup situation during setup (R9).
+  somewhere safe. Verify the free-tier DB backup situation in M5 production
+  hardening (R9).
 - **Usage check:** glance at Supabase **storage** usage at each phase boundary
   ([cost-model](./cost-model.md), R4).
 
-## <a id="keep-warm"></a>Keep-warm (free-tier pause — R1)
+## Keep-warm (free-tier pause — R1)
 Free Supabase projects pause after ~7 days idle. A scheduled GitHub Action pings
 the project so a personal "production" app stays responsive.
 

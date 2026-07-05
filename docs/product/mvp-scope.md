@@ -1,7 +1,9 @@
 # MVP Scope
 
-> Status: v1, 2026-06-26. The authoritative in/out list. Changing scope means
-> editing this file (and saying why) — not silently building extra.
+> **Status:** Current · **Updated:** 2026-07-05
+>
+> The authoritative in/out list. Changing scope means editing this file (and
+> saying why) — not silently building extra.
 
 The guiding test for MVP inclusion: **does it make the app reliably useful for
 managing a real collection, this season?** If not, it waits.
@@ -49,7 +51,7 @@ Grouped by the user's stated MVP needs, refined by research.
   trust/anti-lock-in feature, in from the start.
 - Hemisphere/season setting (user-overridable) so seasonal logic is correct.
 
-## Explicitly OUT of MVP (deferred — with the seam that keeps them cheap later)
+## Explicitly out of MVP (deferred — with the seam that keeps them cheap later)
 
 | Deferred feature | Why deferred | Seam preserved |
 |---|---|---|
@@ -59,7 +61,7 @@ Grouped by the user's stated MVP needs, refined by research.
 | **AI species ID / diagnosis** | Mediocre accuracy category-wide; high effort/cost. | Photos + species fields exist to build on. |
 | **Marketplace, valuation, pots-as-assets** | Commercial/collector features. | `current_pot` text now; normalize to a pot entity later if it earns its place. |
 | **Per-branch wiring tracker, decandling auto-windows** | Powerful but advanced; risks over-building. | Wiring/decandling exist as care-event types now; promote to structured tools in Phase 2. |
-| **Offline-first capture + sync** | Owner confirmed "installable + fast" is enough for v1; true offline sync is a large complexity step. MVP PWA is installable + offline-*tolerant* (cached shell), not offline-first. | TanStack Query caching + service worker already soften brief offline; full local-write+sync can be added later if needed. |
+| **Offline-first capture + sync** | Owner confirmed "installable + fast" is enough for v1; true offline sync is a large complexity step. MVP PWA is installable + offline-*tolerant* (cached shell), not offline-first. | The cached app shell (service worker) already softens brief offline; a client cache (per the [ADR-0011](../decisions/0011-server-actions-and-validation.md) re-evaluation trigger) and full local-write+sync can be added later if needed. |
 | **Native iOS/Android apps** | $99/yr + review friction + second codebase. | PWA + clean backend → Capacitor/Expo path later. ([ADR-0001](../decisions/0001-platform-pwa-first.md)) |
 | **Google OAuth / password auth** | Magic-link is enough for 1–3 users with least setup/risk. | Additive in Supabase later, no data-model change. ([ADR-0010](../decisions/0010-auth-magic-link-first.md)) |
 | **Public landing page, monetization, analytics** | No users to monetize/measure yet. | Add when/if commercial. |

@@ -1,9 +1,12 @@
 # Domain Model
 
-> Status: Draft v1 (foundation). Reviewed against competitor research (see
-> `docs/research/benchmark.md`). This document defines the **conceptual** model.
-> The physical schema (SQL migrations) lives in `supabase/migrations/` once
-> implementation begins and must stay consistent with this file.
+> **Status:** Current · **Updated:** 2026-07-05
+>
+> Reviewed against competitor research (see the
+> [benchmark](../research/benchmark.md)). This document defines the
+> **conceptual** model; the physical schema lives in `supabase/migrations/`
+> (implemented through the care-log migration) and must stay consistent with
+> this file — when they drift, reconcile in the same PR.
 
 ## Design principles
 
@@ -28,7 +31,8 @@
    building a large species-care database for the MVP.
 5. **Privacy by construction.** Every row that belongs to a user carries
    `owner_id`. Postgres Row-Level Security (RLS) enforces that users only ever
-   read/write their own data. See `docs/architecture/data-and-privacy.md`.
+   read/write their own data. See
+   [Data, Security & Privacy](./data-and-privacy.md).
 
 ## Entity overview
 
@@ -139,9 +143,14 @@ styling, defoliation, observations and notes **without table sprawl**.
 | `task_id` | uuid (FK task), nullable | Set when this entry was created by completing a task. |
 | `created_at` / `updated_at` | timestamptz | |
 
-**`type` enum (MVP):** `note`, `watering`, `fertilizing`, `pruning`, `wiring`,
-`repotting`, `pest_disease`, `styling`, `defoliation`, `observation`,
-`photo_only`. New types are additive.
+**`type` enum (MVP, as shipped in `…_care_log.sql`):** `watering`,
+`fertilizing`, `pruning`, `wiring`, `repotting`, `pest_treatment`, `styling`,
+`defoliation`, `observation`, `note`. New types are additive.
+
+> Note: there is deliberately **no `photo_only` type** — a standalone progress
+> photo is a `photos` row with `care_log_entry_id = null`, and the timeline is
+> a **union** of care entries and photos (so the read model must never assume
+> every timeline item is a care entry).
 
 ### photo
 

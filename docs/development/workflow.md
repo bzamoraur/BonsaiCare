@@ -1,12 +1,13 @@
 # Development Workflow & Conventions
 
-> Status: v1, 2026-06-26. How we work — even with one developer — so the project
-> stays coherent and resumable. Lightweight, not bureaucratic.
+> **Status:** Current · **Updated:** 2026-07-05
+> How we work — even with one developer — so the project stays coherent and
+> resumable. Lightweight, not bureaucratic.
 
 ## Branching & PRs
 - `main` is always deployable; production deploys from it.
 - Work on short-lived branches: `feature/…`, `fix/…`, `chore/…`,
-  `docs/…`. (This foundation lands on `claude/focused-keller-4gz784`.)
+  `docs/…`. (The project foundation itself landed through this same PR flow.)
 - Open a **PR** for every change (even solo) — it gives a preview deploy, a CI
   run, and a review surface. Prefer **draft PRs** while in progress.
 - Keep PRs small and single-purpose; a PR maps to a milestone task/issue.
@@ -53,8 +54,8 @@ From the project brief — a quick self-challenge:
 - `CLAUDE.md` (root) holds the always-loaded conventions; keep it lean and
   current.
 - Significant decisions → an **ADR**, not just a chat message.
-- See [setup/05](../setup/05-claude-code-accelerators.md) for optional
-  accelerators (superpowers, MCP) and their safety rules.
+- See [the Claude Code accelerators guide](../setup/05-claude-code-accelerators.md)
+  for optional accelerators (superpowers, MCP) and their safety rules.
 
 ## Contributing (for future collaborators)
 Currently solo. If others join: read the [product brief](../product/product-brief.md),
