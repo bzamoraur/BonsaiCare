@@ -75,6 +75,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "care_log_entries_task_id_fkey";
+            columns: ["task_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "care_log_entries_tree_id_fkey";
             columns: ["tree_id"];
             isOneToOne: false;
@@ -245,6 +252,59 @@ export type Database = {
         };
         Relationships: [];
       };
+      tasks: {
+        Row: {
+          completed_at: string | null;
+          created_at: string;
+          due_on: string;
+          id: string;
+          notes: string | null;
+          owner_id: string;
+          recurrence: Json | null;
+          status: Database["public"]["Enums"]["task_status"];
+          title: string;
+          tree_id: string | null;
+          type: Database["public"]["Enums"]["task_type"];
+          updated_at: string;
+        };
+        Insert: {
+          completed_at?: string | null;
+          created_at?: string;
+          due_on: string;
+          id?: string;
+          notes?: string | null;
+          owner_id: string;
+          recurrence?: Json | null;
+          status?: Database["public"]["Enums"]["task_status"];
+          title: string;
+          tree_id?: string | null;
+          type: Database["public"]["Enums"]["task_type"];
+          updated_at?: string;
+        };
+        Update: {
+          completed_at?: string | null;
+          created_at?: string;
+          due_on?: string;
+          id?: string;
+          notes?: string | null;
+          owner_id?: string;
+          recurrence?: Json | null;
+          status?: Database["public"]["Enums"]["task_status"];
+          title?: string;
+          tree_id?: string | null;
+          type?: Database["public"]["Enums"]["task_type"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tasks_tree_id_fkey";
+            columns: ["tree_id"];
+            isOneToOne: false;
+            referencedRelation: "trees";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       tree_tags: {
         Row: {
           owner_id: string;
@@ -389,6 +449,16 @@ export type Database = {
       health_status: "thriving" | "healthy" | "struggling" | "critical" | "dormant";
       hemisphere: "northern" | "southern";
       species_type: "conifer" | "deciduous" | "broadleaf_evergreen" | "tropical" | "other";
+      task_status: "pending" | "done" | "skipped";
+      task_type:
+        | "watering"
+        | "fertilizing"
+        | "pruning"
+        | "repotting"
+        | "wiring"
+        | "inspection"
+        | "photo"
+        | "custom";
       tree_origin:
         | "nursery_stock"
         | "pre_bonsai"
@@ -542,6 +612,17 @@ export const Constants = {
       health_status: ["thriving", "healthy", "struggling", "critical", "dormant"],
       hemisphere: ["northern", "southern"],
       species_type: ["conifer", "deciduous", "broadleaf_evergreen", "tropical", "other"],
+      task_status: ["pending", "done", "skipped"],
+      task_type: [
+        "watering",
+        "fertilizing",
+        "pruning",
+        "repotting",
+        "wiring",
+        "inspection",
+        "photo",
+        "custom",
+      ],
       tree_origin: ["nursery_stock", "pre_bonsai", "yamadori", "seed", "cutting", "gift", "other"],
       units: ["metric", "imperial"],
     },
