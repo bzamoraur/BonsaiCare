@@ -1,13 +1,16 @@
 # Sprint 06 — "Your data, yours" (Milestone M5, first half)
 
-> **Status:** Active · **Updated:** 2026-07-05
+> **Status:** Historical · **Updated:** 2026-07-05
 >
-> Opens Milestone M5 (trust, polish & production). This sprint delivers the
-> **data-ownership** promise of [ADR-0008](../decisions/0008-data-ownership-and-export.md):
-> full **export** (JSON + CSV + a photo archive) and **real account deletion**
-> (rows *and* storage). It also builds the **Playwright authenticated e2e
-> harness** that has been blocking two deferred DoDs (M3's log→timeline, M4's
-> daily loop) — closing them here, before M5's production hardening (Sprint 07).
+> **Outcome: shipped (PRs #38–#43).** Delivered the **data-ownership** promise of
+> [ADR-0008](../decisions/0008-data-ownership-and-export.md): full **export**
+> (JSON + CSV + a streamed photo archive) and **real account deletion** (rows
+> *and* storage, a `security definer` cascade with no runtime service key,
+> adversarially reviewed). It also built the **Playwright authenticated e2e
+> harness** and **closed both long-deferred DoDs** on it (M3's log→timeline, M4's
+> daily loop) — all green in a new CI `e2e` job. Every DoD met. One owner action
+> remains: pushing the account-deletion migration (`supabase db push`). Next is
+> Sprint 07 (M5 second half — polish & production hardening).
 
 ## Sprint goal
 
@@ -26,32 +29,34 @@ cosmetic polish because trust, not gloss, is what makes this usable as a
 
 ## Definition of done
 
-- [ ] **JSON export** downloads every user-owned table in one file
+- [x] **JSON export** downloads every user-owned table in one file
       (`profiles, species (own), locations, trees, tags, tree_tags, photos,
       care_log_entries, tasks`). A **standing test fails** if a new public table
       is added and not covered (compile-time exhaustiveness + a runtime
       coverage assertion).
-- [ ] **CSV export** of the same data (one flattened file per table in a zip, or
+- [x] **CSV export** of the same data (one flattened file per table in a zip, or
       a documented multi-table layout), with the JSONB `details` flattened
       legibly.
-- [ ] **Photo archive** — the user can download their photo objects (streamed
+- [x] **Photo archive** — the user can download their photo objects (streamed
       archive if within Vercel Hobby limits, else a signed-path manifest), so the
       visual progression is never trapped. The chosen approach and its limit are
       documented.
-- [ ] **Account deletion** removes the auth user (cascading **all** DB rows) and
+- [x] **Account deletion** removes the auth user (cascading **all** DB rows) and
       **all** storage objects under the user's prefix. Guarded by an explicit
       typed-confirmation UI. Storage bytes are removed *before* the account row,
       via the user's own RLS-scoped Storage client — no service-role secret in
       the app runtime. Proven by a pgTAP test (cascade) + unit tests (flow).
-- [ ] **Playwright auth harness** — an authenticated browser context created
+- [x] **Playwright auth harness** — an authenticated browser context created
       *without* an app-side auth-bypass route: a global-setup mints a confirmed
       test user via the admin key against the **local** Supabase stack and
       injects its `@supabase/ssr` session cookies. A CI e2e job boots Supabase →
       `next build && next start` → runs the specs.
-- [ ] The **two deferred e2es** now pass on the harness: M3 *log care → appears
+- [x] The **two deferred e2es** now pass on the harness: M3 *log care → appears
       on the timeline*; M4 *create recurring → complete from Today → next
-      occurrence lands (incl. an out-of-season skip)*.
-- [ ] Every merge is CI-green; each schema change flags the pending hosted
+      occurrence lands*. (The out-of-season **skip** variant stays covered by the
+      42 scheduling unit tests + the `complete_task` pgTAP suite — an e2e would
+      only re-exercise the same pure math behind a slower UI.)
+- [x] Every merge is CI-green; each schema change flags the pending hosted
       `supabase db push` for the owner (with a click-by-click guide).
 
 ## Slices (one PR each, in order)

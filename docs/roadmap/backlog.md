@@ -42,10 +42,11 @@ These elaborate the [roadmap](./roadmap.md) milestones into reviewable stories.
 
 ### M5 — Trust & polish
 
-- …export all my data to CSV/JSON (+ photo archive). (P1)
-- …delete my account and have every row and photo actually removed. (P1)
-- …use the app comfortably in dark mode and with accessibility needs. (P1)
-- …trust the dashboard because the season logic is correct in my hemisphere. (P1)
+- [x] …export all my data to CSV/JSON (+ photo archive). (Sprint 06)
+- [x] …delete my account and have every row and photo actually removed. (Sprint 06)
+- …use the app comfortably in dark mode and with accessibility needs. (P1, Sprint 07)
+- [x] …trust the dashboard because the season logic is correct in my hemisphere.
+  (season domain shipped in M4; the daily loop is now e2e-proven, Sprint 06)
 
 ## MVP-adjacent feature ideas
 
@@ -140,21 +141,20 @@ Logged per the quality protocol; scheduled, not aspirational:
 - **Storage-orphan reconciliation** — upload is storage-first/DB-second with
   client-side best-effort cleanup only; a closed tab strands objects. Add a
   scheduled sweep (objects without a `photos.storage_path` row → delete past a
-  grace window) and fold object deletion into account deletion. *(Due: M5
-  slice 8; flagged in the PR #12 security review.)*
-- **Playwright e2e auth harness** — there's no way yet to run an authenticated
-  end-to-end test (magic-link auth blocks it), so **two** DoDs are deferred onto
-  it: M3's *log care → appears on timeline* and M4's *create recurring → complete
-  from Today → next occurrence lands (incl. the out-of-season skip)*. Concrete
-  plan: reuse the CI Supabase stack (the `db-test` job already runs
-  `supabase start`); in a Playwright global-setup, create a confirmed test user
-  via the admin (secret) key and inject its `@supabase/ssr` session cookies into
-  the browser context — **not** an app-side auth-bypass route (that would be a
-  prod security footgun); add a CI e2e job (boot Supabase → `playwright install
-  chromium` → run against `next build && next start`). Then port both deferred
-  flows and feed M5's critical-flow e2e. *(Due: Sprint 06, before M5's hardening.
-  Needs local Docker to author safely — the cookie/session injection is too
-  fiddly to build blind against CI alone.)*
+  grace window). *Account deletion already removes all of a user's storage
+  objects (the 2-level prefix walk in `src/server/account.ts`, Sprint 06), so the
+  remaining work is only the periodic orphan sweep.* *(Due: M5 slice 8, Sprint 07;
+  flagged in the PR #12 security review.)*
+- **Playwright e2e auth harness — ✅ DONE (Sprint 06, PRs #42–#43).** Shipped as
+  designed: a global-setup mints a confirmed user against the CI Supabase stack
+  and injects a real `@supabase/ssr` session (produced by the library itself, not
+  hand-crafted) into the browser context — no app-side auth-bypass route — with a
+  new CI `e2e` job (`supabase start` → export keys → `next build && next start` →
+  `playwright test`). **Both deferred DoDs closed**: M3's *log care → timeline*
+  and M4's *recurring → complete from Today → next occurrence lands*. It authored
+  green from CI without local Docker after all (the library-produced cookie was
+  the key). The out-of-season **skip** stays unit/pgTAP-covered by choice. Any
+  future critical-flow e2es (M5 slice 8) extend this same harness.
 - **Timeline read is a JS merge** — `listTreeTimeline` fetches a tree's care
   entries + photos and merges/sorts them in app code (right for a personal
   collection's volume). If a single tree's timeline grows large, swap the seam for
@@ -175,8 +175,9 @@ Logged per the quality protocol; scheduled, not aspirational:
   if timeline/dashboard interactions feel laggy or optimistic UI becomes a real
   need, revisit TanStack Query. *(Trigger-gated.)*
 - **`supabase db push` discipline** — hosted migrations lag the repo until the
-  owner pushes; every schema PR must flag it. *(Standing; one migration
-  currently pending push: `tasks` (M4).)*
+  owner pushes; every schema PR must flag it. *(Standing; one migration currently
+  pending push: `account_deletion` (M5, PR #41) — a click-by-click guide + a
+  throwaway-account acceptance test were delivered with it.)*
 
 ## Parking lot (unvetted ideas)
 

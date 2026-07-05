@@ -6,6 +6,34 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Milestone M5 (Sprint 06): data ownership & the e2e harness (2026-07-05)
+- **Full-account export** ([ADR-0008](docs/decisions/0008-data-ownership-and-export.md)) —
+  Settings exports a complete, portable copy of every user-owned table as **JSON**
+  (lossless) or **CSV** (a zip of one spreadsheet-friendly file per table, UTF-8
+  BOM for Excel, CSV/formula-injection-safe), plus a **photo archive** (a streamed
+  store-method zip, memory-bounded to fit Vercel Hobby, with a signed-URL manifest
+  fallback for very large libraries). Coverage is guarded both at compile time
+  (exhaustiveness against the table types) and at run time, so a new table can
+  never silently drop out of the export.
+- **Real account deletion** — the Settings danger zone (type `DELETE` to confirm)
+  erases the account and **all** data: a `security definer` RPC deletes the auth
+  user (cascading every owned row) after the app removes all storage objects
+  under the user's prefix; a `role="status"` login banner confirms the closure.
+  No service-role secret in the app runtime. Proven by a 14-assertion pgTAP
+  cascade/isolation suite + orchestration unit tests, and hardened by a four-lens
+  adversarial review (security / data-loss / SQL / UX).
+- **Authenticated e2e harness** — a Playwright global-setup mints a confirmed user
+  against the local CI Supabase stack and injects a real `@supabase/ssr` session
+  (no app-side auth-bypass route); a new CI **`e2e` job** runs it against
+  `next build && next start`. This **closes the two long-deferred DoDs**: M3's
+  *log care → appears on the timeline* and M4's *recurring task → complete from
+  Today → next occurrence lands*.
+
+### Changed
+- Added the `fflate` dependency (tiny, zero-dependency) for the export zips.
+- Split the login page into a Server Component (reads the post-deletion `deleted`
+  flag) and a client form.
+
 ### Changed — documentation standardization & forward planning (2026-07-05)
 - **Standardized every doc** against a new [Style Guide](docs/STYLE-GUIDE.md):
   uniform status headers (`Status · Updated`), heading/link conventions, shared
