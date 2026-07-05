@@ -1,11 +1,20 @@
 # Sprint 04 — "A schedule you can trust" (Milestone M4, foundation)
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Historical · **Updated:** 2026-07-06
 >
-> First sprint of M4. Correctness before UI: the recurrence/season math is the
-> single highest technical risk in the MVP (R7 — the Southern-hemisphere bug
-> class that burned Bonsai Empire), so it lands as pure, tested domain code
-> before any screen exists.
+> **Outcome: shipped (PRs #26–#31).** M4's foundation — the correctness-critical
+> half. Delivered domain-first: the recurrence/season math landed **tests-first
+> and adversarially verified** (both hemispheres, year-end-wrapping windows, the
+> out-of-season skip, both anchors — zero confirmed defects), then the `tasks`
+> schema (RLS + pgTAP + the care-log FK + an archive-skip trigger), the CRUD
+> data-access + Zod recurrence validation, the **atomic** complete/skip RPC (one
+> transaction, idempotent, adversarially verified — 21-assertion pgTAP), and the
+> task UI (create/edit/delete + a per-tree care plan + complete/skip with an
+> optional care-event log). **All DoD met.** Slice 3 shipped as 3a (data-access)
+> + 3b (RPC); the domain (slice 2) landed before the migration (slice 1) since it
+> is pure and schema-independent. The full-loop *integration* test rides on the
+> same deferred Playwright auth harness as M3 (backlog). Next: the Today
+> dashboard, calendar, and fertilization template ([Sprint 05](./sprint-05.md)).
 
 ## Sprint goal
 
@@ -15,21 +24,21 @@
 
 ## Definition of done (sprint)
 
-- [ ] `tasks` table live via migration with owner-scoped RLS + a pgTAP isolation
+- [x] `tasks` table live via migration with owner-scoped RLS + a pgTAP isolation
       suite, and the deferred `care_log_entries.task_id → tasks(id)` FK added.
-- [ ] `computeNextDueOn` / `isInSeasonWindow` in `src/domain/scheduling.ts` are
+- [x] `computeNextDueOn` / `isInSeasonWindow` in `src/domain/scheduling.ts` are
       pure and unit-tested — **tests written first**, explicitly covering:
       Northern + Southern hemispheres, season-window wrap across year-end
       (e.g. Nov–Feb), the out-of-season skip, and both anchors
       (`due` vs `completion`).
-- [ ] The `recurrence` JSONB is Zod-validated
+- [x] The `recurrence` JSONB is Zod-validated
       ([ADR-0011](../decisions/0011-server-actions-and-validation.md)):
       `interval_days ≥ 1`, months in 1–12, `anchor ∈ {due, completion}`.
-- [ ] Completion is **atomic**: mark done → optional care entry (linked via
+- [x] Completion is **atomic**: mark done → optional care entry (linked via
       `task_id`) → next occurrence, in one Postgres function/RPC — a mid-flight
       crash can never leave a completed task without its successor or duplicate
       entries.
-- [ ] One-off and recurring tasks can be created, edited, completed, and
+- [x] One-off and recurring tasks can be created, edited, completed, and
       skipped from the UI.
 
 ## Slices (one PR each, in order)
