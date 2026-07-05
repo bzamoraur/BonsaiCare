@@ -55,10 +55,10 @@ export default async function TreeDetailPage({
   searchParams,
 }: {
   params: Promise<Params>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; log?: string }>;
 }) {
   const { id } = await params;
-  const { error } = await searchParams;
+  const { error, log } = await searchParams;
 
   const [tree, photos, tags, entries] = await Promise.all([
     getTree(id),
@@ -164,7 +164,7 @@ export default async function TreeDetailPage({
       {/* Care log */}
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium">Care log</h2>
-        <LogCareForm action={logCareAction.bind(null, tree.id)} />
+        <LogCareForm action={logCareAction.bind(null, tree.id)} defaultOpen={log === "1"} />
 
         {entries.length === 0 ? (
           <p className="text-muted-foreground text-sm text-balance">

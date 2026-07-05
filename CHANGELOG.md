@@ -27,6 +27,10 @@ All notable changes to this project are documented here. Format follows
   `docs/archive/`.
 
 ### Added — Milestone M3: timeline & care logging
+- **Global "+" quick-add** — the nav's centre action now opens a `/log` tree
+  picker (skipping straight to the tree when you only have one); picking a tree
+  lands on its detail with the Log care form already open. Log from anywhere in a
+  couple of taps. Closes Sprint 02.
 - **Log care from a tree** — a "Log care" form on the tree detail: pick a type,
   fill the per-type detail fields (fertilizer NPK, repot soil mix, pruning
   intensity…), optionally backdate (timezone-correct), add notes. Backed by a

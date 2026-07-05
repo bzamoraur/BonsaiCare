@@ -1,12 +1,13 @@
 # Sprint 02 — "Log care, fast" (Milestone M3, capture half)
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Historical · **Updated:** 2026-07-06
 >
-> First sprint of M3. The care-log schema is already merged
-> (`supabase/migrations/…_care_log.sql`, PR #17) but pending `supabase db push`
-> to the hosted project (see the backlog's tech-debt register); this sprint
-> builds the capture path on top of it. Two-week cadence, solo part-time; every slice is a small PR
-> behind green CI.
+> **Outcome: shipped (PRs #19–#21).** Care validation domain (Zod per type,
+> 12 tests), care data-access + owner-scoped Server Action, the "Log care" form
+> on the tree detail (per-type fields, timezone-correct backdating), and the
+> global **+** (a `/log` tree picker that skips straight to the tree when there's
+> only one, landing on its detail with the form auto-opened). The care-log
+> migration was confirmed live on the hosted project. Next: [Sprint 03](./sprint-03.md).
 
 ## Sprint goal
 
@@ -15,16 +16,16 @@
 
 ## Definition of done (sprint)
 
-- [ ] Every `care_event_type` has a Zod `details` schema
+- [x] Every `care_event_type` has a Zod `details` schema
       ([ADR-0011](../decisions/0011-server-actions-and-validation.md)), with
       unit tests for valid **and** invalid payloads per type.
-- [ ] Logging works from a tree's detail screen *and* from the global **+** in
+- [x] Logging works from a tree's detail screen *and* from the global **+** in
       the nav (which stops being disabled).
-- [ ] `occurred_at` defaults to now and is freely editable (backdating works at
+- [x] `occurred_at` defaults to now and is freely editable (backdating works at
       capture time).
-- [ ] Validation runs at the Server Action boundary; a malformed `details`
+- [x] Validation runs at the Server Action boundary; a malformed `details`
       payload is rejected server-side, not just in the UI.
-- [ ] Capture friction honors the product bar: at most one required field per
+- [x] Capture friction honors the product bar: at most one required field per
       type; the rest progressively disclosed.
 
 ## Slices (one PR each, in order)

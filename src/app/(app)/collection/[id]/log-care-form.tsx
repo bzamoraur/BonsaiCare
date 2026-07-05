@@ -19,11 +19,13 @@ const inputClass = `${fieldBase} h-10`;
 
 type Props = {
   action: (prev: LogCareState, formData: FormData) => Promise<LogCareState>;
+  /** Start expanded — used when arriving from the global "+" (`?log=1`). */
+  defaultOpen?: boolean;
 };
 
-export function LogCareForm({ action }: Props) {
+export function LogCareForm({ action, defaultOpen = false }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [type, setType] = useState<CareEventType>("watering");
   const [when, setWhen] = useState(""); // datetime-local; empty ⇒ "now" on the server
   const formRef = useRef<HTMLFormElement>(null);

@@ -52,12 +52,13 @@ function TabLink({ tab, active }: { tab: Tab; active: boolean }) {
 
 /**
  * Bottom tab bar (mobile-first) for the app shell: Today, Collection, Calendar,
- * Settings, plus a central quick-add action. Quick-add is disabled — and shows a
- * visible "Soon" label — until the capture flow ships in a later milestone.
+ * Settings, plus a central quick-add that opens the "log care" flow (pick a tree,
+ * then log — one tap fewer when you only have one tree).
  */
 export function AppNav() {
   const pathname = usePathname();
   const [today, collection, calendar, settings] = tabs;
+  const logActive = isActive(pathname, "/log");
 
   return (
     <nav
@@ -69,15 +70,15 @@ export function AppNav() {
         <TabLink tab={collection} active={isActive(pathname, collection.href)} />
 
         <div className="flex flex-1 flex-col items-center gap-0.5">
-          <button
-            type="button"
-            disabled
-            aria-label="Quick add — coming soon"
-            className="bg-primary/70 text-primary-foreground ring-background -mt-6 flex size-14 items-center justify-center rounded-full shadow-md ring-4"
+          <Link
+            href="/log"
+            aria-label="Log care"
+            aria-current={logActive ? "page" : undefined}
+            className="bg-primary text-primary-foreground ring-background focus-visible:ring-ring -mt-6 flex size-14 items-center justify-center rounded-full shadow-md ring-4 transition-transform outline-none hover:scale-105 focus-visible:ring-2 active:scale-95"
           >
             <Plus className="size-6" aria-hidden />
-          </button>
-          <span className="text-muted-foreground pb-1 text-[0.65rem] font-medium">Soon</span>
+          </Link>
+          <span className="text-muted-foreground pb-1 text-[0.65rem] font-medium">Log</span>
         </div>
 
         <TabLink tab={calendar} active={isActive(pathname, calendar.href)} />
