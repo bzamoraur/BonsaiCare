@@ -26,6 +26,32 @@ All notable changes to this project are documented here. Format follows
   `photo_only` event type). Archived the point-in-time repo audit to
   `docs/archive/`.
 
+### Added — Milestone M4: tasks, recurrence & the daily loop (foundation)
+- **Complete & skip tasks** — every pending task has **Done / Skip**. "Done" logs
+  an optional linked care event (backdatable) and, if recurring, spawns the next
+  occurrence; "Skip" advances the series without a care event. All in one atomic
+  Postgres transaction (`complete_task` RPC) so a mid-flight failure never orphans
+  a completed task or duplicates a successor (an idempotent `pending` guard).
+- **Care plan per tree** — a section on the tree detail lists pending tasks (type,
+  schedule, an **Overdue** badge derived at read time) with create / edit / delete.
+  A plain-language recurrence editor: every N days, counting from when you do it or
+  the due date, with an optional season window.
+- **Recurrence & season domain** (`src/domain/scheduling.ts`) — pure, **tests-first**
+  `computeNextDueOn` + `isInSeasonWindow`: season months are stored northern-
+  canonical and inverted by the profile's hemisphere (the fix for the
+  Bonsai-Empire southern-hemisphere bug, R7), handling year-end-wrapping windows
+  and the out-of-season skip. Adversarially verified (zero confirmed defects).
+  `parseRecurrence` Zod-validates the recurrence JSONB
+  ([ADR-0011](docs/decisions/0011-server-actions-and-validation.md)).
+- **Tasks schema** (`supabase/migrations`) — a `tasks` table (`task_type` +
+  `task_status` enums, nullable tree for collection-wide tasks, JSONB recurrence),
+  owner-scoped RLS proven by pgTAP, the `care_log_entries.task_id` FK, and a
+  trigger that auto-skips an archived tree's pending tasks. The atomic
+  `complete_task` RPC has its own 21-assertion pgTAP suite. Overdue is derived,
+  never stored ([ADR-0006](docs/decisions/0006-task-scheduling-and-recurrence.md)).
+- **Pending hosted push:** the `tasks` and `complete_task` migrations need
+  `supabase db push` to the hosted database before tasks work in production.
+
 ### Added — Milestone M3: timeline & care logging
 - **Attach photos to a care event** — "Add photo" on a timeline entry attaches the
   photo to that event (it shows inline under it, RLS-checked to the same tree); the
@@ -154,5 +180,7 @@ All notable changes to this project are documented here. Format follows
   Sprint 01 locally.
 - Updated MVP scope, cost model, architecture overview, and risk register to match.
 
-_Milestones M1–M3 are complete (bar M3's deferred log→timeline e2e); Milestone M4
-(tasks, recurrence & dashboard) is next._
+_Milestones M1–M3 are complete (bar M3's deferred log→timeline e2e). Milestone M4's
+foundation — the task engine (recurrence/season domain, `tasks` schema, atomic
+complete/skip RPC) and the care-plan UI — is shipped; its Today dashboard, calendar,
+and fertilization template are next ([Sprint 05](docs/roadmap/sprint-05.md))._

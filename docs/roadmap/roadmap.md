@@ -1,6 +1,6 @@
 # Roadmap
 
-> **Status:** Living · **Updated:** 2026-07-05
+> **Status:** Living · **Updated:** 2026-07-06
 >
 > Phased, scope-disciplined. Each phase has an exit criterion. We do not start a
 > phase's "nice-to-haves" until its core ships. Estimates are rough effort for a
@@ -16,7 +16,7 @@
 | M1 — Skeleton & spine | ✅ shipped | PRs #2–#7; [Sprint 01](./sprint-01.md) closed |
 | M2 — Trees & photos | ✅ shipped | PRs #8–#16; collection + photos + organize live |
 | M3 — Timeline & care logging | ✅ shipped | PRs #17–#24; Sprints [02](./sprint-02.md)/[03](./sprint-03.md) — one deferred DoD (e2e harness) |
-| M4 — Tasks & dashboard | planned | [Sprint 04](./sprint-04.md) next |
+| M4 — Tasks & dashboard | 🚧 in progress | Sprint 04 shipped (PRs #26–#31): task engine + care-plan UI; [Sprint 05](./sprint-05.md) (dashboard) next |
 | M5 — Trust & production | planned | — |
 
 ## Phase 0 — Foundation
@@ -76,21 +76,23 @@ The slices, as delivered (one small PR each):
 - **Sprints:** [02 — "Log care, fast"](./sprint-02.md) (slices 1–4) and
   [03 — "The tree's story"](./sprint-03.md) (slices 5–7).
 
-### M4 — Tasks, recurrence & dashboard *(the daily loop)* — planned
+### M4 — Tasks, recurrence & dashboard *(the daily loop)* — 🚧 in progress
 
 Recurrence per [ADR-0006](../decisions/0006-task-scheduling-and-recurrence.md);
-dashboard per [ADR-0007](../decisions/0007-notifications-strategy.md). Slices:
+dashboard per [ADR-0007](../decisions/0007-notifications-strategy.md). Slices
+1–5 shipped in [Sprint 04](./sprint-04.md) (PRs #26–#31); 6–8 are
+[Sprint 05](./sprint-05.md):
 
-1. **`tasks` migration** + RLS + pgTAP; add the deferred
+1. ✅ **`tasks` migration** + RLS + pgTAP; add the deferred
    `care_log_entries.task_id` FK.
-2. **Recurrence/season pure domain** — `computeNextDueOn` + `isInSeasonWindow`
+2. ✅ **Recurrence/season pure domain** — `computeNextDueOn` + `isInSeasonWindow`
    in `src/domain/scheduling.ts`, **tests first**, covering both hemispheres and
    the season-skip (the marquee correctness risk, R7).
-3. **Tasks data-access + atomic completion** — complete/skip → optional care
+3. ✅ **Tasks data-access + atomic completion** — complete/skip → optional care
    entry + next occurrence in **one transaction** (RPC).
-4. **Task create/edit UI** — one-off + recurring; legible recurrence editor
+4. ✅ **Task create/edit UI** — one-off + recurring; legible recurrence editor
    (interval, anchor, season window).
-5. **Complete/skip flow** — one tap, "also log a care event?" prefilled.
+5. ✅ **Complete/skip flow** — one tap, "also log a care event?" prefilled.
 6. **Today dashboard** — overdue / due today / upcoming + health triage; the
    app's daily home.
 7. **Calendar** — list grouped by day, then a month grid.
