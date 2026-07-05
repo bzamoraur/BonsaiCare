@@ -145,14 +145,17 @@ async function resolveTask(
   const careType =
     outcome === "done" && opts.logEvent && task.tree_id ? TASK_TYPE_TO_CARE_EVENT[task.type] : null;
 
+  // Optional RPC args are omitted (undefined) rather than null when absent — the
+  // Postgres function's own defaults (null) apply. Matches the generated types,
+  // which type defaulted params as non-nullable.
   const { error } = await supabase.rpc("complete_task", {
     p_task_id: taskId,
     p_outcome: outcome,
     p_completed_on: opts.completedOn,
     p_log_event: careType !== null,
-    p_care_type: careType,
-    p_care_notes: opts.careNotes ?? null,
-    p_next_due_on: nextDueOn,
+    p_care_type: careType ?? undefined,
+    p_care_notes: opts.careNotes ?? undefined,
+    p_next_due_on: nextDueOn ?? undefined,
   });
   if (error) {
     throw new Error(`Failed to ${outcome === "done" ? "complete" : "skip"} task: ${error.message}`);
