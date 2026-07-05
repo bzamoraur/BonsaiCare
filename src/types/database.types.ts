@@ -433,11 +433,11 @@ export type Database = {
     Functions: {
       complete_task: {
         Args: {
-          p_care_notes?: string | null;
-          p_care_type?: Database["public"]["Enums"]["care_event_type"] | null;
+          p_care_notes?: string;
+          p_care_type?: Database["public"]["Enums"]["care_event_type"];
           p_completed_on: string;
           p_log_event?: boolean;
-          p_next_due_on?: string | null;
+          p_next_due_on?: string;
           p_outcome: Database["public"]["Enums"]["task_status"];
           p_task_id: string;
         };
