@@ -1,5 +1,8 @@
-import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+
+import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 import { SettingsForm } from "./settings-form";
 
@@ -34,6 +37,26 @@ export default async function SettingsPage() {
           units={profile.units}
         />
       )}
+
+      <hr className="border-border" />
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-sm font-medium">Your data</h2>
+          <p className="text-muted-foreground text-sm">
+            Export a complete, portable copy of your collection — trees, care history, tasks, and
+            photo details — as a JSON file. Your record is always yours to keep.
+          </p>
+        </div>
+        <a
+          href="/settings/export?format=json"
+          download
+          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
+        >
+          <Download aria-hidden="true" />
+          Export as JSON
+        </a>
+      </section>
 
       <hr className="border-border" />
 
