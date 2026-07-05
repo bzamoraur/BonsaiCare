@@ -112,3 +112,19 @@ export function parseTaskForm(raw: RawTaskForm): ParseTaskResult {
 
   return { ok: true, value: { title, type, treeId, dueOn, notes, recurrence } };
 }
+
+/**
+ * The care event a completed task should log, or `null` when the completion isn't
+ * a care event (a `photo` task just adds a photo; a `custom` errand logs nothing).
+ * `satisfies` keeps this exhaustive — a new task_type fails the build until mapped.
+ */
+export const TASK_TYPE_TO_CARE_EVENT = {
+  watering: "watering",
+  fertilizing: "fertilizing",
+  pruning: "pruning",
+  repotting: "repotting",
+  wiring: "wiring",
+  inspection: "observation",
+  photo: null,
+  custom: null,
+} satisfies Record<Enums<"task_type">, Enums<"care_event_type"> | null>;

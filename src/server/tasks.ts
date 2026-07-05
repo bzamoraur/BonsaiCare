@@ -1,6 +1,7 @@
 import { cache } from "react";
 
-import type { TaskFormInput } from "@/domain/task-form";
+import { computeNextDueOn, parseRecurrence } from "@/domain/scheduling";
+import { TASK_TYPE_TO_CARE_EVENT, type TaskFormInput } from "@/domain/task-form";
 import { createClient } from "@/lib/supabase/server";
 import type { Json, Tables } from "@/types/database.types";
 
@@ -89,4 +90,74 @@ export async function deleteTask(id: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from("tasks").delete().eq("id", id);
   if (error) throw new Error(`Failed to delete task: ${error.message}`);
+}
+
+/**
+ * Shared resolution path for complete + skip. Computes the season-aware next due
+ * date in TS (`computeNextDueOn` — the single source of truth for the recurrence
+ * math), then performs every write atomically via the `complete_task` RPC. The
+ * RPC's status guard makes a double-submit a no-op raise, not a duplicate series.
+ */
+async function resolveTask(
+  taskId: string,
+  outcome: "done" | "skipped",
+  opts: { completedOn: string; logEvent?: boolean; careNotes?: string | null },
+): Promise<void> {
+  const supabase = await createClient();
+
+  const { data: task, error: readError } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("id", taskId)
+    .maybeSingle();
+  if (readError) throw new Error(`Failed to load task: ${readError.message}`);
+  if (!task) throw new Error("Task not found.");
+
+  // Next occurrence for a recurring task, from the verified domain function.
+  let nextDueOn: string | null = null;
+  if (task.recurrence) {
+    const parsed = parseRecurrence(task.recurrence);
+    if (parsed.ok) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("hemisphere")
+        .eq("id", task.owner_id)
+        .maybeSingle();
+      nextDueOn = computeNextDueOn(
+        { dueOn: task.due_on, completedOn: opts.completedOn },
+        parsed.value,
+        profile?.hemisphere ?? "northern",
+      );
+    }
+  }
+
+  const careType = outcome === "done" && opts.logEvent ? TASK_TYPE_TO_CARE_EVENT[task.type] : null;
+
+  const { error } = await supabase.rpc("complete_task", {
+    p_task_id: taskId,
+    p_outcome: outcome,
+    p_completed_on: opts.completedOn,
+    p_log_event: careType !== null,
+    p_care_type: careType,
+    p_care_notes: opts.careNotes ?? null,
+    p_next_due_on: nextDueOn,
+  });
+  if (error) {
+    throw new Error(`Failed to ${outcome === "done" ? "complete" : "skip"} task: ${error.message}`);
+  }
+}
+
+/** Marks a task done, optionally logging a linked care event, and (if recurring)
+ * spawns the next occurrence — all atomically. */
+export async function completeTask(
+  taskId: string,
+  opts: { completedOn: string; logEvent?: boolean; careNotes?: string | null },
+): Promise<void> {
+  await resolveTask(taskId, "done", opts);
+}
+
+/** Marks a task skipped; a recurring task still spawns its next occurrence (you
+ * skipped this one, not the plan). */
+export async function skipTask(taskId: string, completedOn: string): Promise<void> {
+  await resolveTask(taskId, "skipped", { completedOn });
 }
