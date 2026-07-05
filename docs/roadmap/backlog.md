@@ -93,6 +93,24 @@ list for the reasoning). Re-order from real usage evidence.
 - **Locations as care context** — sun/shade, winter-protection attributes →
   seasonal prompts ("frost forecast → move tender trees"). (P2, S–M)
 - **Trusted-user invites & polish** for 1→3 users. (P2, M)
+- **Owner metrics view (friends-release)** — an *owner-only* page: registered-user
+  count, signups over time, active users (last care log / task completion), and
+  per-user totals (trees, logs, tasks). Admin gate = owner id in env or an
+  `is_admin` flag on `profiles`; aggregate queries only (no per-user data
+  snooping beyond counts). The heart of "let me see how many are registered and
+  monitor activity." (P1 for the friends stage, S–M)
+- **Usage analytics (privacy-first, friends-release)** — "data will be key":
+  see *which* features get used so development is evidence-led. Start with Vercel
+  Web Analytics (routes, cookieless) + a small `usage_events` table for key
+  actions (logged care, created/completed task) that feeds the owner metrics
+  view; consider PostHog/Plausible only if richer funnels are needed. New ADR for
+  the events shape + retention. No PII beyond the user id already held. (P1 for
+  the friends stage, M)
+- **Gated registration / email allowlist (friends-release decision)** — signup is
+  **open** today (anyone with the URL can register). For a controlled colleague
+  rollout, restrict signup to invited emails via a Supabase auth hook or an
+  `allowed_emails` check. Owner decides open vs. gated before inviting. (P1 for
+  the friends stage, S)
 - **First-run tutorial / onboarding tour** — the moment a friend opens the app
   cold, a short guided walk-through (add a tree → log care → read the timeline)
   turns "empty app" into "I get it." Skippable, re-openable from Settings, and

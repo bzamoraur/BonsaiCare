@@ -159,6 +159,42 @@ evidence, not speculation:
    [ADR-0010](../decisions/0010-auth-magic-link-first.md), if magic-link
    round-trips grate.
 
+### Getting to a friends release (the owner's sharing path)
+
+The owner wants to share with 2–3 colleagues: let them register easily, and
+give the owner visibility into who's on and what they do ("data will be key to
+keep developing the app"). Good news — the app is **already multi-user-ready**:
+RLS isolates every user's data (proven by pgTAP), **magic-link self-signup
+already works today** (a colleague opens the deployed URL, enters their email,
+clicks the link — they're in, with their own empty collection), and account
+deletion is real. What's missing is *control* and *visibility*, in this order:
+
+1. **Registration mode (a decision).** Today signup is **open** — anyone with
+   the URL can register. For a controlled rollout, add an **email allowlist** so
+   only invited colleagues can complete signup (a Supabase auth hook, or a check
+   against an `allowed_emails` table). Small build; the owner decides open vs.
+   gated. (For a handful of friends, Vercel Hobby is fine; commercial launch
+   still moves off it — R5.)
+2. **First-run onboarding** — the skippable tutorial (in the backlog) so a cold
+   colleague "gets it" in one pass. **Gate the invite on this.**
+3. **Owner metrics view (the heart of the ask)** — an *owner-only* page:
+   registered-user count, signups over time, active users (by last care log /
+   task completion), and per-user totals (trees, logs, tasks). Needs an admin
+   gate (owner id in env or an `is_admin` flag on `profiles`) + aggregate
+   queries. Small, high-value; buildable as soon as the owner wants it.
+4. **Usage analytics** — privacy-first, so development is evidence-led: start
+   with **Vercel Web Analytics** (routes, cookieless) + a small `usage_events`
+   table for key actions (logged care, created/completed task) feeding the
+   metrics view. Reach for PostHog/Plausible only if richer funnels are ever
+   needed. No PII beyond the user id already held; a new ADR for the events shape.
+5. **Error monitoring** — Sentry (already M5 slice 8) so the owner *sees* a
+   colleague's bug rather than hearing about it later.
+
+**Sequence:** finish **M5** (polish + hardening — includes Sentry) → ship the
+onboarding tutorial + the friends-release items (allowlist decision, owner
+metrics, usage analytics) → invite. Detailed items are in the
+[backlog](./backlog.md).
+
 ## Phase 3 — Optional commercial (only if pursued)
 
 Public landing page, monetization (transparent, no dark patterns), native shell
