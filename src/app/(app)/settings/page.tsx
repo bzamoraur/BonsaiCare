@@ -1,10 +1,8 @@
-import { Download } from "lucide-react";
-
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
-import { cn } from "@/lib/utils";
 
 import { DeleteAccountSection } from "./delete-account-section";
+import { DownloadButton } from "./download-button";
 import { SettingsForm } from "./settings-form";
 
 export const metadata = {
@@ -51,30 +49,15 @@ export default async function SettingsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a
-            href="/settings/export?format=json"
-            download
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
-          >
-            <Download aria-hidden="true" />
+          <DownloadButton href="/settings/export?format=json" fallbackName="bonsai-export.json">
             Export as JSON
-          </a>
-          <a
-            href="/settings/export?format=csv"
-            download
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
-          >
-            <Download aria-hidden="true" />
+          </DownloadButton>
+          <DownloadButton href="/settings/export?format=csv" fallbackName="bonsai-export-csv.zip">
             Export as CSV
-          </a>
-          <a
-            href="/settings/export/photos"
-            download
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
-          >
-            <Download aria-hidden="true" />
+          </DownloadButton>
+          <DownloadButton href="/settings/export/photos" fallbackName="bonsai-photos.zip">
             Download photos
-          </a>
+          </DownloadButton>
         </div>
       </section>
 
