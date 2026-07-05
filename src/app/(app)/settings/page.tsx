@@ -66,6 +66,14 @@ export default async function SettingsPage() {
             <Download aria-hidden="true" />
             Export as CSV
           </a>
+          <a
+            href="/settings/export/photos"
+            download
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
+          >
+            <Download aria-hidden="true" />
+            Download photos
+          </a>
         </div>
       </section>
 
