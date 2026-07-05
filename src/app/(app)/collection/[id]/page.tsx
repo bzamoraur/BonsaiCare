@@ -2,17 +2,21 @@ import { Camera, ChevronLeft, Leaf, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { isOverdue } from "@/domain/scheduling";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CARE_EVENT_ICONS, CARE_EVENT_LABELS, careDetailSummary } from "@/lib/care-labels";
+import { TASK_TYPE_ICONS, TASK_TYPE_LABELS, describeRecurrence } from "@/lib/task-labels";
 import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@/lib/tree-labels";
 import { cn } from "@/lib/utils";
 import { getLocationName } from "@/server/locations";
 import { getTreeTags } from "@/server/tags";
+import { listTreeTasks, type Task } from "@/server/tasks";
 import { listTreeTimeline, type TimelineItem } from "@/server/timeline";
 import { getTree } from "@/server/trees";
 import { Constants } from "@/types/database.types";
 
 import { archiveTreeAction } from "./actions";
+import { AddTaskForm } from "./add-task-form";
 import { ArchiveTreeForm } from "./archive-tree-form";
 import { deleteCareAction, logCareAction } from "./care-actions";
 import { ConfirmDeleteButton } from "./confirm-delete-button";
@@ -20,6 +24,7 @@ import { DeletePhotoButton } from "./delete-photo-button";
 import { LogCareForm } from "./log-care-form";
 import { deletePhotoAction, setCoverAction } from "./photo-actions";
 import { PhotoUploader } from "./photo-uploader";
+import { createTaskAction, deleteTaskAction } from "./task-actions";
 import { TimelineFilters, type FilterOption } from "./timeline-filters";
 
 type Params = { id: string };
@@ -29,6 +34,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   cover: "We couldn't set that cover photo. Please try again.",
   photo: "We couldn't delete that photo. Please try again.",
   care: "We couldn't update the care log. Please try again.",
+  task: "We couldn't update that task. Please try again.",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("en-GB", {
@@ -63,12 +69,17 @@ export default async function TreeDetailPage({
   const { id } = await params;
   const { error, log, type } = await searchParams;
 
-  const [tree, timeline, tags] = await Promise.all([
+  const [tree, timeline, tags, tasks] = await Promise.all([
     getTree(id),
     listTreeTimeline(id),
     getTreeTags(id),
+    listTreeTasks(id),
   ]);
   if (!tree) notFound();
+
+  // Today as a floating calendar day for overdue comparison (see isOverdue).
+  const today = new Date().toISOString().slice(0, 10);
+  const pendingTasks = tasks.filter((t) => t.status === "pending");
 
   const locationName = tree.location_id ? await getLocationName(tree.location_id) : null;
 
@@ -195,6 +206,27 @@ export default async function TreeDetailPage({
         </section>
       ) : null}
 
+      {/* Care plan — upcoming tasks for this tree. */}
+      {!isArchived || pendingTasks.length > 0 ? (
+        <section className="flex flex-col gap-4">
+          <h2 className="text-sm font-medium">Care plan</h2>
+          {!isArchived ? (
+            <AddTaskForm action={createTaskAction.bind(null, tree.id)} defaultDueOn={today} />
+          ) : null}
+          {pendingTasks.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-balance">
+              No tasks planned. Add a watering or fertilizing schedule to stay on track.
+            </p>
+          ) : (
+            <ol className="flex flex-col">
+              {pendingTasks.map((task) => (
+                <TaskItem key={task.id} task={task} treeId={tree.id} today={today} />
+              ))}
+            </ol>
+          )}
+        </section>
+      ) : null}
+
       {/* Timeline — care events + photos, merged, newest first. */}
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
@@ -248,6 +280,50 @@ export default async function TreeDetailPage({
         {!isArchived ? <ArchiveTreeForm action={archiveTreeAction.bind(null, tree.id)} /> : null}
       </div>
     </main>
+  );
+}
+
+function TaskItem({ task, treeId, today }: { task: Task; treeId: string; today: string }) {
+  const overdue = isOverdue({ status: task.status, dueOn: task.due_on }, today);
+  const Icon = TASK_TYPE_ICONS[task.type];
+  return (
+    <li className="flex gap-3">
+      <div className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
+        <Icon className="size-4" aria-hidden />
+      </div>
+      <div className="border-border flex flex-1 flex-col gap-1 border-b pb-4 last:border-b-0">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-sm font-medium">{task.title}</span>
+          <span
+            className={cn(
+              "shrink-0 text-xs",
+              overdue ? "text-destructive font-medium" : "text-muted-foreground",
+            )}
+          >
+            {overdue ? "Overdue · " : ""}
+            {formatAcquired(task.due_on)}
+          </span>
+        </div>
+        <p className="text-muted-foreground text-xs">
+          {TASK_TYPE_LABELS[task.type]} · {describeRecurrence(task.recurrence)}
+        </p>
+        {task.notes ? (
+          <p className="text-muted-foreground text-sm whitespace-pre-wrap">{task.notes}</p>
+        ) : null}
+        <div className="flex items-center gap-1">
+          <Link
+            href={`/collection/${treeId}/tasks/${task.id}`}
+            className="text-muted-foreground hover:text-foreground px-2 py-1 text-xs font-medium underline-offset-4 hover:underline"
+          >
+            Edit
+          </Link>
+          <ConfirmDeleteButton
+            action={deleteTaskAction.bind(null, task.id, treeId)}
+            srLabel="Delete task"
+          />
+        </div>
+      </div>
+    </li>
   );
 }
 
