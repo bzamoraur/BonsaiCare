@@ -1,11 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
+import { deleteAccount } from "@/server/account";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database.types";
 
-import type { ProfileFormState } from "./types";
+import type { DeleteAccountState, ProfileFormState } from "./types";
+
+/** The exact word a user must type to confirm irreversible account deletion. */
+const DELETE_CONFIRMATION = "DELETE";
 
 type Hemisphere = Database["public"]["Enums"]["hemisphere"];
 type Units = Database["public"]["Enums"]["units"];
@@ -59,4 +64,38 @@ export async function updateProfile(
 
   revalidatePath("/settings");
   return { status: "success" };
+}
+
+/**
+ * Permanently deletes the signed-in user's account and all their data (rows +
+ * storage). Requires typing the exact confirmation word. On success it clears
+ * the session and redirects to login; there is no success state to render.
+ */
+export async function deleteAccountAction(
+  _prev: DeleteAccountState,
+  formData: FormData,
+): Promise<DeleteAccountState> {
+  const confirmation = formData.get("confirmation");
+  if (typeof confirmation !== "string" || confirmation.trim() !== DELETE_CONFIRMATION) {
+    return { status: "error", message: `Type ${DELETE_CONFIRMATION} to confirm.` };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { status: "error", message: "You are not signed in." };
+  }
+
+  try {
+    await deleteAccount(supabase, user.id);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "We could not delete your account.";
+    return { status: "error", message };
+  }
+
+  // The account row is gone; clear the now-orphaned session cookies locally.
+  await supabase.auth.signOut({ scope: "local" });
+  redirect("/login?deleted=1");
 }
