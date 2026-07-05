@@ -27,6 +27,11 @@ All notable changes to this project are documented here. Format follows
   `docs/archive/`.
 
 ### Added — Milestone M3: timeline & care logging
+- **Per-tree timeline** — the tree detail now shows one merged, newest-first
+  timeline of care events **and** photos (per-type icons, inline photo thumbnails),
+  replacing the separate care-log list and photos grid. Read via a single
+  `listTreeTimeline` seam (a JS merge for now; the SQL-union scale path is logged in
+  the backlog). Photos attached to an event already fold into that event's item.
 - **Global "+" quick-add** — the nav's centre action now opens a `/log` tree
   picker (skipping straight to the tree when you only have one); picking a tree
   lands on its detail with the Log care form already open. Log from anywhere in a
