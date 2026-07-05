@@ -21,6 +21,7 @@ export async function recordPhotoAction(input: {
   storagePath: string;
   width: number;
   height: number;
+  careLogEntryId?: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     await recordPhoto(input);

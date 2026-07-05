@@ -109,6 +109,11 @@ Logged per the quality protocol; scheduled, not aspirational:
   scheduled sweep (objects without a `photos.storage_path` row → delete past a
   grace window) and fold object deletion into account deletion. *(Due: M5
   slice 8; flagged in the PR #12 security review.)*
+- **Playwright e2e auth harness** — there's no way yet to run an authenticated
+  end-to-end test (magic-link auth blocks it). Build a test-auth path (a seeded
+  user + a session bypass, or Supabase admin sign-in) so critical flows can be
+  covered — starting with M3's *log care → appears on timeline* (a deferred DoD),
+  and feeding M5's critical-flow e2e. *(Due: before M5; unblocks the M3 e2e.)*
 - **Timeline read is a JS merge** — `listTreeTimeline` fetches a tree's care
   entries + photos and merges/sorts them in app code (right for a personal
   collection's volume). If a single tree's timeline grows large, swap the seam for

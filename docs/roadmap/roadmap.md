@@ -8,15 +8,15 @@
 > detail lives in the sprint docs ([02](./sprint-02.md), [03](./sprint-03.md),
 > [04](./sprint-04.md), [05](./sprint-05.md)).
 
-## Where we are (2026-07-05)
+## Where we are (2026-07-06)
 
 | Milestone | State | Proof |
 |---|---|---|
-| Phase 0 — Foundation | ✅ shipped | Docs, ADRs 0000–0010, CI scaffold |
+| Phase 0 — Foundation | ✅ shipped | Docs, ADRs 0000–0011, CI scaffold |
 | M1 — Skeleton & spine | ✅ shipped | PRs #2–#7; [Sprint 01](./sprint-01.md) closed |
 | M2 — Trees & photos | ✅ shipped | PRs #8–#16; collection + photos + organize live |
-| M3 — Timeline & care logging | 🔨 in progress | Schema merged (PR #17); app layer next |
-| M4 — Tasks & dashboard | planned | — |
+| M3 — Timeline & care logging | ✅ shipped | PRs #17–#24; Sprints [02](./sprint-02.md)/[03](./sprint-03.md) — one deferred DoD (e2e harness) |
+| M4 — Tasks & dashboard | planned | [Sprint 04](./sprint-04.md) next |
 | M5 — Trust & production | planned | — |
 
 ## Phase 0 — Foundation
@@ -48,11 +48,13 @@ milestones; each is independently demoable and merges behind CI.
 - **Exit (met):** owner can add their real trees with photos and organize them.
   Shipped across PRs #8–#16.
 
-### M3 — Timeline & care logging *(history)* — 🔨 in progress
+### M3 — Timeline & care logging *(history)* — ✅ shipped
 
-The `care_log_entries` schema ([ADR-0005](../decisions/0005-unified-timeline-event-model.md))
-is merged with owner-scoped RLS and pgTAP coverage; `photos.care_log_entry_id`
-is wired. Remaining work, as vertical slices (one small PR each):
+Shipped across Sprints [02](./sprint-02.md) (capture) and [03](./sprint-03.md)
+(timeline). Built on the `care_log_entries` schema
+([ADR-0005](../decisions/0005-unified-timeline-event-model.md)); validated per
+type with Zod ([ADR-0011](../decisions/0011-server-actions-and-validation.md)).
+The slices, as delivered (one small PR each):
 
 1. **Care domain + per-type Zod schemas** — discriminated union over
    `care_event_type`, pure `parseCareEntry` ([ADR-0011](../decisions/0011-server-actions-and-validation.md)).

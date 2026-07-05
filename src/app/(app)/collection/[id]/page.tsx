@@ -219,7 +219,12 @@ export default async function TreeDetailPage({
                 <TimelineIcon item={item} />
                 <div className="border-border flex flex-1 flex-col gap-1.5 border-b pb-4 last:border-b-0">
                   {item.kind === "care" ? (
-                    <CareItem item={item} treeId={tree.id} treeName={tree.name} />
+                    <CareItem
+                      item={item}
+                      treeId={tree.id}
+                      ownerId={tree.owner_id}
+                      treeName={tree.name}
+                    />
                   ) : (
                     <PhotoItem item={item} treeId={tree.id} coverPhotoId={tree.cover_photo_id} />
                   )}
@@ -258,10 +263,12 @@ function TimelineIcon({ item }: { item: TimelineItem }) {
 function CareItem({
   item,
   treeId,
+  ownerId,
   treeName,
 }: {
   item: Extract<TimelineItem, { kind: "care" }>;
   treeId: string;
+  ownerId: string;
   treeName: string;
 }) {
   const { entry, photos } = item;
@@ -302,6 +309,7 @@ function CareItem({
         >
           Edit
         </Link>
+        <PhotoUploader treeId={treeId} ownerId={ownerId} careLogEntryId={entry.id} compact />
         <ConfirmDeleteButton
           action={deleteCareAction.bind(null, entry.id, treeId)}
           srLabel="Delete entry"

@@ -47,6 +47,7 @@ export async function recordPhoto(input: {
   storagePath: string;
   width: number;
   height: number;
+  careLogEntryId?: string | null;
 }): Promise<{ id: string }> {
   const supabase = await createClient();
   const {
@@ -67,6 +68,17 @@ export async function recordPhoto(input: {
     throw new Error("Invalid storage path.");
   }
 
+  // If attaching to an event, it must be an event of this tree (RLS-scoped).
+  if (input.careLogEntryId) {
+    const { data: entry } = await supabase
+      .from("care_log_entries")
+      .select("id")
+      .eq("id", input.careLogEntryId)
+      .eq("tree_id", input.treeId)
+      .maybeSingle();
+    if (!entry) throw new Error("That care entry doesn't belong to this tree.");
+  }
+
   const { data, error } = await supabase
     .from("photos")
     .insert({
@@ -75,6 +87,7 @@ export async function recordPhoto(input: {
       storage_path: input.storagePath,
       width: input.width,
       height: input.height,
+      ...(input.careLogEntryId ? { care_log_entry_id: input.careLogEntryId } : {}),
     })
     .select("id")
     .single();

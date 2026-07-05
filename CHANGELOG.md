@@ -27,6 +27,10 @@ All notable changes to this project are documented here. Format follows
   `docs/archive/`.
 
 ### Added — Milestone M3: timeline & care logging
+- **Attach photos to a care event** — "Add photo" on a timeline entry attaches the
+  photo to that event (it shows inline under it, RLS-checked to the same tree); the
+  tree-level "Add photo" still adds a standalone timeline photo. Completes M3's
+  features (one DoD item — the log→timeline e2e — deferred to the auth harness).
 - **Manage the timeline** — filter it by care type (URL-driven chips), **edit** any
   care entry, and **delete** entries behind a confirm. Logging and editing now share
   one `CareEntryFields` component; the occurred date is day-granular (which keeps it
@@ -150,4 +154,5 @@ All notable changes to this project are documented here. Format follows
   Sprint 01 locally.
 - Updated MVP scope, cost model, architecture overview, and risk register to match.
 
-_Milestones M1 and M2 are complete; Milestone M3 (timeline & care logging) is in progress._
+_Milestones M1–M3 are complete (bar M3's deferred log→timeline e2e); Milestone M4
+(tasks, recurrence & dashboard) is next._
