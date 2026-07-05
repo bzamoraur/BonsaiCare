@@ -11,6 +11,18 @@ import type { Json, Tables } from "@/types/database.types";
 
 export type CareEntry = Tables<"care_log_entries">;
 
+/** One care entry by id, or null if it doesn't exist or isn't the caller's (RLS). */
+export async function getCareEntry(id: string): Promise<CareEntry | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("care_log_entries")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`Failed to load care entry: ${error.message}`);
+  return data;
+}
+
 /** A tree's care entries, newest first. */
 export async function listTreeEntries(treeId: string): Promise<CareEntry[]> {
   const supabase = await createClient();
@@ -55,4 +67,29 @@ export async function createCareEntry(input: CareEntryInput): Promise<{ id: stri
     .single();
   if (error) throw new Error(`Failed to log care: ${error.message}`);
   return data;
+}
+
+/** Updates a care entry. RLS + the id filter scope the write to the owner. A
+ * cleared date falls back to now() (the column is NOT NULL). */
+export async function updateCareEntry(id: string, input: CareEntryInput): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("care_log_entries")
+    .update({
+      type: input.type,
+      occurred_at: input.occurredAt ?? new Date().toISOString(),
+      title: input.title,
+      notes: input.notes,
+      details: input.details as Json,
+    })
+    .eq("id", id);
+  if (error) throw new Error(`Failed to update care entry: ${error.message}`);
+}
+
+/** Deletes a care entry. RLS + the id filter scope the delete to the owner. Any
+ * photos attached to it keep existing (their care_log_entry_id FK is set null). */
+export async function deleteCareEntry(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("care_log_entries").delete().eq("id", id);
+  if (error) throw new Error(`Failed to delete care entry: ${error.message}`);
 }
