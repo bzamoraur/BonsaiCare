@@ -3,8 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { CARE_EVENT_LABELS, careDetailSummary } from "@/lib/care-labels";
 import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@/lib/tree-labels";
 import { cn } from "@/lib/utils";
+import { listTreeEntries } from "@/server/care";
 import { getLocationName } from "@/server/locations";
 import { listTreePhotos } from "@/server/photos";
 import { getTreeTags } from "@/server/tags";
@@ -12,7 +14,9 @@ import { getTree } from "@/server/trees";
 
 import { archiveTreeAction } from "./actions";
 import { ArchiveTreeForm } from "./archive-tree-form";
+import { logCareAction } from "./care-actions";
 import { DeletePhotoButton } from "./delete-photo-button";
+import { LogCareForm } from "./log-care-form";
 import { deletePhotoAction, setCoverAction } from "./photo-actions";
 import { PhotoUploader } from "./photo-uploader";
 
@@ -35,6 +39,11 @@ function formatAcquired(iso: string): string {
   return dateFormatter.format(new Date(`${iso}T00:00:00`));
 }
 
+function formatCareDate(iso: string): string {
+  // occurred_at is a full timestamp instant; format its calendar date.
+  return dateFormatter.format(new Date(iso));
+}
+
 export async function generateMetadata({ params }: { params: Promise<Params> }) {
   const { id } = await params;
   const tree = await getTree(id);
@@ -51,10 +60,11 @@ export default async function TreeDetailPage({
   const { id } = await params;
   const { error } = await searchParams;
 
-  const [tree, photos, tags] = await Promise.all([
+  const [tree, photos, tags, entries] = await Promise.all([
     getTree(id),
     listTreePhotos(id),
     getTreeTags(id),
+    listTreeEntries(id),
   ]);
   if (!tree) notFound();
 
@@ -150,6 +160,44 @@ export default async function TreeDetailPage({
           <p className="text-muted-foreground text-sm whitespace-pre-wrap">{tree.notes}</p>
         </section>
       ) : null}
+
+      {/* Care log */}
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium">Care log</h2>
+        <LogCareForm action={logCareAction.bind(null, tree.id)} />
+
+        {entries.length === 0 ? (
+          <p className="text-muted-foreground text-sm text-balance">
+            No care logged yet. Tap Log care to record the first watering, feed, or note.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {entries.map((entry) => {
+              const summary = careDetailSummary(entry.details);
+              return (
+                <li
+                  key={entry.id}
+                  className="border-border flex flex-col gap-0.5 rounded-xl border p-3"
+                >
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-medium">{CARE_EVENT_LABELS[entry.type]}</span>
+                    <span className="text-muted-foreground shrink-0 text-xs">
+                      {formatCareDate(entry.occurred_at)}
+                    </span>
+                  </div>
+                  {entry.title ? <p className="text-sm">{entry.title}</p> : null}
+                  {summary ? <p className="text-muted-foreground text-xs">{summary}</p> : null}
+                  {entry.notes ? (
+                    <p className="text-muted-foreground text-sm whitespace-pre-wrap">
+                      {entry.notes}
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       {/* Photos */}
       <section className="flex flex-col gap-3">

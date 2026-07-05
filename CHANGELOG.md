@@ -27,6 +27,11 @@ All notable changes to this project are documented here. Format follows
   `docs/archive/`.
 
 ### Added — Milestone M3: timeline & care logging
+- **Log care from a tree** — a "Log care" form on the tree detail: pick a type,
+  fill the per-type detail fields (fertilizer NPK, repot soil mix, pruning
+  intensity…), optionally backdate (timezone-correct), add notes. Backed by a
+  care data-access layer (`src/server/care.ts`) and an owner-scoped Server Action
+  that validates with `parseCareEntry`; logged entries appear in a Care log list.
 - **Care validation domain** — `src/domain/care.ts`: a Zod schema per
   `care_event_type` for the `details` JSONB (per
   [ADR-0011](docs/decisions/0011-server-actions-and-validation.md), exhaustive so
