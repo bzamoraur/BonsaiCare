@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,6 +37,18 @@ export default async function SettingsPage() {
           units={profile.units}
         />
       )}
+
+      <hr className="border-border" />
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-sm font-medium">Appearance</h2>
+          <p className="text-muted-foreground text-sm">
+            Choose a light or dark theme, or follow your device.
+          </p>
+        </div>
+        <ThemeToggle />
+      </section>
 
       <hr className="border-border" />
 
