@@ -176,3 +176,38 @@ export async function completeTask(
 export async function skipTask(taskId: string, completedOn: string): Promise<void> {
   await resolveTask(taskId, "skipped", { completedOn });
 }
+
+/**
+ * Bulk-creates one task per tree from a shared, already-validated template — the
+ * fertilization-schedule flow. One ownership check (`.in`) + one insert; trees
+ * not owned by the caller are dropped. Returns the count actually created.
+ */
+export async function createTasksForTrees(
+  treeIds: string[],
+  template: Omit<TaskFormInput, "treeId">,
+): Promise<number> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated.");
+
+  const { data: owned } = await supabase.from("trees").select("id").in("id", treeIds);
+  const ownedIds = new Set((owned ?? []).map((t) => t.id));
+  const valid = treeIds.filter((id) => ownedIds.has(id));
+  if (valid.length === 0) throw new Error("No matching trees.");
+
+  const recurrence = template.recurrence as unknown as Json;
+  const rows = valid.map((treeId) => ({
+    owner_id: user.id,
+    tree_id: treeId,
+    type: template.type,
+    title: template.title,
+    due_on: template.dueOn,
+    notes: template.notes,
+    recurrence,
+  }));
+  const { error } = await supabase.from("tasks").insert(rows);
+  if (error) throw new Error(`Failed to create the schedule: ${error.message}`);
+  return valid.length;
+}

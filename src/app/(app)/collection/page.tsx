@@ -87,10 +87,18 @@ export default async function CollectionPage({
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">Collection</h1>
         {showToolbar ? (
-          <Link href="/collection/new" className={cn(buttonVariants({ size: "sm" }))}>
-            <Plus aria-hidden />
-            Add tree
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/plan/fertilize"
+              className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
+            >
+              Fertilizing plan
+            </Link>
+            <Link href="/collection/new" className={cn(buttonVariants({ size: "sm" }))}>
+              <Plus aria-hidden />
+              Add tree
+            </Link>
+          </div>
         ) : null}
       </div>
 
