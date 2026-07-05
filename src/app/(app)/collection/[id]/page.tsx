@@ -1,15 +1,14 @@
-import { ChevronLeft, Leaf, Pencil } from "lucide-react";
+import { Camera, ChevronLeft, Leaf, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import { CARE_EVENT_LABELS, careDetailSummary } from "@/lib/care-labels";
+import { CARE_EVENT_ICONS, CARE_EVENT_LABELS, careDetailSummary } from "@/lib/care-labels";
 import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@/lib/tree-labels";
 import { cn } from "@/lib/utils";
-import { listTreeEntries } from "@/server/care";
 import { getLocationName } from "@/server/locations";
-import { listTreePhotos } from "@/server/photos";
 import { getTreeTags } from "@/server/tags";
+import { listTreeTimeline, type TimelineItem } from "@/server/timeline";
 import { getTree } from "@/server/trees";
 
 import { archiveTreeAction } from "./actions";
@@ -39,8 +38,8 @@ function formatAcquired(iso: string): string {
   return dateFormatter.format(new Date(`${iso}T00:00:00`));
 }
 
-function formatCareDate(iso: string): string {
-  // occurred_at is a full timestamp instant; format its calendar date.
+function formatTimelineDate(iso: string): string {
+  // occurred_at / taken_at are full timestamp instants; format the calendar date.
   return dateFormatter.format(new Date(iso));
 }
 
@@ -60,11 +59,10 @@ export default async function TreeDetailPage({
   const { id } = await params;
   const { error, log } = await searchParams;
 
-  const [tree, photos, tags, entries] = await Promise.all([
+  const [tree, timeline, tags] = await Promise.all([
     getTree(id),
-    listTreePhotos(id),
+    listTreeTimeline(id),
     getTreeTags(id),
-    listTreeEntries(id),
   ]);
   if (!tree) notFound();
 
@@ -89,8 +87,13 @@ export default async function TreeDetailPage({
   ].filter((f): f is { label: string; value: string } => Boolean(f.value));
 
   const isArchived = Boolean(tree.archived_at);
-  const heroPhoto = photos.find((p) => p.id === tree.cover_photo_id) ?? photos[0] ?? null;
   const errorMessage = error ? ERROR_MESSAGES[error] : null;
+
+  // Every photo (standalone + attached), newest first, to resolve the hero cover.
+  const allPhotos = timeline.flatMap((item) =>
+    item.kind === "photo" ? [item.photo] : item.photos,
+  );
+  const heroPhoto = allPhotos.find((p) => p.id === tree.cover_photo_id) ?? allPhotos[0] ?? null;
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
@@ -108,7 +111,7 @@ export default async function TreeDetailPage({
         </p>
       ) : null}
 
-      {/* Hero — the cover photo (or first photo), else a placeholder. */}
+      {/* Hero — the cover photo (or newest), else a placeholder. */}
       <div className="bg-muted flex aspect-video items-center justify-center overflow-hidden rounded-2xl">
         {heroPhoto?.url ? (
           // eslint-disable-next-line @next/next/no-img-element -- private signed URL, next/image caching doesn't fit
@@ -161,85 +164,34 @@ export default async function TreeDetailPage({
         </section>
       ) : null}
 
-      {/* Care log */}
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium">Care log</h2>
-        <LogCareForm action={logCareAction.bind(null, tree.id)} defaultOpen={log === "1"} />
-
-        {entries.length === 0 ? (
-          <p className="text-muted-foreground text-sm text-balance">
-            No care logged yet. Tap Log care to record the first watering, feed, or note.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {entries.map((entry) => {
-              const summary = careDetailSummary(entry.details);
-              return (
-                <li
-                  key={entry.id}
-                  className="border-border flex flex-col gap-0.5 rounded-xl border p-3"
-                >
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-sm font-medium">{CARE_EVENT_LABELS[entry.type]}</span>
-                    <span className="text-muted-foreground shrink-0 text-xs">
-                      {formatCareDate(entry.occurred_at)}
-                    </span>
-                  </div>
-                  {entry.title ? <p className="text-sm">{entry.title}</p> : null}
-                  {summary ? <p className="text-muted-foreground text-xs">{summary}</p> : null}
-                  {entry.notes ? (
-                    <p className="text-muted-foreground text-sm whitespace-pre-wrap">
-                      {entry.notes}
-                    </p>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
-      {/* Photos */}
-      <section className="flex flex-col gap-3">
+      {/* Timeline — care events + photos, merged, newest first. */}
+      <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-sm font-medium">Photos</h2>
+          <h2 className="text-sm font-medium">Timeline</h2>
           <PhotoUploader treeId={tree.id} ownerId={tree.owner_id} />
         </div>
 
-        {photos.length === 0 ? (
+        <LogCareForm action={logCareAction.bind(null, tree.id)} defaultOpen={log === "1"} />
+
+        {timeline.length === 0 ? (
           <p className="text-muted-foreground text-sm text-balance">
-            No photos yet. Add one to start this tree&apos;s visual history.
+            No history yet. Log care or add a photo to start this tree&apos;s story.
           </p>
         ) : (
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {photos.map((photo) => (
-              <li key={photo.id} className="flex flex-col gap-1.5">
-                <div className="bg-muted aspect-square overflow-hidden rounded-xl">
-                  {photo.url ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- private signed URL, next/image caching doesn't fit
-                    <img
-                      src={photo.url}
-                      alt={`${tree.name} photo`}
-                      loading="lazy"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : null}
-                </div>
-                <div className="flex items-center justify-between gap-1">
-                  {photo.id === tree.cover_photo_id ? (
-                    <span className="text-muted-foreground px-1 text-xs font-medium">Cover</span>
+          <ol className="flex flex-col">
+            {timeline.map((item) => (
+              <li key={`${item.kind}-${item.id}`} className="flex gap-3">
+                <TimelineIcon item={item} />
+                <div className="border-border flex flex-1 flex-col gap-1.5 border-b pb-4 last:border-b-0">
+                  {item.kind === "care" ? (
+                    <CareItem item={item} treeName={tree.name} />
                   ) : (
-                    <form action={setCoverAction.bind(null, tree.id, photo.id)}>
-                      <Button type="submit" variant="ghost" size="sm">
-                        Set cover
-                      </Button>
-                    </form>
+                    <PhotoItem item={item} treeId={tree.id} coverPhotoId={tree.cover_photo_id} />
                   )}
-                  <DeletePhotoButton action={deletePhotoAction.bind(null, photo.id, tree.id)} />
                 </div>
               </li>
             ))}
-          </ul>
+          </ol>
         )}
       </section>
 
@@ -256,5 +208,98 @@ export default async function TreeDetailPage({
         {!isArchived ? <ArchiveTreeForm action={archiveTreeAction.bind(null, tree.id)} /> : null}
       </div>
     </main>
+  );
+}
+
+function TimelineIcon({ item }: { item: TimelineItem }) {
+  const Icon = item.kind === "care" ? CARE_EVENT_ICONS[item.entry.type] : Camera;
+  return (
+    <div className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
+      <Icon className="size-4" aria-hidden />
+    </div>
+  );
+}
+
+function CareItem({
+  item,
+  treeName,
+}: {
+  item: Extract<TimelineItem, { kind: "care" }>;
+  treeName: string;
+}) {
+  const { entry, photos } = item;
+  const summary = careDetailSummary(entry.details);
+  return (
+    <>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-medium">{CARE_EVENT_LABELS[entry.type]}</span>
+        <span className="text-muted-foreground shrink-0 text-xs">
+          {formatTimelineDate(entry.occurred_at)}
+        </span>
+      </div>
+      {entry.title ? <p className="text-sm">{entry.title}</p> : null}
+      {summary ? <p className="text-muted-foreground text-xs">{summary}</p> : null}
+      {entry.notes ? (
+        <p className="text-muted-foreground text-sm whitespace-pre-wrap">{entry.notes}</p>
+      ) : null}
+      {photos.length > 0 ? (
+        <div className="mt-1 grid grid-cols-3 gap-2">
+          {photos.map((photo) =>
+            photo.url ? (
+              // eslint-disable-next-line @next/next/no-img-element -- private signed URL
+              <img
+                key={photo.id}
+                src={photo.url}
+                alt={`${treeName} — ${CARE_EVENT_LABELS[entry.type]}`}
+                loading="lazy"
+                className="bg-muted aspect-square w-full rounded-lg object-cover"
+              />
+            ) : null,
+          )}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function PhotoItem({
+  item,
+  treeId,
+  coverPhotoId,
+}: {
+  item: Extract<TimelineItem, { kind: "photo" }>;
+  treeId: string;
+  coverPhotoId: string | null;
+}) {
+  const { photo } = item;
+  const isCover = photo.id === coverPhotoId;
+  return (
+    <>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-medium">Photo</span>
+        <span className="text-muted-foreground shrink-0 text-xs">
+          {formatTimelineDate(photo.taken_at)}
+        </span>
+      </div>
+      <div className="bg-muted max-w-xs overflow-hidden rounded-xl">
+        {photo.url ? (
+          // eslint-disable-next-line @next/next/no-img-element -- private signed URL
+          <img src={photo.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+        ) : null}
+      </div>
+      {photo.caption ? <p className="text-muted-foreground text-sm">{photo.caption}</p> : null}
+      <div className="flex items-center gap-1">
+        {isCover ? (
+          <span className="text-muted-foreground px-1 text-xs font-medium">Cover</span>
+        ) : (
+          <form action={setCoverAction.bind(null, treeId, photo.id)}>
+            <Button type="submit" variant="ghost" size="sm">
+              Set cover
+            </Button>
+          </form>
+        )}
+        <DeletePhotoButton action={deletePhotoAction.bind(null, photo.id, treeId)} />
+      </div>
+    </>
   );
 }

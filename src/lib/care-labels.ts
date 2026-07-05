@@ -1,3 +1,17 @@
+import {
+  Bug,
+  Cable,
+  Droplets,
+  Eye,
+  FlaskConical,
+  Leaf,
+  type LucideIcon,
+  Scissors,
+  Shovel,
+  Sparkles,
+  StickyNote,
+} from "lucide-react";
+
 import type { CareEventType } from "@/domain/care";
 
 /**
@@ -16,6 +30,20 @@ export const CARE_EVENT_LABELS: Record<CareEventType, string> = {
   defoliation: "Defoliated",
   observation: "Observation",
   note: "Note",
+};
+
+/** An icon per care event type for the timeline. Exhaustive `Record`. */
+export const CARE_EVENT_ICONS: Record<CareEventType, LucideIcon> = {
+  watering: Droplets,
+  fertilizing: FlaskConical,
+  pruning: Scissors,
+  wiring: Cable,
+  repotting: Shovel,
+  pest_treatment: Bug,
+  styling: Sparkles,
+  defoliation: Leaf,
+  observation: Eye,
+  note: StickyNote,
 };
 
 /** A short one-line summary of a care entry's `details` JSONB for list display. */

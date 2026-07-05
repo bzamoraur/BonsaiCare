@@ -109,6 +109,11 @@ Logged per the quality protocol; scheduled, not aspirational:
   scheduled sweep (objects without a `photos.storage_path` row → delete past a
   grace window) and fold object deletion into account deletion. *(Due: M5
   slice 8; flagged in the PR #12 security review.)*
+- **Timeline read is a JS merge** — `listTreeTimeline` fetches a tree's care
+  entries + photos and merges/sorts them in app code (right for a personal
+  collection's volume). If a single tree's timeline grows large, swap the seam for
+  a SQL `union`/view (`security_invoker` so RLS still applies) with keyset
+  pagination — the UI consumes `TimelineItem[]` either way. *(Trigger-gated.)*
 - **Signed-URL TTL centralization** — a 1-hour TTL (`60 * 60`) is duplicated as
   separate constants (`SIGNED_URL_TTL_SECONDS` in `src/server/photos.ts`,
   `COVER_URL_TTL_SECONDS` in `src/server/trees.ts`); centralize one constant and
