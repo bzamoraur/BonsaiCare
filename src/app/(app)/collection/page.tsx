@@ -89,10 +89,10 @@ export default async function CollectionPage({
         {showToolbar ? (
           <div className="flex items-center gap-2">
             <Link
-              href="/plan/fertilize"
+              href="/plan/schedule"
               className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
             >
-              Fertilizing plan
+              Plan care
             </Link>
             <Link href="/collection/new" className={cn(buttonVariants({ size: "sm" }))}>
               <Plus aria-hidden />
