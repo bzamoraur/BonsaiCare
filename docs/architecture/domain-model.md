@@ -5,7 +5,7 @@
 > Reviewed against competitor research (see the
 > [benchmark](../research/benchmark.md)). This document defines the
 > **conceptual** model; the physical schema lives in `supabase/migrations/`
-> (implemented through the care-log migration) and must stay consistent with
+> (implemented through the tasks migration) and must stay consistent with
 > this file — when they drift, reconcile in the same PR.
 
 ## Design principles
