@@ -78,3 +78,55 @@ jobs:
       - name: Stop Supabase
         if: always()
         run: pnpm exec supabase stop
+
+  e2e:
+    name: E2E (auth flows)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Boots the same local Supabase stack the db-test job uses.
+      - name: Start Supabase
+        run: pnpm exec supabase start
+
+      # Export the local stack's URL + keys so the build, the app, and the
+      # Playwright global-setup (admin key, server-only) all share one source.
+      - name: Configure env from local Supabase
+        run: |
+          eval "$(pnpm exec supabase status -o env)"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+          } >> "$GITHUB_ENV"
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run e2e (Playwright)
+        run: pnpm exec playwright test
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Stop Supabase
+        if: always()
+        run: pnpm exec supabase stop
