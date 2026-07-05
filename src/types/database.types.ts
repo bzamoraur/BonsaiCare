@@ -33,6 +33,56 @@ export type Database = {
   };
   public: {
     Tables: {
+      care_log_entries: {
+        Row: {
+          created_at: string;
+          details: Json;
+          id: string;
+          notes: string | null;
+          occurred_at: string;
+          owner_id: string;
+          task_id: string | null;
+          title: string | null;
+          tree_id: string;
+          type: Database["public"]["Enums"]["care_event_type"];
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          details?: Json;
+          id?: string;
+          notes?: string | null;
+          occurred_at?: string;
+          owner_id: string;
+          task_id?: string | null;
+          title?: string | null;
+          tree_id: string;
+          type: Database["public"]["Enums"]["care_event_type"];
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          details?: Json;
+          id?: string;
+          notes?: string | null;
+          occurred_at?: string;
+          owner_id?: string;
+          task_id?: string | null;
+          title?: string | null;
+          tree_id?: string;
+          type?: Database["public"]["Enums"]["care_event_type"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "care_log_entries_tree_id_fkey";
+            columns: ["tree_id"];
+            isOneToOne: false;
+            referencedRelation: "trees";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       locations: {
         Row: {
           created_at: string;
@@ -60,6 +110,7 @@ export type Database = {
       photos: {
         Row: {
           caption: string | null;
+          care_log_entry_id: string | null;
           created_at: string;
           height: number | null;
           id: string;
@@ -71,6 +122,7 @@ export type Database = {
         };
         Insert: {
           caption?: string | null;
+          care_log_entry_id?: string | null;
           created_at?: string;
           height?: number | null;
           id?: string;
@@ -82,6 +134,7 @@ export type Database = {
         };
         Update: {
           caption?: string | null;
+          care_log_entry_id?: string | null;
           created_at?: string;
           height?: number | null;
           id?: string;
@@ -92,6 +145,13 @@ export type Database = {
           width?: number | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "photos_care_log_entry_id_fkey";
+            columns: ["care_log_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "care_log_entries";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "photos_tree_id_fkey";
             columns: ["tree_id"];
@@ -314,6 +374,17 @@ export type Database = {
       [_ in never]: never;
     };
     Enums: {
+      care_event_type:
+        | "watering"
+        | "fertilizing"
+        | "pruning"
+        | "wiring"
+        | "repotting"
+        | "pest_treatment"
+        | "styling"
+        | "defoliation"
+        | "observation"
+        | "note";
       development_stage: "raw_material" | "development" | "refinement" | "maintenance";
       health_status: "thriving" | "healthy" | "struggling" | "critical" | "dormant";
       hemisphere: "northern" | "southern";
@@ -455,6 +526,18 @@ export const Constants = {
   },
   public: {
     Enums: {
+      care_event_type: [
+        "watering",
+        "fertilizing",
+        "pruning",
+        "wiring",
+        "repotting",
+        "pest_treatment",
+        "styling",
+        "defoliation",
+        "observation",
+        "note",
+      ],
       development_stage: ["raw_material", "development", "refinement", "maintenance"],
       health_status: ["thriving", "healthy", "struggling", "critical", "dormant"],
       hemisphere: ["northern", "southern"],

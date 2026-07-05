@@ -27,6 +27,12 @@ All notable changes to this project are documented here. Format follows
   `docs/archive/`.
 
 ### Added — Milestone M3: timeline & care logging
+- **Care validation domain** — `src/domain/care.ts`: a Zod schema per
+  `care_event_type` for the `details` JSONB (per
+  [ADR-0011](docs/decisions/0011-server-actions-and-validation.md), exhaustive so
+  a new enum value fails the build until it gets a schema), plus a pure
+  `parseCareEntry` validator (12 unit tests). Adds `zod`; regenerated the DB types
+  to include `care_log_entries`.
 - **Care log schema** (`supabase/migrations`) — a `care_log_entries` table (per
   [ADR-0005](docs/decisions/0005-unified-timeline-event-model.md)): a `type`
   discriminator + typed core columns (`occurred_at`, `title`, `notes`, `task_id`) and
