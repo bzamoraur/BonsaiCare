@@ -24,6 +24,42 @@ const TREE_CARD_COLUMNS =
   "id, name, species_label, development_stage, health_status, cover_photo_id";
 const COVER_URL_TTL_SECONDS = 60 * 60; // 1 hour
 
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Resolves cover-photo ids → signed URLs in two batched, Storage-friendly queries
+ * (ids → paths, then a single `createSignedUrls`). Returns a map keyed by
+ * `cover_photo_id`; ids with no row or a failed sign are simply absent. Shared by
+ * the collection grid and the dashboard triage strip so both keep the batching
+ * discipline (no per-card signing).
+ */
+async function coverUrlMap(
+  supabase: ServerClient,
+  coverIds: (string | null)[],
+): Promise<Map<string, string>> {
+  const ids = coverIds.filter((v): v is string => Boolean(v));
+  if (ids.length === 0) return new Map();
+
+  const { data: covers } = await supabase.from("photos").select("id, storage_path").in("id", ids);
+  const pathById = new Map((covers ?? []).map((c) => [c.id, c.storage_path]));
+  const paths = [...pathById.values()];
+  if (paths.length === 0) return new Map();
+
+  const { data: signed } = await supabase.storage
+    .from("tree-photos")
+    .createSignedUrls(paths, COVER_URL_TTL_SECONDS);
+  const urlByPath = new Map(
+    (signed ?? []).flatMap((s) => (s.path && s.signedUrl ? [[s.path, s.signedUrl] as const] : [])),
+  );
+
+  const result = new Map<string, string>();
+  for (const [id, path] of pathById) {
+    const url = urlByPath.get(path);
+    if (url) result.set(id, url);
+  }
+  return result;
+}
+
 export type TreeSort = "newest" | "oldest" | "name";
 export type TreeFilters = {
   q?: string;
@@ -83,30 +119,41 @@ export async function listTrees(filters: TreeFilters = {}): Promise<TreeCard[]> 
   if (error) throw new Error(`Failed to load trees: ${error.message}`);
   const rows = data ?? [];
 
-  // Resolve cover photos → signed URLs in two batched queries (paths, then signs).
-  const coverIds = rows.map((r) => r.cover_photo_id).filter((v): v is string => Boolean(v));
-  const pathById = new Map<string, string>();
-  if (coverIds.length > 0) {
-    const { data: covers } = await supabase
-      .from("photos")
-      .select("id, storage_path")
-      .in("id", coverIds);
-    for (const cover of covers ?? []) pathById.set(cover.id, cover.storage_path);
-  }
+  const urlByCoverId = await coverUrlMap(
+    supabase,
+    rows.map((r) => r.cover_photo_id),
+  );
+  return rows.map(({ cover_photo_id, ...card }) => ({
+    ...card,
+    coverUrl: cover_photo_id ? (urlByCoverId.get(cover_photo_id) ?? null) : null,
+  }));
+}
 
-  const paths = [...pathById.values()];
-  const urlByPath = new Map<string, string>();
-  if (paths.length > 0) {
-    const { data: signed } = await supabase.storage
-      .from("tree-photos")
-      .createSignedUrls(paths, COVER_URL_TTL_SECONDS);
-    for (const s of signed ?? []) if (s.path && s.signedUrl) urlByPath.set(s.path, s.signedUrl);
-  }
+/**
+ * Non-archived trees needing attention (health `struggling` or `critical`), for
+ * the Today dashboard's triage strip — each with a signed cover URL. Ordered
+ * critical-first (descending the health enum, whose order runs …struggling,
+ * critical, dormant).
+ */
+export async function listTriageTrees(): Promise<TreeCard[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("trees")
+    .select(TREE_CARD_COLUMNS)
+    .is("archived_at", null)
+    .in("health_status", ["struggling", "critical"])
+    .order("health_status", { ascending: false });
+  if (error) throw new Error(`Failed to load trees needing attention: ${error.message}`);
+  const rows = data ?? [];
 
-  return rows.map(({ cover_photo_id, ...card }) => {
-    const path = cover_photo_id ? pathById.get(cover_photo_id) : undefined;
-    return { ...card, coverUrl: path ? (urlByPath.get(path) ?? null) : null };
-  });
+  const urlByCoverId = await coverUrlMap(
+    supabase,
+    rows.map((r) => r.cover_photo_id),
+  );
+  return rows.map(({ cover_photo_id, ...card }) => ({
+    ...card,
+    coverUrl: cover_photo_id ? (urlByCoverId.get(cover_photo_id) ?? null) : null,
+  }));
 }
 
 /**

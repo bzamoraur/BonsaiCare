@@ -30,7 +30,7 @@ import {
   deleteTaskAction,
   skipTaskAction,
 } from "./task-actions";
-import { TaskActions } from "./task-actions-buttons";
+import { TaskActions } from "@/components/task-actions";
 import { TimelineFilters, type FilterOption } from "./timeline-filters";
 
 type Params = { id: string };
