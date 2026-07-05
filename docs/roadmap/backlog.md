@@ -143,10 +143,18 @@ Logged per the quality protocol; scheduled, not aspirational:
   grace window) and fold object deletion into account deletion. *(Due: M5
   slice 8; flagged in the PR #12 security review.)*
 - **Playwright e2e auth harness** — there's no way yet to run an authenticated
-  end-to-end test (magic-link auth blocks it). Build a test-auth path (a seeded
-  user + a session bypass, or Supabase admin sign-in) so critical flows can be
-  covered — starting with M3's *log care → appears on timeline* (a deferred DoD),
-  and feeding M5's critical-flow e2e. *(Due: before M5; unblocks the M3 e2e.)*
+  end-to-end test (magic-link auth blocks it), so **two** DoDs are deferred onto
+  it: M3's *log care → appears on timeline* and M4's *create recurring → complete
+  from Today → next occurrence lands (incl. the out-of-season skip)*. Concrete
+  plan: reuse the CI Supabase stack (the `db-test` job already runs
+  `supabase start`); in a Playwright global-setup, create a confirmed test user
+  via the admin (secret) key and inject its `@supabase/ssr` session cookies into
+  the browser context — **not** an app-side auth-bypass route (that would be a
+  prod security footgun); add a CI e2e job (boot Supabase → `playwright install
+  chromium` → run against `next build && next start`). Then port both deferred
+  flows and feed M5's critical-flow e2e. *(Due: Sprint 06, before M5's hardening.
+  Needs local Docker to author safely — the cookie/session injection is too
+  fiddly to build blind against CI alone.)*
 - **Timeline read is a JS merge** — `listTreeTimeline` fetches a tree's care
   entries + photos and merges/sorts them in app code (right for a personal
   collection's volume). If a single tree's timeline grows large, swap the seam for

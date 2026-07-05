@@ -26,7 +26,20 @@ All notable changes to this project are documented here. Format follows
   `photo_only` event type). Archived the point-in-time repo audit to
   `docs/archive/`.
 
-### Added — Milestone M4: tasks, recurrence & the daily loop (foundation)
+### Added — Milestone M4: tasks, recurrence & the daily loop
+- **Fertilization template** — a `/plan/fertilize` flow multi-selects trees and
+  creates the canonical "every 14 days through the growing season" schedule across
+  all of them at once (one bulk insert), editable per tree afterward. Reached from
+  the Collection header.
+- **Calendar** — a month grid with per-day due-count dots (URL-driven month
+  navigation, year-rollover safe) plus a day-grouped agenda of the month's tasks,
+  each linking to its tree. Read-only; reuses the task queries, no new schema.
+- **Today dashboard** — the app's daily home: overdue / due today / next-7-days
+  across the whole collection (one indexed range scan, **bucketed by the viewer's
+  local today** so "overdue" reflects their clock, not the server's), plus a
+  struggling/critical health-triage strip with cover thumbnails, and one-tap
+  Done / Skip on every card (Done can log a linked care event). Calm by design —
+  no guilt-trip walls; empty is "enjoy your trees."
 - **Complete & skip tasks** — every pending task has **Done / Skip**. "Done" logs
   an optional linked care event (backdatable) and, if recurring, spawns the next
   occurrence; "Skip" advances the series without a care event. All in one atomic
@@ -180,7 +193,9 @@ All notable changes to this project are documented here. Format follows
   Sprint 01 locally.
 - Updated MVP scope, cost model, architecture overview, and risk register to match.
 
-_Milestones M1–M3 are complete (bar M3's deferred log→timeline e2e). Milestone M4's
-foundation — the task engine (recurrence/season domain, `tasks` schema, atomic
-complete/skip RPC) and the care-plan UI — is shipped; its Today dashboard, calendar,
-and fertilization template are next ([Sprint 05](docs/roadmap/sprint-05.md))._
+_Milestones M1–M4 are complete — the full daily loop (schedule → dashboard →
+complete → next occurrence) ships end to end. Two automated e2e flows (M3's
+log→timeline, M4's daily loop) are deferred to the Playwright auth harness
+([backlog](docs/roadmap/backlog.md)); both are covered by unit + pgTAP tests
+meanwhile. **Phase 1's feature work is complete**; next is M5 — trust, data
+export, and production hardening ([roadmap](docs/roadmap/roadmap.md))._

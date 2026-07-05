@@ -16,8 +16,8 @@
 | M1 — Skeleton & spine | ✅ shipped | PRs #2–#7; [Sprint 01](./sprint-01.md) closed |
 | M2 — Trees & photos | ✅ shipped | PRs #8–#16; collection + photos + organize live |
 | M3 — Timeline & care logging | ✅ shipped | PRs #17–#24; Sprints [02](./sprint-02.md)/[03](./sprint-03.md) — one deferred DoD (e2e harness) |
-| M4 — Tasks & dashboard | 🚧 in progress | Sprint 04 shipped (PRs #26–#31): task engine + care-plan UI; [Sprint 05](./sprint-05.md) (dashboard) next |
-| M5 — Trust & production | planned | — |
+| M4 — Tasks & dashboard | ✅ shipped | PRs #26–#36; Sprints [04](./sprint-04.md)/[05](./sprint-05.md) — one deferred DoD (daily-loop e2e) |
+| M5 — Trust & production | planned | Sprints 06–07 next |
 
 ## Phase 0 — Foundation
 
@@ -76,12 +76,12 @@ The slices, as delivered (one small PR each):
 - **Sprints:** [02 — "Log care, fast"](./sprint-02.md) (slices 1–4) and
   [03 — "The tree's story"](./sprint-03.md) (slices 5–7).
 
-### M4 — Tasks, recurrence & dashboard *(the daily loop)* — 🚧 in progress
+### M4 — Tasks, recurrence & dashboard *(the daily loop)* — ✅ shipped
 
 Recurrence per [ADR-0006](../decisions/0006-task-scheduling-and-recurrence.md);
 dashboard per [ADR-0007](../decisions/0007-notifications-strategy.md). Slices
-1–5 shipped in [Sprint 04](./sprint-04.md) (PRs #26–#31); 6–8 are
-[Sprint 05](./sprint-05.md):
+1–5 shipped in [Sprint 04](./sprint-04.md) (PRs #26–#31); 6–8 in
+[Sprint 05](./sprint-05.md) (PRs #34–#36):
 
 1. ✅ **`tasks` migration** + RLS + pgTAP; add the deferred
    `care_log_entries.task_id` FK.
@@ -93,15 +93,16 @@ dashboard per [ADR-0007](../decisions/0007-notifications-strategy.md). Slices
 4. ✅ **Task create/edit UI** — one-off + recurring; legible recurrence editor
    (interval, anchor, season window).
 5. ✅ **Complete/skip flow** — one tap, "also log a care event?" prefilled.
-6. **Today dashboard** — overdue / due today / upcoming + health triage; the
-   app's daily home.
-7. **Calendar** — list grouped by day, then a month grid.
-8. **Fertilization template + e2e** — one-tap "every 14 days, Mar–Oct"; e2e of
-   the full loop incl. the out-of-season skip.
+6. ✅ **Today dashboard** — overdue / due today / upcoming + health triage; the
+   app's daily home (bucketed by the viewer's local today).
+7. ✅ **Calendar** — day-grouped agenda + a month grid with due-count dots.
+8. ✅ **Fertilization template** — one-tap multi-tree "every 14 days, Mar–Oct".
+   The full-loop **e2e is deferred** to the Playwright auth harness (backlog);
+   the loop is covered by unit tests + the `complete_task` pgTAP suite.
 
-- **Exit:** the dashboard is trustworthy (correct in both hemispheres, proven by
-  unit tests written first); every interval/date editable; fertilization
-  schedules work end-to-end; completion is atomic.
+- **Exit (met, bar the deferred e2e):** the dashboard is trustworthy (correct in
+  both hemispheres, proven by unit tests written first); every interval/date
+  editable; fertilization schedules work end-to-end; completion is atomic.
 - **Sprints:** [04 — "A schedule you can trust"](./sprint-04.md) (slices 1–5)
   and [05 — "The daily loop"](./sprint-05.md) (slices 6–8).
 
