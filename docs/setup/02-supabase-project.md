@@ -1,5 +1,7 @@
 # Setup 02 — Create the Supabase Project (click-by-click, 2026)
 
+> **Status:** Current · **Updated:** 2026-07-05
+
 > Audience: **non-expert owner.** This creates the **backend** (database + auth +
 > photo storage). You can do Parts A–D **now**; Parts E–F happen during the
 > schema/auth work.
@@ -37,7 +39,9 @@ ref**, and (optionally, server-only) `SUPABASE_SECRET_KEY`.
    - **No credit card** is required.
    - Click **Create organization**.
 
-## Part B — Create the project (~2 min) ⚠️ region is permanent
+## Part B — Create the project (~2 min)
+
+⚠️ **The region is permanent** — it cannot be changed after the project is created.
 
 1. Click **New project** (or go straight to **https://database.new**).
 2. Fill in the form:
@@ -114,7 +118,7 @@ We use passwordless **magic-link** sign-in ([ADR-0010](../decisions/0010-auth-ma
 
 > The repo already includes the Supabase CLI (a devDependency) and the schema
 > migration. These commands link your local repo to the hosted project and apply
-> the schema. Run them in the project folder (`C:\Users\Pc\dev\BonsaiCare`).
+> the schema. Run them in your local clone folder.
 
 ```bash
 # 1. Log the CLI into your Supabase account (opens a browser, paste the token)
@@ -135,22 +139,23 @@ pnpm exec supabase gen types typescript --linked > src/types/database.types.ts
 > `pnpm exec supabase db reset` runs the whole stack on your machine with no
 > cloud project. Not required — the hosted flow above is simpler to start.
 
-## Part F — Create the photo storage bucket (needed in M2, not yet)
+## Part F — Verify the photo storage bucket
 
-When we build photo upload (Milestone M2):
-1. **Storage** (left sidebar) → **New bucket**.
-   - **Name:** `tree-photos`
-   - **Public bucket:** **OFF** — keep it **private** (photos are personal).
-   - Create.
+The M2 migration (`20260703120000_photos_and_storage.sql`) provisions this for
+you: it creates the private `tree-photos` bucket and its RLS policies, so
+there's nothing to create by hand. After Part E, verify it exists:
+1. **Storage** (left sidebar) → confirm a bucket named **`tree-photos`** is
+   listed.
+   - It should be **private** (Public bucket: **OFF** — photos are personal).
 2. Access policies are managed as **migrations** (versioned, reviewable), not
-   clicked, so they're reproducible. The M2 migration restricts each object to a
-   path prefixed by the owner's user id. *(You can skip this part until M2.)*
+   clicked, so they're reproducible. The migration restricts each object to a
+   path prefixed by the owner's user id.
 
 ## Part G — Keep-warm (avoid the free-tier pause, Risk R1)
 Free projects **pause after ~7 days of inactivity** (and the Free plan allows up
 to **2 active projects**, 500 MB DB, 50k monthly users). A free scheduled GitHub
 Action pings the project to keep it responsive — see
-[operations/runbook.md](../operations/runbook.md#keep-warm). It needs two GitHub
+[operations/runbook.md](../operations/runbook.md#keep-warm-free-tier-pause--r1). It needs two GitHub
 **Action secrets**: the project URL and the publishable key.
 
 ---
@@ -173,7 +178,7 @@ Action pings the project to keep it responsive — see
 - After Part E: **Table Editor** shows the `trees`, `species`, `profiles`,
   `locations`, `tags`, `tree_tags` tables, and `species` already has ~15 rows.
 
-## Rollback / fixing mistakes
+## Rollback
 - **Wrong region** (can't change): **Settings → General → Danger zone → Delete
   project**, then recreate in the right region (no data lost — there's none yet).
 - **Leaked a key:** **Settings → API Keys** → rotate/revoke the secret key (or

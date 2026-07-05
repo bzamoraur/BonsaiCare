@@ -6,6 +6,26 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed — documentation standardization & forward planning (2026-07-05)
+- **Standardized every doc** against a new [Style Guide](docs/STYLE-GUIDE.md):
+  uniform status headers (`Status · Updated`), heading/link conventions, shared
+  setup-guide section names, and fixed broken links. Corrected all stale status
+  claims — `CLAUDE.md` and `README.md` no longer describe the project as
+  pre-code Phase 0.
+- **[ADR-0011](docs/decisions/0011-server-actions-and-validation.md)** — ratified
+  the shipped Server Components + Server Actions architecture (amending ADR-0004)
+  and scoped Zod to JSONB payloads (care `details`, task `recurrence`),
+  fulfilling ADR-0005's validation requirement.
+- **Forward plan designed**: the [roadmap](docs/roadmap/roadmap.md) now carries
+  per-milestone vertical slices for M3–M5 and a prioritized Phase 2; new sprint
+  plans [02](docs/roadmap/sprint-02.md)–[05](docs/roadmap/sprint-05.md) map the
+  slices to a 2-week cadence; the [backlog](docs/roadmap/backlog.md) gains sized
+  feature ideas and a real tech-debt register. Sprint 01 closed out as shipped.
+- Reconciled the domain-model enum with the shipped migration
+  (`pest_treatment`; standalone photos are timeline-unioned rows, not a
+  `photo_only` event type). Archived the point-in-time repo audit to
+  `docs/archive/`.
+
 ### Added — Milestone M3: timeline & care logging
 - **Care log schema** (`supabase/migrations`) — a `care_log_entries` table (per
   [ADR-0005](docs/decisions/0005-unified-timeline-event-model.md)): a `type`

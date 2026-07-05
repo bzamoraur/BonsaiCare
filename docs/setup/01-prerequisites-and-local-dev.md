@@ -1,5 +1,7 @@
 # Setup 01 — Prerequisites & Local Development
 
+> **Status:** Current · **Updated:** 2026-07-05
+
 > Audience: the owner / a developer setting up from scratch. Written for someone
 > who is technical but new to *this* project. Follow top to bottom.
 >
@@ -34,8 +36,8 @@ supabase --version
 
 ## First-time local setup
 
-> Note: until **Sprint 01 (M1)** scaffolds the app, the `src/` app won't exist
-> yet — this section is the steady-state workflow you'll use from M1 onward.
+> This is the steady-state workflow you'll use for every local development
+> session.
 
 ```bash
 # 1. Clone (replace with your repo URL)
@@ -49,12 +51,12 @@ pnpm install
 cp .env.example .env.local
 #    Then fill in the values — see docs/setup/04-environment-variables.md
 
-# 4. (Option A) Run against a hosted Supabase project (simplest)
-#    Put your project's URL + publishable key in .env.local, then:
+# 4a. (Option A) Run against a hosted Supabase project (simplest)
+#     Put your project's URL + publishable key in .env.local, then:
 pnpm dev
-#    App at http://localhost:3000
+#     App at http://localhost:3000
 
-# 4. (Option B) Run a fully local Supabase stack (no internet needed)
+# 4b. (Option B) Run a fully local Supabase stack (no internet needed)
 supabase start                 # boots local Postgres/Auth/Storage in Docker
 supabase db reset              # applies migrations + seed
 #    Copy the printed local API URL + anon key into .env.local (the local stack
@@ -62,7 +64,7 @@ supabase db reset              # applies migrations + seed
 pnpm dev
 ```
 
-## Everyday commands (available from M1)
+## Everyday commands
 
 ```bash
 pnpm dev            # run the app locally
@@ -91,7 +93,7 @@ supabase gen types typescript --local > src/types/database.ts
 - You can sign in (magic link) and reach the empty dashboard.
 - `pnpm test` and `pnpm typecheck` pass.
 
-## Rollback / reset
+## Rollback
 - Local DB wrong? `supabase db reset` rebuilds it from migrations + seed.
 - Dependencies broken? delete `node_modules` and `pnpm-lock.yaml`, `pnpm install`.
 - Never commit `.env.local` (it's git-ignored). If you accidentally do, rotate the

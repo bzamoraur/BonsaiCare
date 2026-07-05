@@ -1,5 +1,7 @@
 # Setup 04 — Environment Variables Reference
 
+> **Status:** Current · **Updated:** 2026-07-05
+
 > The single reference for every env var. Mirrors [`.env.example`](../../.env.example).
 > **Secrets never go in the repo** — only in `.env.local` (git-ignored), Vercel
 > project settings, and GitHub Action secrets.
@@ -26,14 +28,14 @@
 | **Vercel** → Project → Settings → Environment Variables | `NEXT_PUBLIC_*` (+ `SUPABASE_SECRET_KEY` only if used) | set per environment (Prod/Preview). |
 | **GitHub** → repo → Settings → Secrets and variables → Actions | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, keep-warm URL + publishable key | used by CI & the keep-warm workflow. |
 
-## Common mistakes
+## Common errors & fixes
 - Putting a secret behind `NEXT_PUBLIC_` → it leaks to every visitor. Don't.
 - Forgetting to set vars for the **Preview** environment in Vercel → preview
   deploys can't reach Supabase.
 - Editing `.env.local` and not restarting `pnpm dev` → changes not picked up.
 - Committing `.env.local` → if it happens, **rotate the keys** immediately.
 
-## Verify
+## How to verify success
 - `pnpm dev` connects to Supabase (you can sign in and read/write).
 - A Vercel preview build succeeds and reaches Supabase.
 - No secret value appears in the browser dev-tools "Sources"/network (only the

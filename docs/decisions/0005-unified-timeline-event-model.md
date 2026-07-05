@@ -54,3 +54,7 @@ an MVP yet scales.
   incremental migration.
 - **Related:** *past* events (this ADR) are deliberately separate from *future*
   tasks ([ADR-0006](./0006-task-scheduling-and-recurrence.md)).
+- **Implementation note (2026-07-05):** the per-type validation ships via Zod
+  per [ADR-0011](./0011-server-actions-and-validation.md); the shipped enum is
+  `pest_treatment` (not `pest_disease`) and standalone photos are
+  timeline-unioned `photos` rows rather than a `photo_only` event type.

@@ -5,8 +5,11 @@ and high-signal; detailed reasoning lives in `docs/`.
 
 ## What this is
 A personal, production-grade **bonsai care & tracking PWA**. Currently in
-**Phase 0 (foundation)** — docs only, **no app code yet**. Building starts at
-`docs/roadmap/sprint-01.md`. Read `docs/product/product-brief.md` and
+**Phase 1 — Milestone M3 (timeline & care logging)**: M1 (auth, shell, schema,
+CI) and M2 (trees, photos, tags, locations, search) are **shipped and live**;
+the M3 `care_log_entries` schema is merged and the logging UI is next
+(`docs/roadmap/sprint-02.md`). Keep this status line current — update it in the
+same PR that changes it. Read `docs/product/product-brief.md` and
 `docs/architecture/overview.md` before non-trivial work.
 
 ## Golden rules (don't violate without an ADR)
@@ -29,16 +32,23 @@ A personal, production-grade **bonsai care & tracking PWA**. Currently in
 
 ## Architecture in one breath
 Next.js (App Router, TS strict) PWA → Supabase (Postgres + Auth + Storage, RLS) →
-Vercel (Hobby). Tailwind + shadcn/ui, TanStack Query, react-hook-form + Zod.
-Photos: private bucket, client-compressed, signed URLs. Full picture:
-`docs/architecture/overview.md`. Data model: `docs/architecture/domain-model.md`.
+Vercel (Hobby). Tailwind + shadcn/ui. **Reads = Server Components; writes =
+Server Actions** (revalidate, no client cache). Validation: hand-rolled pure
+parsers for flat forms; **Zod for JSONB payloads** (care `details`, task
+`recurrence`) — see ADR-0011. Photos: private bucket, client-compressed WebP,
+signed URLs. Full picture: `docs/architecture/overview.md`. Data model:
+`docs/architecture/domain-model.md`.
 
-## Where things live (from M1)
+## Where things live
 ```
-src/app/        routes (App Router)        src/domain/   PURE logic + Zod + tests
-src/components/ shared UI (shadcn-based)    src/server/   RLS-aware data access
-src/features/   feature modules            src/lib/      supabase client, env, utils
-src/types/      generated DB types         supabase/     migrations/ + seed/
+src/app/        routes (App Router; (app)/ = authed shell)
+src/components/ shared UI (shadcn-based; components/ui/ = primitives)
+src/domain/     PURE logic + validators + tests (no React/Supabase)
+src/server/     RLS-aware data access (server-only)
+src/lib/        supabase clients, env, labels, utils
+src/types/      generated DB types (supabase gen types --linked)
+src/proxy.ts    Next 16 proxy (session refresh + route gating)
+supabase/       migrations/ + tests/ (pgTAP RLS suites)
 ```
 
 ## Core domain concepts (use this language)
@@ -51,7 +61,8 @@ src/types/      generated DB types         supabase/     migrations/ + seed/
 - **photo** belongs to a tree, optionally to an event; timeline merges them by date.
 
 ## Conventions
-- TS strict; no `any` without a reason. Zod at boundaries; infer types from it.
+- TS strict; no `any` without a reason. Validate at the Server Action boundary
+  (public HTTP surface); Zod for JSONB payloads per ADR-0011.
 - Small, single-purpose files & PRs. Conventional commits. No giant files.
 - Make failure modes explicit; validate inputs; no silent catches.
 - Significant decision → write an ADR (`docs/decisions/`, template in ADR-0000).

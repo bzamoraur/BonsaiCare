@@ -1,7 +1,8 @@
 # Competitive & Product Benchmark
 
-> Status: v1, 2026-06-26. Compiled from structured web research (six parallel
-> research streams). **Read the method caveat before trusting any number.**
+> **Status:** Current · **Updated:** 2026-07-05
+> Compiled 2026-06-26 from structured web research (six parallel research
+> streams). **Read the method caveat before trusting any number.**
 
 ## Method & honest caveats
 
@@ -18,7 +19,7 @@ Apple App Store, Google Play, Reddit, and most bonsai sites were blocked (HTTP
 - Facts are cited; inferences are labelled. This is decision-support research,
   not a published market report.
 
-## 1. The reference product — Bonsai Care App (Bonsai Empire)
+## The reference product — Bonsai Care App (Bonsai Empire)
 
 **Positioning:** "Add your trees and set reminders, with smart advice based on
 the tree species and time of year… add photos to track your tree's
@@ -52,7 +53,7 @@ reminders, collections, pots, valuation.
 > different, AI-first 2025 app by Carlos Domingues). Some "bug" reports online
 > belong to that app, not Bonsai Empire's.
 
-## 2. The dedicated-bonsai landscape
+## The dedicated-bonsai landscape
 
 | App | Platform | Price | Rating | Maintained | Notes |
 |---|---|---|---|---|---|
@@ -72,7 +73,7 @@ them right. **Data portability/longevity is the #1 trust barrier in this niche.*
 Winners earn trust via a *brand* (Bonsai Empire, Mirai) or *local + CSV export*
 (Bonsai Album). → **We treat data export as a first-class trust feature.**
 
-## 3. Generic plant-care apps (for UX/monetization lessons only)
+## Generic plant-care apps (for UX/monetization lessons only)
 
 None has **any** bonsai-specific support — bonsai is treated as a generic
 species with fixed-interval watering. They are UX/business references, not
@@ -103,7 +104,7 @@ users disable then delete), fixed-interval schedules that ignore species/pot/
 season, dark-pattern paywalls. **Regulatory note:** an FTC/ICPEN/GPEN 2024 sweep
 found ~76% of subscription apps used ≥1 dark pattern. ([FTC](https://www.ftc.gov/news-events/news/press-releases/2024/07/ftc-icpen-gpen-announce-results-review-use-dark-patterns-affecting-subscription-services-privacy))
 
-## 4. What this means for us — table stakes vs differentiators
+## What this means for us — table stakes vs differentiators
 
 **Table stakes (must have, everyone has them):** tree inventory + profiles,
 progress photos, care logging, reminders/tasks, fertilization tracking, notes.

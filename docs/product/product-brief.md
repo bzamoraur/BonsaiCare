@@ -1,7 +1,9 @@
 # Product Brief — Bonsai Companion
 
-> Status: v1, 2026-06-26. The single source of truth for *what* we are building
-> and *why*. Scope decisions here govern the roadmap.
+> **Status:** Current · **Updated:** 2026-07-05
+>
+> The single source of truth for *what* we are building and *why*. Scope
+> decisions here govern the roadmap.
 
 ## One-line vision
 
@@ -74,7 +76,7 @@ on breadth:
 
 ## MVP scope
 
-See [mvp-scope.md](./mvp-scope.md) for the authoritative in/out list and the
+See the [MVP scope](./mvp-scope.md) for the authoritative in/out list and the
 reasoning. In one sentence: **add and organize trees, store structured info and
 photos per tree, keep an ordered timeline, log care, and manage a calendar of
 tasks (incl. fertilization) with a dashboard of what's upcoming/overdue** — done

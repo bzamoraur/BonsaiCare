@@ -1,6 +1,6 @@
 # ADR-0004: Frontend stack — Next.js, Tailwind, shadcn/ui, TanStack Query, Zod
 
-- **Status:** Accepted
+- **Status:** Accepted — amended by [ADR-0011](./0011-server-actions-and-validation.md) (TanStack Query / react-hook-form not adopted for MVP; Zod scoped to JSONB payloads)
 - **Date:** 2026-06-26
 - **Deciders:** Owner + Claude
 

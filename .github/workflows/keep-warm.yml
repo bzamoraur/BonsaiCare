@@ -3,7 +3,7 @@ name: Keep Supabase warm
 # Free Supabase projects pause after ~7 days of inactivity (Risk R1). This
 # scheduled ping keeps a personal "production" app responsive. It is a no-op
 # until you add the SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY repository Action secrets
-# (see docs/operations/runbook.md#keep-warm). Scheduled workflows run from the
+# (see docs/operations/runbook.md#keep-warm-free-tier-pause--r1). Scheduled workflows run from the
 # default branch only.
 
 on:

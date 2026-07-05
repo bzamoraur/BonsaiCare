@@ -1,5 +1,8 @@
 # Setup 00 — Developer Onboarding & Session Handover (VS Code + Claude Code)
 
+> **Status:** Historical · **Updated:** 2026-07-05
+> The handover this doc describes (Phase 0 → local build) completed on 2026-06-27; M1–M2 have shipped since — kept for the record.
+
 > **Start here** if you're moving development to your own machine in VS Code with
 > Claude Code. This is the click-by-click handover from the web planning session
 > to a local build session.
@@ -191,13 +194,13 @@ claude mcp add --transport http github https://api.githubcopilot.com/mcp/ \
 | `git clone`/push asks for password and fails | GitHub dropped password auth | Use a **Personal Access Token** as the password, or set up SSH. |
 | Claude doesn't seem to know the project rules | `CLAUDE.md` not at repo root / wrong folder open | Open the **repo root** in VS Code; confirm `CLAUDE.md` is there. |
 
-## Verify success
+## How to verify success
 - `claude --version` works; `claude` starts and you're logged in (`/usage` shows
   your plan).
 - In the repo, Claude references the project's conventions (it read `CLAUDE.md`).
 - `pnpm install` then `pnpm dev` (from M1 onward) serves http://localhost:3000.
 
-## Rollback / undo
+## Rollback
 - Uninstall the extension from VS Code's Extensions panel; remove the CLI per the
   install method (e.g. `brew uninstall claude-code`).
 - Nothing here changes the repo; your work is in git. Mistakes are recoverable via
@@ -205,7 +208,7 @@ claude mcp add --transport http github https://api.githubcopilot.com/mcp/ \
 
 ---
 
-## ✅ Your to-do checklist (in order)
+## Your to-do checklist (in order)
 
 1. [ ] Confirm you have a **Claude Pro/Max** (or Console) plan for local Claude Code.
 2. [ ] Review **PR #1** on GitHub; merge it to `main` when happy (or tell me changes).

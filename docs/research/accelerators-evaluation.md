@@ -1,12 +1,15 @@
 # Tooling & Accelerator Evaluation
 
-> Status: v1, 2026-06-26. Evaluates dev-tooling accelerators for this repo.
-> Verdicts are evidence-based; facts cited, opinions labelled.
+> **Status:** Current · **Updated:** 2026-07-05
+> Facts (stars, versions, security posture) are as of 2026-06-26. Verdicts are
+> evidence-based; facts cited, opinions labelled.
 
 The brief asks us to evaluate accelerators — especially `obra/superpowers` —
 and not adopt anything blindly.
 
-## obra/superpowers — verdict: **adopt (trial), document, don't hard-wire**
+## obra/superpowers
+
+**Verdict: adopt (trial), document, don't hard-wire.**
 
 **What it is (fact):** a skills framework + opinionated dev methodology shipped
 as a Claude Code **plugin** (markdown `SKILL.md` files + a `SessionStart` hook
@@ -35,7 +38,7 @@ developer lacks — squarely aligned with our "production quality, not a
 prototype" goal. Because it's per-developer Claude Code environment config (not a
 repo artifact, and this remote environment is ephemeral), the durable
 deliverable is **documentation + a recommendation**, not a committed file. See
-the install note in [`docs/setup/09-claude-code-accelerators.md`](../setup/09-claude-code-accelerators.md).
+the install note in [docs/setup/05-claude-code-accelerators.md](../setup/05-claude-code-accelerators.md).
 Dial it back via `CLAUDE.md` overrides if the gates outweigh the value on a
 project this small.
 

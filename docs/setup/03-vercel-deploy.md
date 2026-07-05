@@ -1,7 +1,10 @@
 # Setup 03 — Deploy to Vercel
 
-> Audience: non-expert owner. Do this once the app scaffold exists (end of
-> Sprint 01 / Milestone M5 for production). Vercel **Hobby** is free for
+> **Status:** Current · **Updated:** 2026-07-05
+
+> Audience: non-expert owner. This was done at the end of Sprint 01 — the app
+> deploys to production from `main` on every merge. Follow these steps only to
+> recreate the Vercel project from scratch. Vercel **Hobby** is free for
 > non-commercial use ([ADR-0003](../decisions/0003-hosting-vercel.md)).
 >
 > ⚠️ **UI drift note:** labels may change; match the *values*, not the pixels.
@@ -39,7 +42,7 @@ deploys from GitHub and per-PR preview deployments.
      production URL and add it to **Redirect URLs** (`https://<domain>/**`).
      Otherwise magic-link sign-in will fail in production.
 8. *(Optional)* **Custom domain:** Project → **Settings → Domains** → add your
-   domain and follow the DNS instructions. Update the Supabase URLs + 
+   domain and follow the DNS instructions. Update the Supabase URLs and
    `NEXT_PUBLIC_SITE_URL` to match.
 
 ## Automatic deploys (how it works after setup)

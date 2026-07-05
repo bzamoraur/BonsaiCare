@@ -1,8 +1,9 @@
 # Testing Strategy
 
-> Status: v1, 2026-06-26. Pragmatic, not dogmatic. Test where bugs are costly and
-> logic is subtle — not for a coverage number. "Production-oriented, not
-> demo-oriented" means the risky parts are actually verified.
+> **Status:** Current · **Updated:** 2026-07-05
+> Pragmatic, not dogmatic. Test where bugs are costly and logic is subtle — not
+> for a coverage number. "Production-oriented, not demo-oriented" means the
+> risky parts are actually verified.
 
 ## The testing pyramid for this app
 
@@ -12,7 +13,7 @@
         ▼  many  Unit (Vitest)     — pure domain logic + components
 ```
 
-## 1. Unit tests (Vitest) — the priority
+## Unit tests (Vitest) — the priority
 
 The highest-value tests, because the **domain logic is where correctness bites**
 (the exact class of bug Bonsai Empire shipped). `src/domain/` is pure and
@@ -33,7 +34,7 @@ Must-cover domain logic:
 Component tests (Testing Library) for tricky UI: quick-add form defaults, the
 progressive-disclosure tree form, timeline rendering/sorting.
 
-## 2. Integration tests — RLS is non-negotiable
+## Integration tests — RLS is non-negotiable
 
 Against a **local Supabase** test database:
 - **RLS isolation test:** seed two users; assert user B **cannot** read/update/
@@ -43,7 +44,7 @@ Against a **local Supabase** test database:
 - Data-access functions behave (insert→read→update→archive) under RLS with a real
   session.
 
-## 3. E2E tests (Playwright) — the critical journeys only
+## E2E tests (Playwright) — the critical journeys only
 
 Keep this set small and stable; cover the flows whose breakage makes the app
 unusable ([ux/information-architecture](../ux/information-architecture.md)):

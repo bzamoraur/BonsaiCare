@@ -1,9 +1,11 @@
 # UX Principles & Visual Direction
 
-> Status: v1, 2026-06-26. The felt-quality bar. The app must feel **calm,
-> premium, simple, and natural for bonsai care** — never a generic CRUD admin
-> panel. This doc sets the principles; component/token specifics land with the
-> design system in Phase 1.
+> **Status:** Current · **Updated:** 2026-07-05
+>
+> The felt-quality bar. The app must feel **calm, premium, simple, and natural
+> for bonsai care** — never a generic CRUD admin panel. This doc sets the
+> principles; the base theme and tokens shipped with M1 (shadcn/ui + Tailwind
+> tokens) and evolve incrementally.
 
 ## Experience principles
 
