@@ -24,7 +24,13 @@ import { DeletePhotoButton } from "./delete-photo-button";
 import { LogCareForm } from "./log-care-form";
 import { deletePhotoAction, setCoverAction } from "./photo-actions";
 import { PhotoUploader } from "./photo-uploader";
-import { createTaskAction, deleteTaskAction } from "./task-actions";
+import {
+  completeTaskAction,
+  createTaskAction,
+  deleteTaskAction,
+  skipTaskAction,
+} from "./task-actions";
+import { TaskActions } from "./task-actions-buttons";
 import { TimelineFilters, type FilterOption } from "./timeline-filters";
 
 type Params = { id: string };
@@ -310,7 +316,13 @@ function TaskItem({ task, treeId, today }: { task: Task; treeId: string; today: 
         {task.notes ? (
           <p className="text-muted-foreground text-sm whitespace-pre-wrap">{task.notes}</p>
         ) : null}
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
+          <TaskActions
+            type={task.type}
+            defaultDate={today}
+            completeAction={completeTaskAction.bind(null, treeId, task.id)}
+            skipAction={skipTaskAction.bind(null, treeId, task.id)}
+          />
           <Link
             href={`/collection/${treeId}/tasks/${task.id}`}
             className="text-muted-foreground hover:text-foreground px-2 py-1 text-xs font-medium underline-offset-4 hover:underline"
