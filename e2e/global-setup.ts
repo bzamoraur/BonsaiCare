@@ -46,23 +46,6 @@ export default async function globalSetup() {
     throw new Error(`Failed to create e2e user: ${createError?.message ?? "no user returned"}`);
   }
 
-  // Seed a tree per flow spec (isolated so parallel specs never collide).
-  const { data: trees, error: seedError } = await admin
-    .from("trees")
-    .insert([
-      { owner_id: created.user.id, name: "E2E Timeline Tree", health_status: "healthy" },
-      { owner_id: created.user.id, name: "E2E Loop Tree", health_status: "healthy" },
-    ])
-    .select("id, name");
-  if (seedError || !trees) {
-    throw new Error(`Failed to seed trees: ${seedError?.message ?? "no trees returned"}`);
-  }
-  const treeId = (name: string) => {
-    const match = trees.find((t) => t.name === name);
-    if (!match) throw new Error(`Seed tree not found: ${name}`);
-    return match.id as string;
-  };
-
   // Sign in through an @supabase/ssr client and capture the cookies IT writes.
   const captured = new Map<string, { name: string; value: string }>();
   const ssr = createServerClient(supabaseUrl, anonKey, {
@@ -85,6 +68,25 @@ export default async function globalSetup() {
       "No auth cookies were captured after sign-in — the harness cannot authenticate.",
     );
   }
+
+  // Seed one tree per flow spec (isolated so parallel specs never collide). Seeded
+  // via the *authenticated* client, not the admin key: the migrations grant table
+  // access to `authenticated` (not service_role), and RLS permits own-row inserts.
+  const { data: trees, error: seedError } = await ssr
+    .from("trees")
+    .insert([
+      { owner_id: created.user.id, name: "E2E Timeline Tree", health_status: "healthy" },
+      { owner_id: created.user.id, name: "E2E Loop Tree", health_status: "healthy" },
+    ])
+    .select("id, name");
+  if (seedError || !trees) {
+    throw new Error(`Failed to seed trees: ${seedError?.message ?? "no trees returned"}`);
+  }
+  const treeId = (name: string) => {
+    const match = trees.find((t) => t.name === name);
+    if (!match) throw new Error(`Seed tree not found: ${name}`);
+    return match.id as string;
+  };
 
   const expires = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7; // 7 days
   const storageState = {
