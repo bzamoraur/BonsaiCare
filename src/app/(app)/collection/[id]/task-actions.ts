@@ -4,9 +4,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { parseTaskForm } from "@/domain/task-form";
-import { createTask, deleteTask, updateTask } from "@/server/tasks";
+import { completeTask, createTask, deleteTask, skipTask, updateTask } from "@/server/tasks";
 
 import type { TaskFormState } from "./task-types";
+
+/** A trusted "YYYY-MM-DD" completion date: validated for real calendar validity,
+ * falling back to today. Keeps a tampered value out of the scheduling math. */
+function safeCompletedOn(raw: FormDataEntryValue | null): string {
+  if (typeof raw === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    const d = new Date(`${raw}T00:00:00Z`);
+    if (!Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === raw) return raw;
+  }
+  return new Date().toISOString().slice(0, 10);
+}
 
 /** Builds the raw task input from a form. `treeId` is bound server-side (this
  * form always creates a tree-scoped task), so it's never trusted from the client. */
@@ -80,5 +90,43 @@ export async function deleteTaskAction(taskId: string, treeId: string): Promise<
     redirect(`/collection/${treeId}?error=task`);
   }
 
+  revalidatePath(`/collection/${treeId}`);
+}
+
+/**
+ * Form action (tree + task bound server-side): mark a task done. Optionally logs a
+ * linked care event; if recurring, the next occurrence appears — atomically, via
+ * the complete_task RPC. `redirect` stays outside the try/catch.
+ */
+export async function completeTaskAction(
+  treeId: string,
+  taskId: string,
+  formData: FormData,
+): Promise<void> {
+  let ok = true;
+  try {
+    await completeTask(taskId, {
+      completedOn: safeCompletedOn(formData.get("completedOn")),
+      logEvent: formData.get("logEvent") === "on",
+    });
+  } catch {
+    ok = false;
+  }
+
+  if (!ok) redirect(`/collection/${treeId}?error=task`);
+  revalidatePath(`/collection/${treeId}`);
+}
+
+/** Form action (tree + task bound server-side): skip a task. A recurring task
+ * still spawns its next occurrence. */
+export async function skipTaskAction(treeId: string, taskId: string): Promise<void> {
+  let ok = true;
+  try {
+    await skipTask(taskId, new Date().toISOString().slice(0, 10));
+  } catch {
+    ok = false;
+  }
+
+  if (!ok) redirect(`/collection/${treeId}?error=task`);
   revalidatePath(`/collection/${treeId}`);
 }
