@@ -10,14 +10,17 @@ import { getLocationName } from "@/server/locations";
 import { getTreeTags } from "@/server/tags";
 import { listTreeTimeline, type TimelineItem } from "@/server/timeline";
 import { getTree } from "@/server/trees";
+import { Constants } from "@/types/database.types";
 
 import { archiveTreeAction } from "./actions";
 import { ArchiveTreeForm } from "./archive-tree-form";
-import { logCareAction } from "./care-actions";
+import { deleteCareAction, logCareAction } from "./care-actions";
+import { ConfirmDeleteButton } from "./confirm-delete-button";
 import { DeletePhotoButton } from "./delete-photo-button";
 import { LogCareForm } from "./log-care-form";
 import { deletePhotoAction, setCoverAction } from "./photo-actions";
 import { PhotoUploader } from "./photo-uploader";
+import { TimelineFilters, type FilterOption } from "./timeline-filters";
 
 type Params = { id: string };
 
@@ -25,6 +28,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   archive: "We couldn't archive this tree. Please try again.",
   cover: "We couldn't set that cover photo. Please try again.",
   photo: "We couldn't delete that photo. Please try again.",
+  care: "We couldn't update the care log. Please try again.",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("en-GB", {
@@ -54,10 +58,10 @@ export default async function TreeDetailPage({
   searchParams,
 }: {
   params: Promise<Params>;
-  searchParams: Promise<{ error?: string; log?: string }>;
+  searchParams: Promise<{ error?: string; log?: string; type?: string }>;
 }) {
   const { id } = await params;
-  const { error, log } = await searchParams;
+  const { error, log, type } = await searchParams;
 
   const [tree, timeline, tags] = await Promise.all([
     getTree(id),
@@ -94,6 +98,33 @@ export default async function TreeDetailPage({
     item.kind === "photo" ? [item.photo] : item.photos,
   );
   const heroPhoto = allPhotos.find((p) => p.id === tree.cover_photo_id) ?? allPhotos[0] ?? null;
+
+  // Type filter (URL-driven). Options are only the kinds actually present.
+  const careTypes = Constants.public.Enums.care_event_type;
+  const activeFilter =
+    type === "photos" || (type && (careTypes as readonly string[]).includes(type))
+      ? type
+      : undefined;
+
+  const presentTypes = new Set(
+    timeline.flatMap((item) => (item.kind === "care" ? [item.entry.type] : [])),
+  );
+  const filterOptions: FilterOption[] = [
+    ...careTypes
+      .filter((t) => presentTypes.has(t))
+      .map((t) => ({ value: t, label: CARE_EVENT_LABELS[t] })),
+    ...(timeline.some((item) => item.kind === "photo")
+      ? [{ value: "photos", label: "Photos" }]
+      : []),
+  ];
+
+  const visibleItems = activeFilter
+    ? timeline.filter((item) =>
+        activeFilter === "photos"
+          ? item.kind === "photo"
+          : item.kind === "care" && item.entry.type === activeFilter,
+      )
+    : timeline;
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
@@ -173,18 +204,22 @@ export default async function TreeDetailPage({
 
         <LogCareForm action={logCareAction.bind(null, tree.id)} defaultOpen={log === "1"} />
 
+        {filterOptions.length > 1 ? <TimelineFilters options={filterOptions} /> : null}
+
         {timeline.length === 0 ? (
           <p className="text-muted-foreground text-sm text-balance">
             No history yet. Log care or add a photo to start this tree&apos;s story.
           </p>
+        ) : visibleItems.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No entries match this filter.</p>
         ) : (
           <ol className="flex flex-col">
-            {timeline.map((item) => (
+            {visibleItems.map((item) => (
               <li key={`${item.kind}-${item.id}`} className="flex gap-3">
                 <TimelineIcon item={item} />
                 <div className="border-border flex flex-1 flex-col gap-1.5 border-b pb-4 last:border-b-0">
                   {item.kind === "care" ? (
-                    <CareItem item={item} treeName={tree.name} />
+                    <CareItem item={item} treeId={tree.id} treeName={tree.name} />
                   ) : (
                     <PhotoItem item={item} treeId={tree.id} coverPhotoId={tree.cover_photo_id} />
                   )}
@@ -222,9 +257,11 @@ function TimelineIcon({ item }: { item: TimelineItem }) {
 
 function CareItem({
   item,
+  treeId,
   treeName,
 }: {
   item: Extract<TimelineItem, { kind: "care" }>;
+  treeId: string;
   treeName: string;
 }) {
   const { entry, photos } = item;
@@ -258,6 +295,18 @@ function CareItem({
           )}
         </div>
       ) : null}
+      <div className="flex items-center gap-1">
+        <Link
+          href={`/collection/${treeId}/care/${entry.id}`}
+          className="text-muted-foreground hover:text-foreground px-2 py-1 text-xs font-medium underline-offset-4 hover:underline"
+        >
+          Edit
+        </Link>
+        <ConfirmDeleteButton
+          action={deleteCareAction.bind(null, entry.id, treeId)}
+          srLabel="Delete entry"
+        />
+      </div>
     </>
   );
 }

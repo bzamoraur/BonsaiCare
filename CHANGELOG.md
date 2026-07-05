@@ -27,6 +27,10 @@ All notable changes to this project are documented here. Format follows
   `docs/archive/`.
 
 ### Added — Milestone M3: timeline & care logging
+- **Manage the timeline** — filter it by care type (URL-driven chips), **edit** any
+  care entry, and **delete** entries behind a confirm. Logging and editing now share
+  one `CareEntryFields` component; the occurred date is day-granular (which keeps it
+  timezone-simple).
 - **Per-tree timeline** — the tree detail now shows one merged, newest-first
   timeline of care events **and** photos (per-type icons, inline photo thumbnails),
   replacing the separate care-log list and photos grid. Read via a single
