@@ -167,8 +167,8 @@ Logged per the quality protocol; scheduled, not aspirational:
   if timeline/dashboard interactions feel laggy or optimistic UI becomes a real
   need, revisit TanStack Query. *(Trigger-gated.)*
 - **`supabase db push` discipline** — hosted migrations lag the repo until the
-  owner pushes; every schema PR must flag it. *(Standing; two migrations
-  currently pending push: bucket limits + care log.)*
+  owner pushes; every schema PR must flag it. *(Standing; one migration
+  currently pending push: `tasks` (M4).)*
 
 ## Parking lot (unvetted ideas)
 
