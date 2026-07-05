@@ -114,15 +114,24 @@ async function resolveTask(
   if (!task) throw new Error("Task not found.");
 
   // Next occurrence for a recurring task, from the verified domain function.
+  // A non-null recurrence that fails to parse can only mean out-of-band DB
+  // corruption (every write path validates it) — we leave nextDueOn null rather
+  // than guess, so the series stops instead of scheduling a garbage date.
   let nextDueOn: string | null = null;
   if (task.recurrence) {
     const parsed = parseRecurrence(task.recurrence);
     if (parsed.ok) {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("hemisphere")
         .eq("id", task.owner_id)
         .maybeSingle();
+      // Fail loud on a read error: silently defaulting the hemisphere could write
+      // a wrong-season successor (the exact ADR-0006 risk). The `?? "northern"`
+      // is only the canonical default for a genuinely absent profile row.
+      if (profileError) {
+        throw new Error(`Failed to load your profile for scheduling: ${profileError.message}`);
+      }
       nextDueOn = computeNextDueOn(
         { dueOn: task.due_on, completedOn: opts.completedOn },
         parsed.value,
@@ -131,7 +140,10 @@ async function resolveTask(
     }
   }
 
-  const careType = outcome === "done" && opts.logEvent ? TASK_TYPE_TO_CARE_EVENT[task.type] : null;
+  // Only log a care event for a tree-scoped task: a care_log_entry requires a tree
+  // (NOT NULL), so never request one for a collection-wide (tree-less) task.
+  const careType =
+    outcome === "done" && opts.logEvent && task.tree_id ? TASK_TYPE_TO_CARE_EVENT[task.type] : null;
 
   const { error } = await supabase.rpc("complete_task", {
     p_task_id: taskId,
