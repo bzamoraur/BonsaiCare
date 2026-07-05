@@ -15,7 +15,19 @@ import { recordPhotoAction } from "./photo-actions";
  * row via a Server Action → refresh. `ownerId` is the tree's owner (always the
  * signed-in user), so the object path lands under the caller's prefix.
  */
-export function PhotoUploader({ treeId, ownerId }: { treeId: string; ownerId: string }) {
+export function PhotoUploader({
+  treeId,
+  ownerId,
+  careLogEntryId,
+  compact = false,
+}: {
+  treeId: string;
+  ownerId: string;
+  /** When set, the photo is attached to this care entry (shows under it on the timeline). */
+  careLogEntryId?: string;
+  /** A lighter, left-aligned trigger — for attaching to a timeline entry. */
+  compact?: boolean;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -34,7 +46,13 @@ export function PhotoUploader({ treeId, ownerId }: { treeId: string; ownerId: st
         .upload(path, blob, { contentType: "image/webp", upsert: false });
       if (uploadError) throw new Error(uploadError.message);
 
-      const result = await recordPhotoAction({ treeId, storagePath: path, width, height });
+      const result = await recordPhotoAction({
+        treeId,
+        storagePath: path,
+        width,
+        height,
+        careLogEntryId,
+      });
       if (!result.ok) {
         // Best-effort cleanup so a failed record doesn't orphan the object.
         await supabase.storage.from("tree-photos").remove([path]);
@@ -51,7 +69,7 @@ export function PhotoUploader({ treeId, ownerId }: { treeId: string; ownerId: st
   }
 
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <div className={compact ? "flex flex-col gap-1.5" : "flex flex-col items-end gap-1.5"}>
       <input
         ref={inputRef}
         type="file"
@@ -62,7 +80,13 @@ export function PhotoUploader({ treeId, ownerId }: { treeId: string; ownerId: st
           if (file) void handleFile(file);
         }}
       />
-      <Button type="button" size="sm" onClick={() => inputRef.current?.click()} disabled={busy}>
+      <Button
+        type="button"
+        variant={compact ? "ghost" : "default"}
+        size="sm"
+        onClick={() => inputRef.current?.click()}
+        disabled={busy}
+      >
         {busy ? "Uploading…" : "Add photo"}
       </Button>
       {error ? (

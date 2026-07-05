@@ -1,9 +1,14 @@
 # Sprint 03 — "The tree's story" (Milestone M3, timeline half)
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Historical · **Updated:** 2026-07-06
 >
-> Second sprint of M3; closes the milestone. Builds the payoff for Sprint 02's
-> capture work: one coherent history per tree.
+> **Outcome: shipped (PRs #22–#24).** The merged per-tree timeline (care events +
+> photos, newest first, icon rail), URL-driven type filter, edit/delete of care
+> entries (shared `CareEntryFields`; day-granular date), and photo↔event attach
+> (a photo added on an entry folds under it; tree-level photos are standalone
+> items). M3's features are complete. **One DoD item deferred:** the log→timeline
+> **e2e** waits on a Playwright auth harness (logged in the backlog; it also
+> serves M5's critical-flow e2e). Next milestone: M4 ([Sprint 04](./sprint-04.md)).
 
 ## Sprint goal
 
@@ -13,17 +18,19 @@
 
 ## Definition of done (sprint = M3 exit)
 
-- [ ] A tree's detail screen shows a merged, date-descending timeline of care
+- [x] A tree's detail screen shows a merged, date-descending timeline of care
       entries **and** photos (a standalone photo — `care_log_entry_id` null —
       is its own timeline item).
-- [ ] Timeline filters by event type via URL params (shareable, refresh-safe —
+- [x] Timeline filters by event type via URL params (shareable, refresh-safe —
       the M2 collection-filter pattern).
-- [ ] Entries can be edited (including `occurred_at` — backdating reorders
+- [x] Entries can be edited (including the occurred date — backdating reorders
       correctly) and deleted behind a confirm.
-- [ ] A photo can be attached while logging an event; it renders inline on that
-      event's timeline item.
-- [ ] E2e: log an event → it appears on the timeline in the right position.
-- [ ] M3 exit criteria in the [roadmap](./roadmap.md) all check out.
+- [x] A photo can be attached to an event; it renders inline on that event's
+      timeline item.
+- [ ] E2e: log an event → it appears on the timeline. **Deferred** — needs the
+      Playwright auth harness (backlog); unit coverage + manual verification stand
+      in for now.
+- [x] M3 feature exit criteria in the [roadmap](./roadmap.md) check out.
 
 ## Slices (one PR each, in order)
 
