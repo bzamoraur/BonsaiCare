@@ -447,6 +447,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
+      owner_metrics: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
     };
     Enums: {
       care_event_type:
