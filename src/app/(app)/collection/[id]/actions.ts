@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { parseTagInput } from "@/domain/tags";
 import { parseTreeForm } from "@/domain/tree-form";
+import { logActionError } from "@/lib/log-action-error";
 import { findOrCreateLocation } from "@/server/locations";
 import { syncTreeTags } from "@/server/tags";
 import { archiveTree, updateTree } from "@/server/trees";
@@ -53,7 +54,8 @@ export async function updateTreeAction(
     );
     await updateTree(id, parsed.value, locationId);
     await syncTreeTags(id, tagNames);
-  } catch {
+  } catch (error) {
+    logActionError("updateTree", error);
     return { status: "error", message: "We couldn't save your changes. Please try again." };
   }
 
@@ -68,7 +70,8 @@ export async function archiveTreeAction(id: string): Promise<void> {
   let archived = true;
   try {
     await archiveTree(id);
-  } catch {
+  } catch (error) {
+    logActionError("archiveTree", error);
     archived = false;
   }
 

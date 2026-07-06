@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -18,6 +19,10 @@ export async function GET(request: Request) {
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`);
     }
+    // Failed exchanges (expired link, PKCE verifier missing — e.g. the link was
+    // opened in a different browser than the one that requested it) are the
+    // hardest auth failures to debug from a user report; leave a trace.
+    logActionError("authCallback.exchange", error);
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth`);

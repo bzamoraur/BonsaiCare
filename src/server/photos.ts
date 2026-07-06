@@ -1,5 +1,6 @@
 import { cache } from "react";
 
+import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database.types";
 
@@ -28,10 +29,13 @@ export const listTreePhotos = cache(async (treeId: string): Promise<PhotoWithUrl
   const photos = data ?? [];
   if (photos.length === 0) return [];
 
-  const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrls(
+  // Signing failures degrade to url: null (the gallery renders placeholders),
+  // but never silently — a Storage outage must leave a trace.
+  const { data: signed, error: signError } = await supabase.storage.from(BUCKET).createSignedUrls(
     photos.map((p) => p.storage_path),
     SIGNED_URL_TTL_SECONDS,
   );
+  if (signError) logActionError("listTreePhotos.sign", signError);
   const urlByPath = new Map((signed ?? []).map((s) => [s.path, s.signedUrl]));
 
   return photos.map((p) => ({ ...p, url: urlByPath.get(p.storage_path) ?? null }));

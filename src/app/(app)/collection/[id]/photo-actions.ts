@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { logActionError } from "@/lib/log-action-error";
 import { deletePhoto, recordPhoto, setCoverPhoto } from "@/server/photos";
 
 /** Refreshes the tree detail + the collection grid (whose cover may have changed). */
@@ -25,7 +26,8 @@ export async function recordPhotoAction(input: {
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     await recordPhoto(input);
-  } catch {
+  } catch (error) {
+    logActionError("recordPhoto", error);
     return { ok: false, error: "We couldn't save that photo. Please try again." };
   }
   revalidateTree(input.treeId);
@@ -36,7 +38,8 @@ export async function recordPhotoAction(input: {
 export async function setCoverAction(treeId: string, photoId: string): Promise<void> {
   try {
     await setCoverPhoto(treeId, photoId);
-  } catch {
+  } catch (error) {
+    logActionError("setCoverPhoto", error);
     redirect(`/collection/${treeId}?error=cover`);
   }
   revalidateTree(treeId);
@@ -46,7 +49,8 @@ export async function setCoverAction(treeId: string, photoId: string): Promise<v
 export async function deletePhotoAction(photoId: string, treeId: string): Promise<void> {
   try {
     await deletePhoto(photoId);
-  } catch {
+  } catch (error) {
+    logActionError("deletePhoto", error);
     redirect(`/collection/${treeId}?error=photo`);
   }
   revalidateTree(treeId);

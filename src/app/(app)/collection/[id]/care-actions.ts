@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { parseCareEntry } from "@/domain/care";
 import { ALL_DETAIL_FIELD_NAMES } from "@/lib/care-fields";
+import { logActionError } from "@/lib/log-action-error";
 import { createCareEntry, deleteCareEntry, updateCareEntry } from "@/server/care";
 
 import type { LogCareState } from "./care-types";
@@ -47,7 +48,8 @@ export async function logCareAction(
 
   try {
     await createCareEntry(parsed.value);
-  } catch {
+  } catch (error) {
+    logActionError("createCareEntry", error);
     return { status: "error", message: "We couldn't log that. Please try again." };
   }
 
@@ -71,7 +73,8 @@ export async function updateCareAction(
 
   try {
     await updateCareEntry(entryId, parsed.value);
-  } catch {
+  } catch (error) {
+    logActionError("updateCareEntry", error);
     return { status: "error", message: "We couldn't save your changes. Please try again." };
   }
 
@@ -84,7 +87,8 @@ export async function deleteCareAction(entryId: string, treeId: string): Promise
   let deleted = true;
   try {
     await deleteCareEntry(entryId);
-  } catch {
+  } catch (error) {
+    logActionError("deleteCareEntry", error);
     deleted = false;
   }
 

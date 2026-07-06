@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
  * recoverable message and a "Try again" that re-runs the failed render.
  */
 export default function AppError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
@@ -26,6 +27,11 @@ export default function AppError({
       <Button type="button" onClick={reset}>
         Try again
       </Button>
+      {error.digest && (
+        <p className="text-muted-foreground/80 font-mono text-xs">
+          If you report this, quote: {error.digest}
+        </p>
+      )}
     </main>
   );
 }

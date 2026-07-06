@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -46,6 +47,7 @@ export default async function AdminPage() {
   if (!user || !ownerId || user.id !== ownerId) notFound();
 
   const { data, error } = await supabase.rpc("owner_metrics");
+  if (error) logActionError("ownerMetrics.rpc", error);
   const metrics = (data as OwnerMetrics | null) ?? null;
 
   return (

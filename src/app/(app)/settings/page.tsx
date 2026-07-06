@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export default async function SettingsPage() {
     .select("display_name, hemisphere, units")
     .eq("id", user?.id ?? "")
     .maybeSingle();
+  if (error) logActionError("settingsPage.profile", error);
 
   const isOwner = Boolean(user?.id && process.env.OWNER_USER_ID === user.id);
 
