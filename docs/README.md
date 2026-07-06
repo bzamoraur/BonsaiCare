@@ -52,12 +52,17 @@ manual steps get a click-by-click setup guide. All docs follow the
 ## Roadmap & sprints
 
 - [Roadmap (phased, with current status)](roadmap/roadmap.md)
+- [Improvement plan (post-M5 execution order, from the milestone audit)](roadmap/improvement-plan.md)
 - [Backlog (stories, features, tech-debt register)](roadmap/backlog.md)
-- Sprints: [01 — Skeleton & Spine ✅](roadmap/sprint-01.md) ·
+- Sprints (all shipped ✅): [01 — Skeleton & Spine](roadmap/sprint-01.md) ·
   [02 — Log care, fast](roadmap/sprint-02.md) ·
   [03 — The tree's story](roadmap/sprint-03.md) ·
   [04 — A schedule you can trust](roadmap/sprint-04.md) ·
-  [05 — The daily loop](roadmap/sprint-05.md)
+  [05 — The daily loop](roadmap/sprint-05.md) ·
+  [06 — Own your data](roadmap/sprint-06.md) ·
+  [07 — Ready to trust daily](roadmap/sprint-07.md)
+- Audit snapshot: [PROJECT_EXPORT.md](../PROJECT_EXPORT.md) (regenerated each
+  milestone; previous editions in [archive/](archive/))
 
 ## Setup (click-by-click)
 

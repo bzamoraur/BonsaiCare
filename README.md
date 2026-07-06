@@ -4,12 +4,14 @@ A calm, photo-first companion for tracking, maintaining, and learning from a rea
 bonsai collection — built to be genuinely pleasant to use, not a generic CRUD
 admin panel.
 
-> **Status: Milestone M3 — timeline & care logging** *(updated 2026-07-05)*.
-> **M1** (magic-link auth, app shell, schema + RLS, CI) and **M2** (trees,
-> photos with private storage, tags, locations, search/filter/sort) are
-> **shipped and live** on Vercel. The M3 care-log schema is merged; the logging
-> UI and per-tree timeline are next. See the
-> [Roadmap](docs/roadmap/roadmap.md) and [Sprint 02](docs/roadmap/sprint-02.md).
+> **Status: Phase 1 (MVP) feature-complete — M1–M5 shipped and live** *(updated
+> 2026-07-06)*. Collection + photos, unified care timeline, season-aware
+> recurring tasks, the Today dashboard, full JSON/CSV/photo export, real account
+> deletion, dark mode, an authenticated e2e harness, and production hardening
+> all shipped (PRs #2–#57). Next: the audit-driven
+> [improvement plan](docs/roadmap/improvement-plan.md) — hardening sprint, then
+> daily-driver polish, then the friends release. Current audit snapshot:
+> [PROJECT_EXPORT.md](PROJECT_EXPORT.md).
 
 ## What it is
 

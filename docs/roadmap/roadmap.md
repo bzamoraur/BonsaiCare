@@ -21,8 +21,11 @@
 
 **Phase 1 (MVP) is feature-complete.** Its exit criterion — *lived-in, primary
 record, no data loss* — is now the ongoing real-use test (owner shakedown →
-friends). Owner setup + a friends release are the remaining gates, tracked in the
-[backlog](./backlog.md#getting-to-a-friends-release).
+friends). **Post-M5 execution order lives in the
+[improvement plan](./improvement-plan.md)** (from the 2026-07-06 milestone
+audit, see [PROJECT_EXPORT.md](../../PROJECT_EXPORT.md)): Sprint 08 fix-first
+hardening → M6 daily-driver → M7 friends release → M8 bonsai intelligence →
+M9 offline & sharing. This roadmap keeps the phase-level view.
 
 ## Phase 0 — Foundation
 
@@ -134,8 +137,8 @@ long-deferred e2e harness; Sprint [07](./sprint-07.md) the polish/hardening half
   job, which **closed both deferred DoDs** (M3 log→timeline, M4 daily loop).
 - **Exit (Phase 1 done):** deployed, stable, the owner uses it as the primary
   record with no data loss. This is the **success definition**.
-- **Sprints:** [06](./sprint-06.md) (export + deletion + harness — shipped) and
-  07 (polish + hardening — next).
+- **Sprints:** [06](./sprint-06.md) (export + deletion + harness) and
+  [07](./sprint-07.md) (polish + hardening) — both shipped.
 
 ## Phase 2 — Enhancements (only after MVP is loved)
 
@@ -184,11 +187,10 @@ deletion is real. What's missing is *control* and *visibility*, in this order:
    still moves off it — R5.)
 2. **First-run onboarding** — the skippable tutorial (in the backlog) so a cold
    colleague "gets it" in one pass. **Gate the invite on this.**
-3. **Owner metrics view (the heart of the ask)** — an *owner-only* page:
-   registered-user count, signups over time, active users (by last care log /
-   task completion), and per-user totals (trees, logs, tasks). Needs an admin
-   gate (owner id in env or an `is_admin` flag on `profiles`) + aggregate
-   queries. Small, high-value; buildable as soon as the owner wants it.
+3. **Owner metrics view — ✅ shipped early** (PR #53): `/admin`, env-gated
+   (`OWNER_USER_ID`, 404 for everyone else), aggregate-only `owner_metrics()`
+   RPC. v2 (per-feature counts + last-active, fed by `usage_events`) comes with
+   the analytics item below ([improvement plan](./improvement-plan.md) S12.2).
 4. **Usage analytics** — privacy-first, so development is evidence-led: start
    with **Vercel Web Analytics** (routes, cookieless) + a small `usage_events`
    table for key actions (logged care, created/completed task) feeding the
@@ -197,10 +199,11 @@ deletion is real. What's missing is *control* and *visibility*, in this order:
 5. **Error monitoring** — Sentry (already M5 slice 8) so the owner *sees* a
    colleague's bug rather than hearing about it later.
 
-**Sequence:** finish **M5** (polish + hardening — includes Sentry) → ship the
-onboarding tutorial + the friends-release items (allowlist decision, owner
-metrics, usage analytics) → invite. Detailed items are in the
-[backlog](./backlog.md).
+**Sequence:** M5 ✅ (Sentry deferred — uninstallable on Next 16; error
+boundaries + Vercel logs interim) → Sprint 08 hardening + M6 daily-driver →
+**M7** ships the remaining gates (OTP code login, allowlist + CAPTCHA,
+onboarding tour, ES/EN, usage analytics) → invite. Detailed sequencing:
+[improvement plan](./improvement-plan.md); holding pen: [backlog](./backlog.md).
 
 ## Phase 3 — Optional commercial (only if pursued)
 

@@ -16,6 +16,10 @@
 | `SUPABASE_SECRET_KEY` | **SECRET — server only** | server only (avoid unless required) | Supabase → Settings → **API Keys** → **Secret** key (`sb_secret_…`). **Bypasses RLS** — keep out of the browser bundle and out of git. MVP tries to avoid needing it. |
 | `SUPABASE_PROJECT_REF` | local/CI only | Supabase CLI, keep-warm | Supabase → Settings → General → **Reference ID**. |
 | `SUPABASE_ACCESS_TOKEN` | **SECRET — local/CI** | Supabase CLI auth | Created by `supabase login` / Supabase account tokens. Used for CLI & type-gen in CI. |
+| `OWNER_USER_ID` | server only (Vercel) | gates `/admin` + the Settings owner link | Supabase → Authentication → Users → your row's **UID**. Never `NEXT_PUBLIC_`. |
+| `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` | GitHub Action secrets | arms `keep-warm.yml` | Same values as the two `NEXT_PUBLIC_*` vars above — exact names, no prefix. |
+| `SUPABASE_DB_URL` | **SECRET — GitHub Actions only** | arms `backup.yml` (weekly DB dump) | Dashboard **Connect** button → **Session pooler** URI with the DB password filled in. ⚠ Not the direct connection (IPv6-only on free tier — unreachable from GitHub runners) and not the transaction pooler (breaks pg_dump). |
+| `SUPABASE_SERVICE_ROLE_KEY` | **SECRET — GitHub Actions only** | arms `reconcile-storage.yml` (orphan sweep) | Settings → API Keys → a **Secret key** (`sb_secret_…`; a legacy `service_role` JWT also works). Bypasses RLS — never in the app runtime or Vercel. *(Name kept for the historical role it maps to; the app-side equivalent concept is `SUPABASE_SECRET_KEY`.)* |
 
 > Naming rule: **`NEXT_PUBLIC_` is a promise that the value is public** (Next.js
 > inlines it into the client bundle). Never prefix a secret with `NEXT_PUBLIC_`.
@@ -25,8 +29,8 @@
 | Location | Which vars | How |
 |---|---|---|
 | `.env.local` (your machine, git-ignored) | the `NEXT_PUBLIC_*` + any you need locally | `cp .env.example .env.local` then fill in. |
-| **Vercel** → Project → Settings → Environment Variables | `NEXT_PUBLIC_*` (+ `SUPABASE_SECRET_KEY` only if used) | set per environment (Prod/Preview). |
-| **GitHub** → repo → Settings → Secrets and variables → Actions | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, keep-warm URL + publishable key | used by CI & the keep-warm workflow. |
+| **Vercel** → Project → Settings → Environment Variables | `NEXT_PUBLIC_*` + `OWNER_USER_ID` (+ `SUPABASE_SECRET_KEY` only if ever used) | set per environment (Prod/Preview). |
+| **GitHub** → repo → Settings → Secrets and variables → Actions | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (keep-warm) · `SUPABASE_DB_URL` (backup) · `SUPABASE_SERVICE_ROLE_KEY` (orphan sweep) · `SUPABASE_ACCESS_TOKEN`/`SUPABASE_PROJECT_REF` if CI ever needs the CLI | which are actually set: [production-state](../operations/production-state.md). |
 
 ## Common errors & fixes
 - Putting a secret behind `NEXT_PUBLIC_` → it leaks to every visitor. Don't.
