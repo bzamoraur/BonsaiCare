@@ -10,7 +10,7 @@
 // orphan counts (see sweepGuard) unless FORCE_SWEEP=true.
 
 import { createClient } from "@supabase/supabase-js";
-import { collectOrphans, fetchKnownPaths, sweepGuard } from "./reconcile-lib.mjs";
+import { collectOrphans, fetchKnownPaths, sweepGuard, walkBucket } from "./reconcile-lib.mjs";
 
 const url = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -28,31 +28,8 @@ if (!url || !serviceKey) {
 
 const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
 
-async function listAll(prefix) {
-  const entries = [];
-  for (let offset = 0; ; offset += PAGE) {
-    const { data, error } = await admin.storage.from(BUCKET).list(prefix, { limit: PAGE, offset });
-    if (error) throw new Error(`list "${prefix}": ${error.message}`);
-    const page = data ?? [];
-    entries.push(...page);
-    if (page.length < PAGE) break;
-  }
-  return entries;
-}
-
-// Walk the fixed <uid>/<treeId>/<file> layout; files have an id, folders don't.
-const objects = [];
-for (const userFolder of await listAll("")) {
-  if (userFolder.id !== null) continue;
-  for (const treeFolder of await listAll(userFolder.name)) {
-    if (treeFolder.id !== null) continue;
-    const dir = `${userFolder.name}/${treeFolder.name}`;
-    for (const file of await listAll(dir)) {
-      if (file.id !== null)
-        objects.push({ path: `${dir}/${file.name}`, createdAt: file.created_at });
-    }
-  }
-}
+// Walk the fixed <uid>/<treeId>/<file> layout (shared with the photo mirror).
+const objects = await walkBucket(admin, BUCKET, PAGE);
 
 // Every path the database knows about (service role → all users, past RLS),
 // read with explicit pagination — PostgREST caps single responses at 1,000

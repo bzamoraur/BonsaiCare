@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { collectOrphans, DB_PAGE, fetchKnownPaths, sweepGuard } from "./reconcile-lib.mjs";
+import {
+  collectOrphans,
+  DB_PAGE,
+  fetchKnownPaths,
+  planUploads,
+  sweepGuard,
+  walkBucket,
+} from "./reconcile-lib.mjs";
 
 // A stand-in for the supabase-js client that serves keyset pages from a sorted
 // row set, records every request, and can simulate a server-side row cap
@@ -161,5 +168,86 @@ describe("sweepGuard", () => {
       sweepGuard({ orphanCount: 50, objectCount: 200, knownCount: 0, dryRun: false, force: true })
         .ok,
     ).toBe(true);
+  });
+});
+
+describe("walkBucket", () => {
+  // tree: prefix -> full entry list; the mock serves limit/offset slices.
+  function mockStorageAdmin(tree) {
+    const calls = [];
+    return {
+      calls,
+      storage: {
+        from: () => ({
+          list: (prefix, { limit, offset }) => {
+            calls.push([prefix, offset]);
+            const all = tree[prefix] ?? [];
+            return Promise.resolve({ data: all.slice(offset, offset + limit), error: null });
+          },
+        }),
+      },
+    };
+  }
+  const folder = (name) => ({ name, id: null });
+  const file = (name, size) => ({
+    name,
+    id: `id-${name}`,
+    created_at: "2026-07-01T00:00:00Z",
+    metadata: { size },
+  });
+
+  it("walks the two-level layout, paginates, and carries path/createdAt/size", async () => {
+    const manyFiles = Array.from({ length: 250 }, (_, i) => file(`p${i}.webp`, 100 + i));
+    const admin = mockStorageAdmin({
+      "": [folder("userA"), folder("userB")],
+      userA: [folder("tree1"), file("stray-at-wrong-level.webp", 1)],
+      userB: [folder("tree2")],
+      "userA/tree1": [file("a.webp", 300)],
+      "userB/tree2": manyFiles,
+    });
+    const objects = await walkBucket(admin, "tree-photos", 100);
+    expect(objects.length).toBe(1 + 250); // top-level stray file is ignored (folders only at level 1... it has an id, so skipped as non-folder)
+    expect(objects[0]).toEqual({
+      path: "userA/tree1/a.webp",
+      createdAt: "2026-07-01T00:00:00Z",
+      size: 300,
+    });
+    // 250 files at page size 100 -> offsets 0, 100, 200 for that prefix
+    const treeCalls = admin.calls.filter(([p]) => p === "userB/tree2").map(([, o]) => o);
+    expect(treeCalls).toEqual([0, 100, 200]);
+  });
+
+  it("throws on a list error instead of returning a partial walk", async () => {
+    const admin = {
+      storage: {
+        from: () => ({
+          list: () => Promise.resolve({ data: null, error: { message: "boom" } }),
+        }),
+      },
+    };
+    await expect(walkBucket(admin, "tree-photos")).rejects.toThrow(/list "": boom/);
+  });
+});
+
+describe("planUploads", () => {
+  const src = (path, size) => ({ path, createdAt: "x", size });
+
+  it("uploads what the mirror lacks, skips what it has, re-copies size drift", () => {
+    const source = [
+      src("u/t/missing.webp", 100),
+      src("u/t/same.webp", 200),
+      src("u/t/drift.webp", 300),
+      src("u/t/unknown-size.webp", null),
+    ];
+    const existing = new Map([
+      ["u/t/same.webp", 200],
+      ["u/t/drift.webp", 999],
+      ["u/t/unknown-size.webp", 50],
+    ]);
+    expect(planUploads(source, existing)).toEqual(["u/t/missing.webp", "u/t/drift.webp"]);
+  });
+
+  it("uploads everything into an empty mirror", () => {
+    expect(planUploads([src("a", 1), src("b", 2)], new Map())).toEqual(["a", "b"]);
   });
 });
