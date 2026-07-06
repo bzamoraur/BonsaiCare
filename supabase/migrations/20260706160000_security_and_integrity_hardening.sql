@@ -147,35 +147,51 @@ alter table public.photos
   add constraint photos_height_positive check (height is null or height > 0);
 
 -- ----------------------------------------------------------------------------
--- 3. Owner-consistency composite FKs. RLS proves `owner_id = auth.uid()` on a
---    write but says nothing about whether the referenced tree/tag belongs to the
---    same user — so a caller could set owner_id = self while pointing tree_id at
---    another user's tree. These FKs make the pair valid-or-rejected. They need a
---    UNIQUE target matching the exact column set (the PK is on id alone), hence
---    the (id, owner_id) unique constraints. ON DELETE CASCADE matches the
---    existing single-column tree_id/tag_id FKs, so deleting a tree/tag/account
---    behaves exactly as before (both cascade paths remove the same rows).
---    tasks.tree_id is nullable → MATCH SIMPLE skips the check for collection-wide
---    (tree-less) tasks, which is intended.
+-- 3. Owner-consistency: upgrade each tree/tag FK to a COMPOSITE (id, owner_id).
+--    RLS proves `owner_id = auth.uid()` on a write but says nothing about whether
+--    the referenced tree/tag belongs to the same user — so a caller could set
+--    owner_id = self while pointing tree_id at another user's tree. A composite
+--    FK closes that.
+--
+--    We DROP the existing single-column FK and RE-ADD it, same name, as the
+--    composite — we do NOT add a second FK alongside. Two same-direction FKs
+--    between one table pair make PostgREST resource embedding
+--    (`select=*,tree:trees(...)`) ambiguous ("more than one relationship found")
+--    and break every embedded query the app runs. A composite FK strictly
+--    subsumes the single-column one (matching (id, owner_id) implies id is a
+--    valid tree/tag), so nothing is lost. Reusing the original constraint name
+--    also keeps database.types.ts's foreignKeyName labels accurate.
+--
+--    Composite FKs need a UNIQUE target on the exact column set (the PK is on id
+--    alone), hence the (id, owner_id) unique constraints, created first.
+--    ON DELETE CASCADE is preserved from the originals. tasks.tree_id is
+--    nullable → MATCH SIMPLE skips the check for collection-wide (tree-less)
+--    tasks, which is intended.
 -- ----------------------------------------------------------------------------
 alter table public.trees add constraint trees_id_owner_key unique (id, owner_id);
 alter table public.tags  add constraint tags_id_owner_key  unique (id, owner_id);
 
+alter table public.photos drop constraint photos_tree_id_fkey;
 alter table public.photos
-  add constraint photos_tree_owner_fkey
+  add constraint photos_tree_id_fkey
   foreign key (tree_id, owner_id) references public.trees (id, owner_id) on delete cascade;
 
+alter table public.care_log_entries drop constraint care_log_entries_tree_id_fkey;
 alter table public.care_log_entries
-  add constraint care_log_entries_tree_owner_fkey
+  add constraint care_log_entries_tree_id_fkey
   foreign key (tree_id, owner_id) references public.trees (id, owner_id) on delete cascade;
 
+alter table public.tasks drop constraint tasks_tree_id_fkey;
 alter table public.tasks
-  add constraint tasks_tree_owner_fkey
+  add constraint tasks_tree_id_fkey
   foreign key (tree_id, owner_id) references public.trees (id, owner_id) on delete cascade;
 
+alter table public.tree_tags drop constraint tree_tags_tree_id_fkey;
 alter table public.tree_tags
-  add constraint tree_tags_tree_owner_fkey
+  add constraint tree_tags_tree_id_fkey
   foreign key (tree_id, owner_id) references public.trees (id, owner_id) on delete cascade;
+
+alter table public.tree_tags drop constraint tree_tags_tag_id_fkey;
 alter table public.tree_tags
-  add constraint tree_tags_tag_owner_fkey
+  add constraint tree_tags_tag_id_fkey
   foreign key (tag_id, owner_id) references public.tags (id, owner_id) on delete cascade;
