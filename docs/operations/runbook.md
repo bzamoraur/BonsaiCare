@@ -104,6 +104,25 @@ classified as orphans), and a deleting run **refuses pathological counts**
 (orphans > max(20, 20% of the bucket), or a DB that claims zero photos) unless
 `FORCE_SWEEP=true` is set after inspecting a dry run.
 
+## Owner metrics (private config — one-time seed)
+
+Since S08.3 the `/admin` metrics RPC (`owner_metrics`) is gated **inside the
+database**: it returns the aggregate counts only to the configured owner and
+`NULL` to anyone else. The owner id lives in `private.app_config` — a schema
+PostgREST never exposes. It must be seeded **once**, right after the S08.3
+`supabase db push`, or `/admin` will show its "couldn't load metrics" fallback
+forever. Copy your user id from Vercel → Project → Settings → Environment
+Variables → `OWNER_USER_ID`, then in the Supabase dashboard → **SQL Editor**:
+
+```sql
+insert into private.app_config (owner_user_id)
+values ('<your OWNER_USER_ID uuid>');
+```
+
+Singleton table (one row only). To change the owner later, `update
+private.app_config set owner_user_id = '<new uuid>';`. If `/admin` shows the
+fallback alert after seeding, confirm the seeded uuid equals `OWNER_USER_ID`.
+
 ## Incident playbook
 
 | Situation | First checks | Action |

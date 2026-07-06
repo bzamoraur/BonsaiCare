@@ -6,6 +6,33 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Sprint 08 hardening, database layer (S08.3, 2026-07-06)
+
+- **Closed the anon-EXECUTE gap** (hosted advisor finding) — Supabase's default
+  privileges *explicitly* grant `anon` EXECUTE on every new function, so the
+  original migrations' `revoke ... from public` did not actually stop an
+  unauthenticated caller. `anon`/`public` EXECUTE is now revoked on
+  `owner_metrics`, `delete_my_account`, and `complete_task` (authenticated
+  keeps it), and on the trigger-only functions from every role (a trigger fires
+  regardless of grants).
+- **owner_metrics gated inside the database** — the aggregate counts are now
+  returned only to the configured owner (id held in a new `private` schema the
+  API never exposes) and `NULL` to anyone else, so the /admin app gate is no
+  longer the only line of defense. Signature unchanged; the owner seeds the
+  config once post-push (guide provided).
+- **Integrity constraints the app honoured but the schema didn't enforce** —
+  non-blank names (trees/locations/tags/species/tasks), JSON-object shape for
+  `care_log_entries.details` and `tasks.recurrence`, positive photo dimensions
+  (the only server-side guard — the upload action trusts client-supplied dims).
+- **Owner-consistency composite FKs** — a photo / care entry / task / tree_tag
+  can no longer reference a tree or tag owned by a *different* user (a gap RLS
+  alone leaves open, since it only proves `owner_id = auth.uid()`). Enforced via
+  `(id, owner_id)` unique targets + `(…, owner_id)` composite FKs, `ON DELETE
+  CASCADE` to match existing behavior.
+- pgTAP: new `integrity_hardening_test.sql` (anon-execute denial, private-schema
+  isolation, every CHECK, every composite FK) + `owner_metrics_test.sql` updated
+  for the gate. Needs `supabase db push` + a one-time config seed.
+
 ### Added — Sprint 08 hardening, first wave (2026-07-06)
 
 - **Automated photo backup** — `photo-backup.yml` mirrors the private
