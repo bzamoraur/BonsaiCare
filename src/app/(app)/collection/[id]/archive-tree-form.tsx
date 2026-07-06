@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
+import { useRevealFocus } from "@/lib/use-reveal-focus";
 
 /**
  * Archive control with an inline two-step confirm (no native dialog). The bound
@@ -11,10 +12,18 @@ import { Button } from "@/components/ui/button";
  */
 export function ArchiveTreeForm({ action }: { action: (formData: FormData) => void }) {
   const [confirming, setConfirming] = useState(false);
+  const { triggerRef, revealRef } = useRevealFocus<HTMLButtonElement, HTMLButtonElement>(
+    confirming,
+  );
 
   if (!confirming) {
     return (
-      <Button type="button" variant="destructive" onClick={() => setConfirming(true)}>
+      <Button
+        ref={triggerRef}
+        type="button"
+        variant="destructive"
+        onClick={() => setConfirming(true)}
+      >
         Archive tree
       </Button>
     );
@@ -24,7 +33,7 @@ export function ArchiveTreeForm({ action }: { action: (formData: FormData) => vo
     <form action={action} className="flex flex-wrap items-center gap-3">
       <span className="text-muted-foreground text-sm">Archive this tree?</span>
       <ArchiveSubmit />
-      <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>
+      <Button ref={revealRef} type="button" variant="ghost" onClick={() => setConfirming(false)}>
         Cancel
       </Button>
     </form>

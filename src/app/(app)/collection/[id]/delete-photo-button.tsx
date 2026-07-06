@@ -4,15 +4,20 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useRevealFocus } from "@/lib/use-reveal-focus";
 
 /** Delete control with an inline two-step confirm. The bound server action keeps
  * the photo/tree ids server-side. */
 export function DeletePhotoButton({ action }: { action: (formData: FormData) => void }) {
   const [confirming, setConfirming] = useState(false);
+  const { triggerRef, revealRef } = useRevealFocus<HTMLButtonElement, HTMLButtonElement>(
+    confirming,
+  );
 
   if (!confirming) {
     return (
       <Button
+        ref={triggerRef}
         type="button"
         variant="ghost"
         size="sm"
@@ -29,7 +34,13 @@ export function DeletePhotoButton({ action }: { action: (formData: FormData) => 
       <Button type="submit" variant="destructive" size="sm">
         Delete
       </Button>
-      <Button type="button" variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+      <Button
+        ref={revealRef}
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => setConfirming(false)}
+      >
         Cancel
       </Button>
     </form>

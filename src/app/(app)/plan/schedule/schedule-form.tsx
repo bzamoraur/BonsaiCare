@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { TASK_TYPE_LABELS } from "@/lib/task-labels";
@@ -52,6 +52,13 @@ export function ScheduleForm({
   const [type, setType] = useState<Enums<"task_type">>("watering");
   const [recurring, setRecurring] = useState(true);
   const [seasonal, setSeasonal] = useState(false);
+  const successRef = useRef<HTMLDivElement>(null);
+
+  // Move focus to the confirmation on success so it's announced and the user
+  // isn't stranded on <body> after the submit button unmounts.
+  useEffect(() => {
+    if (state.status === "success") successRef.current?.focus();
+  }, [state.status]);
 
   const allSelected = trees.length > 0 && selected.size === trees.length;
 
@@ -65,7 +72,12 @@ export function ScheduleForm({
 
   if (state.status === "success") {
     return (
-      <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-8 text-center">
+      <div
+        ref={successRef}
+        tabIndex={-1}
+        role="status"
+        className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-8 text-center outline-none"
+      >
         <p className="text-balance">
           Scheduled {state.label.toLowerCase()} on {state.count}{" "}
           {state.count === 1 ? "tree" : "trees"}. 🌿
@@ -117,8 +129,11 @@ export function ScheduleForm({
       </div>
 
       <fieldset className="flex flex-col gap-2">
+        <legend className="sr-only">Which trees?</legend>
         <div className="flex items-center justify-between gap-4">
-          <legend className="text-sm font-medium">Which trees?</legend>
+          <span className="text-sm font-medium" aria-hidden="true">
+            Which trees?
+          </span>
           <button
             type="button"
             onClick={() => setSelected(allSelected ? new Set() : new Set(trees.map((t) => t.id)))}

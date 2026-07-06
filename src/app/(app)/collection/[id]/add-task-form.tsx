@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +20,9 @@ export function AddTaskForm({ action, defaultDueOn }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const [open, setOpen] = useState(false);
   const [prevStatus, setPrevStatus] = useState(state.status);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const prevOpen = useRef(open);
 
   // Collapse when a submit newly succeeds (React's adjust-state-during-render
   // pattern — fires only on the transition, so a manual reopen stays open).
@@ -28,6 +31,17 @@ export function AddTaskForm({ action, defaultDueOn }: Props) {
     setPrevStatus(state.status);
     if (state.status === "success") setOpen(false);
   }
+
+  // Keep focus sane across the open/collapse transition: into the form's first
+  // field on open, back to the "Add task" trigger on collapse (never to <body>).
+  useEffect(() => {
+    if (open && !prevOpen.current) {
+      formRef.current?.querySelector<HTMLElement>("input, select, textarea")?.focus();
+    } else if (!open && prevOpen.current) {
+      toggleRef.current?.focus();
+    }
+    prevOpen.current = open;
+  }, [open]);
 
   const defaults: TaskDefaults = {
     title: "",
@@ -42,42 +56,55 @@ export function AddTaskForm({ action, defaultDueOn }: Props) {
     seasonEndMonth: "10",
   };
 
-  if (!open) {
-    return (
-      <div className="flex items-center gap-3">
-        <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
-          <Plus aria-hidden />
-          Add task
-        </Button>
-        {state.status === "success" ? (
-          <span role="status" className="text-primary text-sm">
-            Added ✓
-          </span>
-        ) : null}
-      </div>
-    );
-  }
-
   return (
-    <form
-      action={formAction}
-      className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-4"
-    >
-      <TaskFields defaults={defaults} />
+    <div className="flex flex-col gap-3">
+      {/* Persistent polite region so "added" is reliably announced across the
+          form→collapsed swap (a region mounted with its content often isn't). */}
+      <span role="status" aria-live="polite" className="sr-only">
+        {state.status === "success" ? "Task added" : ""}
+      </span>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={pending}>
-          {pending ? "Adding…" : "Add task"}
-        </Button>
-        <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-          Close
-        </Button>
-        {state.status === "error" ? (
-          <span role="alert" className="text-destructive text-sm">
-            {state.message}
-          </span>
-        ) : null}
-      </div>
-    </form>
+      {open ? (
+        <form
+          ref={formRef}
+          action={formAction}
+          className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-4"
+        >
+          <TaskFields defaults={defaults} />
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" disabled={pending}>
+              {pending ? "Adding…" : "Add task"}
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              Close
+            </Button>
+            {state.status === "error" ? (
+              <span role="alert" className="text-destructive text-sm">
+                {state.message}
+              </span>
+            ) : null}
+          </div>
+        </form>
+      ) : (
+        <div className="flex items-center gap-3">
+          <Button
+            ref={toggleRef}
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setOpen(true)}
+          >
+            <Plus aria-hidden />
+            Add task
+          </Button>
+          {state.status === "success" ? (
+            <span className="text-primary text-sm" aria-hidden="true">
+              Added ✓
+            </span>
+          ) : null}
+        </div>
+      )}
+    </div>
   );
 }
