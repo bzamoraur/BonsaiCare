@@ -18,6 +18,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // A generous assertion timeout: a Server Action + revalidation on a slow CI
+  // runner can take several seconds, and the default 5s intermittently flaked
+  // the data-mutating specs. Playwright still resolves as soon as the assertion
+  // passes, so this only affects the failure ceiling, not happy-path speed.
+  expect: { timeout: 15_000 },
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   globalSetup: "./e2e/global-setup.ts",
   use: {
