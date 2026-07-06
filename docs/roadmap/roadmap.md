@@ -17,7 +17,12 @@
 | M2 — Trees & photos | ✅ shipped | PRs #8–#16; collection + photos + organize live |
 | M3 — Timeline & care logging | ✅ shipped | PRs #17–#24; Sprints [02](./sprint-02.md)/[03](./sprint-03.md) — deferred e2e **closed** in Sprint 06 (#43) |
 | M4 — Tasks & dashboard | ✅ shipped | PRs #26–#36; Sprints [04](./sprint-04.md)/[05](./sprint-05.md) — deferred daily-loop e2e **closed** in Sprint 06 (#43) |
-| M5 — Trust & production | 🚧 in progress | Sprint [06](./sprint-06.md) shipped (PRs #38–#43): export + real deletion + e2e harness; Sprint 07 next |
+| M5 — Trust & production | ✅ shipped | Sprints [06](./sprint-06.md) (export + real deletion + e2e harness) & [07](./sprint-07.md) (dark mode, a11y, perf, backup, orphan sweep); PRs #38–#56 |
+
+**Phase 1 (MVP) is feature-complete.** Its exit criterion — *lived-in, primary
+record, no data loss* — is now the ongoing real-use test (owner shakedown →
+friends). Owner setup + a friends release are the remaining gates, tracked in the
+[backlog](./backlog.md#getting-to-a-friends-release).
 
 ## Phase 0 — Foundation
 
@@ -106,22 +111,24 @@ dashboard per [ADR-0007](../decisions/0007-notifications-strategy.md). Slices
 - **Sprints:** [04 — "A schedule you can trust"](./sprint-04.md) (slices 1–5)
   and [05 — "The daily loop"](./sprint-05.md) (slices 6–8).
 
-### M5 — Trust, polish & production — 🚧 in progress
+### M5 — Trust, polish & production — ✅ shipped
 
 Export per [ADR-0008](../decisions/0008-data-ownership-and-export.md). Sprint
 [06](./sprint-06.md) shipped the data-ownership half (slices 1–4) plus the
-long-deferred e2e harness; Sprint 07 is the polish/hardening half. Slices:
+long-deferred e2e harness; Sprint [07](./sprint-07.md) the polish/hardening half.
 
 1. ✅ **JSON export** (all core tables; a standing test fails if a new table
    isn't covered) → 2. ✅ **CSV export** (flattened `details`, injection-safe) →
 3. ✅ **Photo archive** (streamed store-method zip, signed-path manifest
    fallback — Hobby-limit aware) → 4. ✅ **Account deletion** (a
    `security definer` cascade of rows **and** storage objects, no runtime service
-   key, adversarially reviewed) → 5. **Empty states + dark mode** →
-6. **Accessibility pass** → 7. **Performance pass** (responsive images, lazy
-   loading) → 8. **Production hardening** — verify keep-warm fires (closes R1),
-   verify backup/restore (closes R9), error monitoring (Sentry free), full e2e of
-   F1–F7, storage-orphan reconciliation job.
+   key, adversarially reviewed) → 5. ✅ **Dark mode + graceful screens** (error
+   boundaries; empty states already present; route-level loading deferred) →
+6. ✅ **Accessibility pass** (focus, live regions, AA contrast, reduced-motion) →
+7. ✅ **Performance pass** (image CLS) → 8. ✅ **Production hardening** — keep-warm
+   (R1), an automated **weekly DB backup** (R9 — free tier has none), the
+   **storage-orphan sweep**, error boundaries + Vercel logging (Sentry deferred:
+   won't install on Next 16).
 
 - Also in Sprint 06: the ✅ **authenticated Playwright e2e harness** + CI `e2e`
   job, which **closed both deferred DoDs** (M3 log→timeline, M4 daily loop).

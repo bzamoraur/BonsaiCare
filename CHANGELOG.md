@@ -6,6 +6,36 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Milestone M5 (Sprint 07): polish, hardening & owner metrics (2026-07-06)
+- **Dark mode** — System / Light / Dark, applied before first paint (no flash) and
+  remembered; toggle in Settings → Appearance.
+- **Accessibility pass** (from an adversarial audit) — keyboard focus is moved into
+  and back out of every inline reveal/collapse control instead of being lost;
+  form success is announced via live regions and focused; the tree-picker group is
+  properly named; light-theme input borders raised to WCAG AA; a global
+  reduced-motion guard.
+- **Graceful failure** — `(app)/error.tsx` + `global-error.tsx` mean a transient
+  error shows a calm, recoverable screen instead of Next's unstyled default.
+- **Owner metrics** — an owner-only `/admin` page (gated by an `OWNER_USER_ID` env
+  value; a 404 for everyone else) showing aggregate, non-PII reach & engagement
+  (registered count, signups, active users, totals) via a `security definer` RPC.
+- **Production hardening (GitHub Actions, dormant until their secrets are set)** —
+  an automated **weekly database backup** (free-tier Supabase has none), a monthly
+  **storage-orphan reconciliation** sweep (service-role key kept out of the app
+  runtime), and the existing keep-warm ping.
+- **Schedule care across trees** — a `/plan/schedule` flow generalizing the
+  fertilizing template to any care type across all/selected trees, one-off or
+  recurring.
+- **In-app downloads** — exports now download without navigating (fixes a PWA
+  stuck-page bug), and the app icon was redrawn as a recognizable bonsai.
+
+### Changed / deferred
+- Removed a broad `(app)/loading.tsx` — it hung Server-Action form submits (caught
+  by the e2e). Route-level loading is deferred to targeted per-route states.
+- **Sentry deferred** — `@sentry/nextjs@10` won't install on Next 16 (a broken
+  transitive dependency); interim error monitoring is Vercel's built-in logging
+  plus the new error boundaries.
+
 ### Added — Milestone M5 (Sprint 06): data ownership & the e2e harness (2026-07-05)
 - **Full-account export** ([ADR-0008](docs/decisions/0008-data-ownership-and-export.md)) —
   Settings exports a complete, portable copy of every user-owned table as **JSON**
