@@ -8,3 +8,9 @@ allowBuilds:
   unrs-resolver: false
   # The supabase CLI npm package downloads its platform binary on install.
   supabase: true
+
+# next@16.2.9 pins postcss@8.4.31, which carries GHSA advisory "XSS via
+# unescaped </style> in stringify output" (fixed in 8.5.10). Build-time-only
+# exposure here, but the bump is semver-compatible — force it tree-wide.
+overrides:
+  "postcss@<8.5.10": ">=8.5.10"
