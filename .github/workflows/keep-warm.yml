@@ -1,10 +1,24 @@
 name: Keep Supabase warm
 
 # Free Supabase projects pause after ~7 days of inactivity (Risk R1). This
-# scheduled ping keeps a personal "production" app responsive. It is a no-op
-# until you add the SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY repository Action secrets
-# (see docs/operations/runbook.md#keep-warm-free-tier-pause--r1). Scheduled workflows run from the
-# default branch only.
+# scheduled ping runs a real (RLS-scoped, empty-for-anon) table read so the
+# database itself sees activity. NOTE: it deliberately queries a table endpoint,
+# NOT /rest/v1/ — the bare REST root requires a SECRET key under the 2026 API
+# key system and answers 401 to publishable keys.
+#
+# The 200 relies on the HOSTED project's default anon table grants (RLS still
+# returns zero rows); the repo's migrations grant only `authenticated`, so a
+# project rebuilt strictly from migrations would answer 401/403 here — the run
+# would turn red and file an alert, at which point either add a keep-warm
+# `grant select on public.species to anon` or switch the ping to
+# /auth/v1/health.
+#
+# Requires the SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY repository Action
+# secrets (see docs/setup/04-environment-variables.md). This workflow FAILS
+# LOUD: missing secrets or a non-2xx response turn the run red and file an
+# ops-alert issue — a green run means the project really was pinged.
+# Scheduled workflows run from the default branch only, and GitHub disables
+# them after ~60 days without repo activity (see the runbook).
 
 on:
   schedule:
@@ -13,22 +27,46 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST endpoint
+      - name: Ping Supabase (RLS-scoped table read)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
-            echo "::notice::Secrets SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY not set yet — skipping keep-warm."
-            exit 0
+            echo "::error::Secrets SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY are not set — keep-warm is NOT protecting the project. Add them (exact names, no NEXT_PUBLIC_ prefix)."
+            exit 1
           fi
-          code=$(curl -s -o /dev/null -w "%{http_code}" \
-            "$SUPABASE_URL/rest/v1/" \
-            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_PUBLISHABLE_KEY") || true
-          echo "Supabase REST responded with HTTP $code (any response counts as activity)."
+          # `|| code="000"`: this step runs under bash -e, so without the fallback a
+          # transport-level curl failure (DNS, refused, timeout) would kill the step
+          # before the case below could print its diagnosis.
+          code=$(curl -s --max-time 60 -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/species?select=id&limit=1" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY") || code="000"
+          case "$code" in
+            2*) echo "Supabase responded with HTTP $code — database queried, project is active." ;;
+            *)
+              echo "::error::Supabase responded with HTTP $code. 000 = wrong URL/unreachable (or a paused project); 401 = wrong key value. See docs/operations/runbook.md#keep-warm-free-tier-pause--r1."
+              exit 1
+              ;;
+          esac
+
+      - name: Open an ops-alert issue on failure
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Ops alert: ${{ github.workflow }} failed"
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "Failed again: $run_url"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+              --body "Scheduled workflow failed: $run_url — triage steps in docs/operations/runbook.md."
+          fi
