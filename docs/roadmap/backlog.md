@@ -185,9 +185,14 @@ Logged per the quality protocol; scheduled, not aspirational:
 - **RLS-test coverage rule** — every new table ships with isolation assertions
   (M4 `tasks`, Phase-2 `push_subscriptions`); this is a Definition-of-Done
   checkbox, not an option. *(Standing.)*
-- **Error monitoring** — Server Actions currently swallow failures into
-  user-facing strings; add Sentry (free tier) at the M5 production deploy so
-  silent failures are observable. *(Due: M5 slice 8.)*
+- **Error monitoring** — interim: Vercel's built-in observability captures
+  unhandled runtime errors, and `(app)/error.tsx` + `global-error.tsx` degrade
+  gracefully (Sprint 07). **Sentry is deferred**: `@sentry/nextjs@10` currently
+  fails to install (its transitive `import-in-the-middle` pins
+  `es-module-lexer@^2.2.0`, which isn't published), and Next 16 + Turbopack
+  support is unproven. Revisit once it installs cleanly, then forward errors to a
+  free Sentry project (DSN via env, guarded so a missing DSN is a no-op). *(Due:
+  when the SDK is installable; interim monitoring is live.)*
 - **Client-cache re-evaluation trigger** — `router.refresh()` is the only
   invalidation mechanism (per [ADR-0011](../decisions/0011-server-actions-and-validation.md));
   if timeline/dashboard interactions feel laggy or optimistic UI becomes a real
