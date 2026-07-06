@@ -8,12 +8,14 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(6);
 
-insert into auth.users (instance_id, id, aud, role, email)
+-- created_at must be set explicitly (auth.users has no default here); the
+-- signups metric filters on it.
+insert into auth.users (instance_id, id, aud, role, email, created_at)
 values
   ('00000000-0000-0000-0000-000000000000', 'e1111111-1111-1111-1111-111111111111',
-   'authenticated', 'authenticated', 'm1@bonsai.test'),
+   'authenticated', 'authenticated', 'm1@bonsai.test', now()),
   ('00000000-0000-0000-0000-000000000000', 'e2222222-2222-2222-2222-222222222222',
-   'authenticated', 'authenticated', 'm2@bonsai.test');
+   'authenticated', 'authenticated', 'm2@bonsai.test', now());
 
 insert into public.trees (id, owner_id, name) values
   ('e1e00000-0000-0000-0000-000000000001', 'e1111111-1111-1111-1111-111111111111', 'T1'),
