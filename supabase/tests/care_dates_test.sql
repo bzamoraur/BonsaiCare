@@ -29,23 +29,28 @@ select is(
   current_date, 'occurred_on defaults to current_date');
 
 -- 3. Same-day entries sort newest-logged first (created_at desc tiebreaker).
+--    Scoped to these two ids: the assertion-2 note row defaults occurred_on to
+--    *today*, which would otherwise intrude when CI happens to run on the seeded
+--    date. Fixed past date + id filter make this deterministic on any day.
 insert into public.care_log_entries (id, owner_id, tree_id, type, occurred_on, created_at) values
   ('c0000000-0000-0000-0000-0000000000a1', '11111111-1111-1111-1111-111111111111',
-   'a0000000-0000-0000-0000-000000000001', 'watering', '2026-07-06', '2026-07-06 08:00:00+00'),
+   'a0000000-0000-0000-0000-000000000001', 'watering', '2026-03-15', '2026-03-15 08:00:00+00'),
   ('c0000000-0000-0000-0000-0000000000a2', '11111111-1111-1111-1111-111111111111',
-   'a0000000-0000-0000-0000-000000000001', 'pruning', '2026-07-06', '2026-07-06 09:00:00+00');
+   'a0000000-0000-0000-0000-000000000001', 'pruning', '2026-03-15', '2026-03-15 09:00:00+00');
 select is(
   (select id from public.care_log_entries
-     where tree_id = 'a0000000-0000-0000-0000-000000000001' and occurred_on = '2026-07-06'
+     where id in ('c0000000-0000-0000-0000-0000000000a1',
+                  'c0000000-0000-0000-0000-0000000000a2')
      order by occurred_on desc, created_at desc limit 1),
   'c0000000-0000-0000-0000-0000000000a2'::uuid,
   'same-day care entries sort newest-logged first (created_at desc tiebreaker)');
 
 -- 4. The read index itself carries the tiebreaker the app read path relies on —
---    a non-circular guard (assertion 3 supplies its own ORDER BY).
-select like(
-  pg_get_indexdef('public.care_log_entries_tree_occurred_idx'::regclass),
-  '%occurred_on DESC, created_at DESC%',
+--    a non-circular guard (assertion 3 supplies its own ORDER BY). Uses the SQL
+--    LIKE operator inside ok(); pgTAP has no like() matcher function here.
+select ok(
+  pg_get_indexdef('public.care_log_entries_tree_occurred_idx'::regclass)
+    like '%occurred_on DESC, created_at DESC%',
   'read index carries the occurred_on + created_at desc tiebreaker');
 
 select * from finish();
