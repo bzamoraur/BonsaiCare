@@ -1,0 +1,52 @@
+name: Weekly database backup
+
+# Free-tier Supabase has NO managed backups (Risk R9). This dumps the hosted
+# database (schema + data) every week and keeps it as a downloadable artifact,
+# so there is always a recent full snapshot to restore from. It is a no-op until
+# you add the SUPABASE_DB_URL repository Action secret (the direct connection
+# string from Supabase → Settings → Database). Scheduled workflows run from the
+# default branch only. In-app JSON/CSV export remains the owner's on-demand backup.
+
+on:
+  schedule:
+    - cron: "0 5 * * 0" # every Sunday at 05:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Dump database (schema + data)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::notice::Secret SUPABASE_DB_URL not set yet — skipping backup."
+            exit 0
+          fi
+          pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" -f backup-schema.sql
+          pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" -f backup-data.sql --data-only
+          echo "Dumped $(wc -l < backup-schema.sql) schema lines, $(wc -l < backup-data.sql) data lines."
+
+      - name: Upload backup artifact
+        if: hashFiles('backup-*.sql') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backup-*.sql
+          retention-days: 90
