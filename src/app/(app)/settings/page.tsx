@@ -1,6 +1,9 @@
+import Link from "next/link";
+
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 import { DeleteAccountSection } from "./delete-account-section";
 import { DownloadButton } from "./download-button";
@@ -21,6 +24,8 @@ export default async function SettingsPage() {
     .select("display_name, hemisphere, units")
     .eq("id", user?.id ?? "")
     .maybeSingle();
+
+  const isOwner = Boolean(user?.id && process.env.OWNER_USER_ID === user.id);
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-10">
@@ -87,6 +92,15 @@ export default async function SettingsPage() {
           </Button>
         </form>
       </div>
+
+      {isOwner ? (
+        <Link
+          href="/admin"
+          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
+        >
+          Owner metrics
+        </Link>
+      ) : null}
 
       <hr className="border-border" />
 
