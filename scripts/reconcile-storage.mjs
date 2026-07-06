@@ -6,13 +6,16 @@
 //
 // Run by .github/workflows/reconcile-storage.yml with a service-role key (which
 // lives only in GitHub Actions secrets, never in the app runtime). Set
-// DRY_RUN=true to list without deleting.
+// DRY_RUN=true to list without deleting. A deleting run refuses pathological
+// orphan counts (see sweepGuard) unless FORCE_SWEEP=true.
 
 import { createClient } from "@supabase/supabase-js";
+import { collectOrphans, fetchKnownPaths, sweepGuard } from "./reconcile-lib.mjs";
 
 const url = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const DRY_RUN = process.env.DRY_RUN === "true";
+const FORCE = process.env.FORCE_SWEEP === "true";
 
 const BUCKET = "tree-photos";
 const GRACE_HOURS = 24;
@@ -51,17 +54,13 @@ for (const userFolder of await listAll("")) {
   }
 }
 
-// Every path the database knows about (service role → all users, past RLS).
-const { data: photos, error: photosError } = await admin.from("photos").select("storage_path");
-if (photosError) throw new Error(`read photos: ${photosError.message}`);
-const known = new Set((photos ?? []).map((p) => p.storage_path));
+// Every path the database knows about (service role → all users, past RLS),
+// read with explicit pagination — PostgREST caps single responses at 1,000
+// rows, and truncation here would turn real photos into "orphans".
+const known = await fetchKnownPaths(admin);
 
-// Orphan = no photos row AND created before the grace cutoff. A missing
-// created_at is treated as too-risky-to-delete (kept), never swept.
 const cutoff = Date.now() - GRACE_HOURS * 60 * 60 * 1000;
-const orphans = objects
-  .filter((o) => !known.has(o.path) && o.createdAt && new Date(o.createdAt).getTime() < cutoff)
-  .map((o) => o.path);
+const orphans = collectOrphans(objects, known, cutoff);
 
 console.log(
   `Scanned ${objects.length} object(s); ${known.size} known to the DB; ` +
@@ -75,6 +74,18 @@ if (DRY_RUN) {
   for (const p of orphans.slice(0, 100)) console.log(`  ${p}`);
   if (orphans.length > 100) console.log(`  …and ${orphans.length - 100} more`);
   process.exit(0);
+}
+
+const guard = sweepGuard({
+  orphanCount: orphans.length,
+  objectCount: objects.length,
+  knownCount: known.size,
+  dryRun: DRY_RUN,
+  force: FORCE,
+});
+if (!guard.ok) {
+  console.error(guard.reason);
+  process.exit(1);
 }
 
 for (let i = 0; i < orphans.length; i += PAGE) {

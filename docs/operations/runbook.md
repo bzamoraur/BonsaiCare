@@ -86,9 +86,11 @@ the drill transcript):**
 photo objects with no `photos` row, older than a 24h grace window. Manual runs
 default to **dry-run**; scheduled runs delete. Armed by repo secrets
 `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (the service-role key lives ONLY
-here, never in the app). **⚠ Do not arm until the S08.1 pagination fix lands**
-— the current DB read silently truncates at 1,000 rows, which would classify
-real photos as orphans at scale.
+here, never in the app). Safe to arm since S08.1: the DB read paginates past
+PostgREST's 1,000-row cap (unit-tested — truncation once meant real photos
+classified as orphans), and a deleting run **refuses pathological counts**
+(orphans > max(20, 20% of the bucket), or a DB that claims zero photos) unless
+`FORCE_SWEEP=true` is set after inspecting a dry run.
 
 ## Incident playbook
 
