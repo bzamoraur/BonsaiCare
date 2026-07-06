@@ -6,6 +6,28 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Sprint 08 hardening, first wave (2026-07-06)
+
+- **Automated photo backup** — `photo-backup.yml` mirrors the private
+  `tree-photos` bucket to the owner's Backblaze B2 bucket monthly (incremental,
+  never deletes on the mirror side, zero new dependencies — B2 native API via
+  fetch). Photo bytes previously had exactly one copy; pulled forward from M9.3.
+- **Orphan sweep made safe** (audit critical #1) — keyset-paginated DB read
+  (immune to offset-shift skips *and* server row caps) + a guard refusing
+  pathological deletions; 17 unit tests over the sweep/mirror library.
+- **No silent failures** (audit high #2) — `logActionError` at 31 server-side
+  sites; error boundaries show the report-this `digest`; all ops crons fail
+  loud and auto-file "Ops alert" issues; keep-warm pings a real table read (the
+  bare REST root 401s publishable keys under the 2026 key system).
+- **Web-layer hardening** (S08.4) — CSP (`frame-ancestors 'none'`, Supabase-only
+  connect/img) + nosniff/Referrer-Policy/Permissions-Policy; auth-callback
+  `next`-param guard; all Actions SHA-pinned; Dependabot config + the flagged
+  `postcss` advisory fixed via override.
+- **Repo went public** (owner decision) — branch protection now *enforces* the
+  three CI checks on `main`; secret scanning push protection + Dependabot
+  alerts on. Decisions recorded: plan Accepted, allowlist registration,
+  calendar-date care events (**ADR-0012**).
+
 ### Added — Milestone audit & improvement plan (2026-07-06)
 - **Full multi-perspective audit at the M5/Phase-1 milestone** — 10 lenses
   (architecture, security, data model, product, UX, design/a11y, testing/CI,

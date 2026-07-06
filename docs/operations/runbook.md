@@ -13,12 +13,11 @@
 
 ## Routine
 - **Deploys:** merge to `main` → auto production deploy. Watch the Vercel build;
-  smoke-test sign-in + a read/write after a notable release. (Note: Vercel
-  deploys `main` regardless of CI — branch protection is unavailable on a
-  private GitHub Free repo; see the improvement-plan owner decision.)
-- **Photo bytes:** the automated backup covers the **database only** — run the
-  in-app **photo-archive export monthly** until the bucket mirror ships
-  ([improvement plan](../roadmap/improvement-plan.md) M9.3).
+  smoke-test sign-in + a read/write after a notable release. The repo is
+  **public** with **branch protection** (2026-07-06): merges to `main` require
+  the three CI checks green — a red build cannot reach production by accident.
+- **Photo bytes:** covered by the automated **B2 mirror** (below). The in-app
+  photo-archive export remains the on-demand user-side copy.
 - **Usage check:** glance at Supabase **storage** usage at each phase boundary
   ([cost-model](./cost-model.md), R4).
 
@@ -79,6 +78,19 @@ the drill transcript):**
    sign-in, a tree page, and a timeline.
 6. Photos: re-upload from the latest photo-archive export (paths in
    `photos.storage_path` tell you where each file goes).
+
+## Photo mirror (Backblaze B2)
+
+`.github/workflows/photo-backup.yml` (monthly, 15th 03:30 UTC + manual
+dispatch) mirrors the private `tree-photos` bucket to the owner's B2 bucket —
+photo BYTES previously had exactly one copy (the DB dump holds only rows).
+Incremental by object path (+ size-drift re-copy); **never deletes on the B2
+side**, so the mirror doubles as a recycle bin against accidental app-side
+loss. Fails loud + ops-alert issue. Secrets: `SUPABASE_URL`,
+`SUPABASE_SERVICE_ROLE_KEY` (shared with the sweep), `B2_KEY_ID`, `B2_APP_KEY`
+(bucket-scoped, Read & Write), `B2_BUCKET`. Restore: download from the B2
+bucket (paths mirror `photos.storage_path`) and re-upload to a fresh project's
+bucket.
 
 ## Storage-orphan sweep
 

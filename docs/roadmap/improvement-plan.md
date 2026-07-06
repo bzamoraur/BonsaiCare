@@ -204,9 +204,10 @@ register, runbook, env reference) ships with this plan's own PR — already done
    boundary). The garden-with-no-signal moment the product exists for.
 2. **Real shell caching** — Serwist (or grown sw.js): static assets SWR,
    recently-viewed trees readable offline.
-3. **Photo-bucket backup** — monthly workflow mirroring the bucket to
-   Cloudflare R2/B2 free tier (owner picks, §6 of the export); closes the
-   single-copy risk permanently.
+3. **Photo-bucket backup — ✅ pulled forward, DONE 2026-07-06** (the owner had
+   the B2 account ready, so this data-safety item didn't wait for M9):
+   `photo-backup.yml` mirrors `tree-photos` to Backblaze B2 monthly,
+   incrementally, never deleting on the mirror side.
 4. **Read-only share link per tree** — revocable token → minimal public
    progression page. The first organic growth loop.
 5. **Desktop layout** — side rail + two-column tree detail; **year-in-review**
@@ -235,7 +236,7 @@ monetization — each behind demand and its own ADR.
 | 12 | Runbook missing backups/restore (medium) | this PR + S08.11 drill |
 | 13 | Keep-warm can never fail (medium) | S08.8 |
 | — | Hosted: anon EXECUTE on 3 definer fns (advisors) | S08.3 |
-| — | Photo bytes single copy (data-model) | interim: runbook cadence (this PR); real: M9.3 |
+| — | Photo bytes single copy (data-model) | ✅ done early — B2 mirror workflow (2026-07-06) |
 | — | Open registration + unthrottled OTP (security) | S11.2 |
 | — | Hemisphere silently 'northern' (data-model/ux) | S11.4 |
 | — | Security headers absent (security) | S08.4 |

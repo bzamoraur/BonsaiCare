@@ -1,0 +1,59 @@
+name: Photo backup (mirror to B2)
+
+# The weekly DB dump contains only rows — photo BYTES had exactly one copy
+# (Risk R9's second half, audit data-model finding). This mirrors the private
+# tree-photos bucket to a Backblaze B2 bucket (10 GB free tier; ~450 MB photo
+# budget) monthly, incrementally, and never deletes on the B2 side.
+# Requires repo secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (already used
+# by the orphan sweep) + B2_KEY_ID, B2_APP_KEY (bucket-scoped, Read & Write),
+# B2_BUCKET. FAILS LOUD: missing secrets or a failed copy turn the run red and
+# file an ops-alert issue. Scheduled workflows run from the default branch only.
+
+on:
+  schedule:
+    - cron: "30 3 15 * *" # monthly, the 15th at 03:30 UTC (offset from the sweep)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Mirror tree-photos to B2
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+        run: node scripts/mirror-photos.mjs
+
+      - name: Open an ops-alert issue on failure
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Ops alert: ${{ github.workflow }} failed"
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "Failed again: $run_url"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+              --body "Scheduled workflow failed: $run_url — triage steps in docs/operations/runbook.md."
+          fi

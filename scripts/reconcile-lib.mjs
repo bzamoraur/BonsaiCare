@@ -34,6 +34,59 @@ export async function fetchKnownPaths(admin) {
   return known;
 }
 
+// Walks the fixed <uid>/<treeId>/<file> bucket layout via the paginated
+// Storage list API and returns every object with its path, created_at, and
+// size. Shared by the orphan sweep and the B2 photo mirror so both keep the
+// same pagination discipline. Files have an id; folders don't.
+export async function walkBucket(admin, bucket, pageSize = 100) {
+  async function listAll(prefix) {
+    const entries = [];
+    for (let offset = 0; ; offset += pageSize) {
+      const { data, error } = await admin.storage
+        .from(bucket)
+        .list(prefix, { limit: pageSize, offset });
+      if (error) throw new Error(`list "${prefix}": ${error.message}`);
+      const page = data ?? [];
+      entries.push(...page);
+      if (page.length < pageSize) break;
+    }
+    return entries;
+  }
+
+  const objects = [];
+  for (const userFolder of await listAll("")) {
+    if (userFolder.id !== null) continue;
+    for (const treeFolder of await listAll(userFolder.name)) {
+      if (treeFolder.id !== null) continue;
+      const dir = `${userFolder.name}/${treeFolder.name}`;
+      for (const file of await listAll(dir)) {
+        if (file.id !== null) {
+          objects.push({
+            path: `${dir}/${file.name}`,
+            createdAt: file.created_at,
+            size: file.metadata?.size ?? null,
+          });
+        }
+      }
+    }
+  }
+  return objects;
+}
+
+// Which source objects the mirror must upload: anything the destination
+// doesn't have, plus anything whose size disagrees when both sides know it
+// (a same-name object should never change — size drift means re-copy).
+export function planUploads(sourceObjects, existingSizesByName) {
+  return sourceObjects
+    .filter((o) => {
+      const destSize = existingSizesByName.get(o.path);
+      if (destSize === undefined) return true;
+      if (o.size != null && destSize !== o.size) return true;
+      return false;
+    })
+    .map((o) => o.path);
+}
+
 // Orphan = no photos row AND created before the grace cutoff. A missing
 // created_at is treated as too-risky-to-delete (kept), never swept.
 export function collectOrphans(objects, known, cutoffMs) {
