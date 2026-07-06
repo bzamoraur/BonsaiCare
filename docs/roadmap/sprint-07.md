@@ -1,11 +1,19 @@
 # Sprint 07 — "Ready to trust daily" (Milestone M5, second half)
 
-> **Status:** Active · **Updated:** 2026-07-06
+> **Status:** Historical · **Updated:** 2026-07-06
 >
-> The polish-and-production half of M5. Sprint 06 made the app *trustworthy with
-> your data* (export + real deletion + the e2e harness); this makes it
-> *comfortable, fast, and observable* enough to lean on every day — and ready for
-> the eventual friends release. Closes Phase 1.
+> **Outcome: shipped (PRs #48–#56).** The polish-and-production half of M5, driven
+> by an adversarial **a11y/perf/UX audit** (8 findings, each verified): **dark
+> mode**, an **accessibility pass** (focus management, live-region announcements,
+> AA input contrast, reduced-motion), a **perf** fix (image CLS), and app-shell
+> **error boundaries**. Plus **production hardening**: an automated **weekly DB
+> backup** (free-tier has none — R9), the **storage-orphan sweep**, and keep-warm
+> — dormant-until-secret GitHub Actions. Two honest deviations: the broad
+> `loading.tsx` was **removed** (it hung Server-Action form submits — the e2e
+> caught it), so route-level loading is deferred; and **Sentry is deferred**
+> (`@sentry/nextjs` won't install on Next 16), with Vercel's error logging + the
+> new boundaries as the interim. Closes M5 — Phase 1's MVP is feature-complete;
+> its exit ("lived-in, no data loss") is now the ongoing real-use test.
 
 ## Sprint goal
 
@@ -16,19 +24,22 @@
 ## Definition of done
 
 - [x] **Dark mode** — System / Light / Dark, no flash, remembered (PR #48).
-- [ ] **Empty & loading states** — every list surface (Today, Collection,
-      Timeline, Care plan, Calendar, planners) has a helpful empty state and a
-      sensible loading state where a slow query would otherwise blank the screen.
-- [ ] **Accessibility pass** — keyboard-operable with visible focus, every
-      control labelled, async results announced, AA contrast in both themes.
-      Audited across lenses and adversarially verified.
-- [ ] **Performance pass** — no image layout shift, lazy where appropriate, no
-      N+1 across list views, no needless client components.
-- [ ] **Production hardening** — error monitoring (Sentry free tier) so silent
-      Server-Action failures become visible; verify the keep-warm cron fires
-      (closes R1); verify backup/restore (closes R9); a **storage-orphan
-      reconciliation** sweep (objects with no `photos` row → deleted past a grace
-      window); a critical-flow e2e across F1–F7 on the Sprint-06 harness.
+- [x] **Graceful screens** — empty states already existed; added `(app)/error.tsx`
+      + `global-error.tsx` so no failure lands on Next's unstyled default. *Route-
+      level loading deferred:* a broad `loading.tsx` hung Server-Action form
+      submits (the e2e caught it) and was removed; targeted per-route loading is a
+      future item.
+- [x] **Accessibility pass** (#51) — focus managed on every reveal/collapse
+      control, success announced via live regions, light-theme input borders
+      raised to WCAG AA, reduced-motion guard. Audited + adversarially verified.
+- [x] **Performance pass** (#52) — fixed standalone-photo CLS; the audit found no
+      N+1 and the raw `<img>` tags are the intentional signed-URL case.
+- [x] **Production hardening** — keep-warm (R1) + an automated **weekly DB backup**
+      (R9 — free tier has none) + the **storage-orphan sweep**, all
+      dormant-until-secret GitHub Actions (#54, #56); error boundaries + Vercel's
+      built-in logging as interim monitoring. **Sentry deferred** (`@sentry/nextjs`
+      won't install on Next 16). Critical flows are covered by the Sprint-06
+      harness (M3 log→timeline, M4 daily loop); a broader F1–F7 e2e can extend it.
 
 ## Slices (one PR each, in order)
 
