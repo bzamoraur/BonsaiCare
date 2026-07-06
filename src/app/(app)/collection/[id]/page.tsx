@@ -429,7 +429,14 @@ function PhotoItem({
       <div className="bg-muted max-w-xs overflow-hidden rounded-xl">
         {photo.url ? (
           // eslint-disable-next-line @next/next/no-img-element -- private signed URL
-          <img src={photo.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+          <img
+            src={photo.url}
+            alt=""
+            loading="lazy"
+            width={photo.width ?? undefined}
+            height={photo.height ?? undefined}
+            className="h-auto w-full"
+          />
         ) : null}
       </div>
       {photo.caption ? <p className="text-muted-foreground text-sm">{photo.caption}</p> : null}
