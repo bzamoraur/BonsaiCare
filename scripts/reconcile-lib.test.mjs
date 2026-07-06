@@ -1,60 +1,75 @@
 import { describe, expect, it } from "vitest";
 import { collectOrphans, DB_PAGE, fetchKnownPaths, sweepGuard } from "./reconcile-lib.mjs";
 
-// A minimal stand-in for the supabase-js client that serves pre-built pages
-// and records the exact ranges requested.
-function mockAdmin(pages) {
-  const calls = [];
-  return {
-    calls,
-    from() {
-      return {
-        select() {
-          return {
-            range(from, to) {
-              calls.push([from, to]);
-              const page = pages[Math.floor(from / DB_PAGE)] ?? [];
-              return Promise.resolve({ data: page, error: null });
-            },
-          };
-        },
-      };
-    },
+// A stand-in for the supabase-js client that serves keyset pages from a sorted
+// row set, records every request, and can simulate a server-side row cap
+// smaller than what the client asked for (PostgREST max-rows).
+function mockAdmin(allRows, { serverCap = Infinity, failAfterId = null } = {}) {
+  const sorted = [...allRows].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const requests = [];
+  const makeQuery = () => {
+    const state = { gt: null, limit: Infinity };
+    const promise = () => {
+      requests.push({ ...state });
+      if (failAfterId !== null && state.gt === failAfterId) {
+        return Promise.resolve({ data: null, error: { message: "boom" } });
+      }
+      const rows = sorted
+        .filter((r) => state.gt === null || r.id > state.gt)
+        .slice(0, Math.min(state.limit, serverCap));
+      return Promise.resolve({ data: rows, error: null });
+    };
+    const q = {
+      order: () => q,
+      limit: (n) => ((state.limit = n), q),
+      gt: (_col, v) => ((state.gt = v), q),
+      then: (res, rej) => promise().then(res, rej),
+    };
+    return q;
   };
+  return { requests, from: () => ({ select: () => makeQuery() }) };
 }
 
+const id = (n) => `id-${String(n).padStart(6, "0")}`;
 const rows = (start, count) =>
-  Array.from({ length: count }, (_, i) => ({ storage_path: `u/t/p-${start + i}.webp` }));
+  Array.from({ length: count }, (_, i) => ({
+    id: id(start + i),
+    storage_path: `u/t/p-${start + i}.webp`,
+  }));
 
-describe("fetchKnownPaths (the audit's critical finding: truncation ⇒ deleted photos)", () => {
-  it("pages past the 1,000-row PostgREST cap and aggregates every path", async () => {
-    const admin = mockAdmin([rows(0, DB_PAGE), rows(DB_PAGE, DB_PAGE), rows(2 * DB_PAGE, 37)]);
+describe("fetchKnownPaths (the audit's critical finding: any skipped row ⇒ a deleted photo)", () => {
+  it("keyset-pages past the 1,000-row cap and aggregates every path", async () => {
+    const admin = mockAdmin(rows(0, 2 * DB_PAGE + 37));
     const known = await fetchKnownPaths(admin);
     expect(known.size).toBe(2 * DB_PAGE + 37);
-    expect(admin.calls).toEqual([
-      [0, DB_PAGE - 1],
-      [DB_PAGE, 2 * DB_PAGE - 1],
-      [2 * DB_PAGE, 3 * DB_PAGE - 1],
-    ]);
+    // 3 full/partial pages + no extra: last page was short but non-empty, then
+    // the loop continues until an EMPTY page — so 4 requests total.
+    expect(admin.requests.length).toBe(4);
+    expect(admin.requests[1].gt).toBe(id(DB_PAGE - 1));
     expect(known.has(`u/t/p-${2 * DB_PAGE + 36}.webp`)).toBe(true);
   });
 
-  it("handles a row count that is an exact multiple of the page size", async () => {
-    const admin = mockAdmin([rows(0, DB_PAGE), []]);
+  it("survives a server row-cap SMALLER than the requested page size (max-rows lowered)", async () => {
+    const admin = mockAdmin(rows(0, 2500), { serverCap: 500 });
     const known = await fetchKnownPaths(admin);
-    expect(known.size).toBe(DB_PAGE);
-    expect(admin.calls.length).toBe(2);
+    expect(known.size).toBe(2500); // old offset code (or a `< DB_PAGE` break) truncated at the cap
   });
 
-  it("throws (rather than returning a partial set) on a read error", async () => {
-    const admin = {
-      from: () => ({
-        select: () => ({
-          range: () => Promise.resolve({ data: null, error: { message: "boom" } }),
-        }),
-      }),
-    };
-    await expect(fetchKnownPaths(admin)).rejects.toThrow(/read photos rows 0-999: boom/);
+  it("handles a row count that is an exact multiple of the page size", async () => {
+    const admin = mockAdmin(rows(0, DB_PAGE));
+    const known = await fetchKnownPaths(admin);
+    expect(known.size).toBe(DB_PAGE);
+    expect(admin.requests.length).toBe(2); // full page, then the empty terminator
+  });
+
+  it("handles an empty table", async () => {
+    const known = await fetchKnownPaths(mockAdmin([]));
+    expect(known.size).toBe(0);
+  });
+
+  it("throws (rather than returning a partial set) on a page error", async () => {
+    const admin = mockAdmin(rows(0, DB_PAGE + 5), { failAfterId: id(DB_PAGE - 1) });
+    await expect(fetchKnownPaths(admin)).rejects.toThrow(/read photos after id id-000999: boom/);
   });
 });
 
@@ -109,6 +124,17 @@ describe("sweepGuard", () => {
     });
     expect(verdict.ok).toBe(false);
     expect(verdict.reason).toMatch(/Refusing to delete 50 of 200/);
+  });
+
+  it("caps the ceiling at 200 absolute even for huge buckets", () => {
+    const verdict = sweepGuard({
+      orphanCount: 1900,
+      objectCount: 10000,
+      knownCount: 8100,
+      dryRun: false,
+      force: false,
+    });
+    expect(verdict.ok).toBe(false); // 20% would have allowed 2000
   });
 
   it("uses the absolute floor of 20 so small buckets can still be cleaned", () => {
