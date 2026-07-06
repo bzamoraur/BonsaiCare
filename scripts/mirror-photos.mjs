@@ -43,7 +43,7 @@ if (missing.length > 0) {
 async function b2(url, { token, body } = {}) {
   const res = await fetch(url, {
     method: body ? "POST" : "GET",
-    headers: { Authorization: token },
+    headers: { Authorization: token, ...(body ? { "Content-Type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw new Error(`${url.split("/").pop()}: HTTP ${res.status} ${await res.text()}`);
@@ -105,20 +105,31 @@ const encodeName = (name) => name.split("/").map(encodeURIComponent).join("/");
 let upload = await b2(`${apiUrl}/b2api/v2/b2_get_upload_url`, { token, body: { bucketId } });
 
 async function uploadOne(path, bytes, retry = true) {
-  const res = await fetch(upload.uploadUrl, {
-    method: "POST",
-    headers: {
-      Authorization: upload.authorizationToken,
-      "X-Bz-File-Name": encodeName(path),
-      "Content-Type": "b2/x-auto",
-      "Content-Length": String(bytes.length),
-      "X-Bz-Content-Sha1": createHash("sha1").update(bytes).digest("hex"),
-    },
-    body: bytes,
-  });
+  // Per B2's integration checklist, an upload attempt that fails with a broken
+  // connection, timeout, 401 (expired upload auth), 408, 429, or any 5xx should
+  // be retried once against a FRESH upload URL.
+  let res;
+  try {
+    res = await fetch(upload.uploadUrl, {
+      method: "POST",
+      headers: {
+        Authorization: upload.authorizationToken,
+        "X-Bz-File-Name": encodeName(path),
+        "Content-Type": "b2/x-auto",
+        "Content-Length": String(bytes.length),
+        "X-Bz-Content-Sha1": createHash("sha1").update(bytes).digest("hex"),
+      },
+      body: bytes,
+    });
+  } catch (networkError) {
+    if (!retry) throw new Error(`upload ${path}: ${networkError.message ?? networkError}`);
+    upload = await b2(`${apiUrl}/b2api/v2/b2_get_upload_url`, { token, body: { bucketId } });
+    return uploadOne(path, bytes, false);
+  }
   if (!res.ok) {
-    // Upload URLs expire / rotate on 401 and 5xx: fetch a fresh one and retry once.
-    if (retry && (res.status === 401 || res.status >= 500)) {
+    const retriable =
+      res.status === 401 || res.status === 408 || res.status === 429 || res.status >= 500;
+    if (retry && retriable) {
       upload = await b2(`${apiUrl}/b2api/v2/b2_get_upload_url`, { token, body: { bucketId } });
       return uploadOne(path, bytes, false);
     }

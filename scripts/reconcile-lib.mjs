@@ -36,8 +36,12 @@ export async function fetchKnownPaths(admin) {
 
 // Walks the fixed <uid>/<treeId>/<file> bucket layout via the paginated
 // Storage list API and returns every object with its path, created_at, and
-// size. Shared by the orphan sweep and the B2 photo mirror so both keep the
-// same pagination discipline. Files have an id; folders don't.
+// size. Shared by the orphan sweep and the B2 photo mirror. NOTE: the Storage
+// list API is offset-paginated (name-ordered server-side) — unlike the keyset
+// DB read above. An object landing mid-walk can be missed for one run, which
+// is SAFE for both current consumers (a missed object is kept by the sweep and
+// mirrored next month); don't reuse this walk for anything where a miss is
+// destructive. Files have an id; folders don't.
 export async function walkBucket(admin, bucket, pageSize = 100) {
   async function listAll(prefix) {
     const entries = [];
