@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { TASK_TYPE_TO_CARE_EVENT } from "@/domain/task-form";
+import { useRevealFocus } from "@/lib/use-reveal-focus";
 import type { Enums } from "@/types/database.types";
 
 const dateInputClass =
@@ -28,11 +29,13 @@ export function TaskActions({
 }) {
   const [confirming, setConfirming] = useState(false);
   const canLog = TASK_TYPE_TO_CARE_EVENT[type] !== null;
+  const { triggerRef, revealRef } = useRevealFocus<HTMLButtonElement, HTMLInputElement>(confirming);
 
   if (confirming) {
     return (
       <form action={completeAction} className="flex flex-wrap items-center gap-2">
         <input
+          ref={revealRef}
           type="date"
           name="completedOn"
           defaultValue={defaultDate}
@@ -57,7 +60,7 @@ export function TaskActions({
 
   return (
     <div className="flex items-center gap-1">
-      <Button type="button" size="sm" onClick={() => setConfirming(true)}>
+      <Button ref={triggerRef} type="button" size="sm" onClick={() => setConfirming(true)}>
         Done
       </Button>
       <form action={skipAction}>
