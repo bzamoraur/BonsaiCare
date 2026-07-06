@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { parseTaskForm } from "@/domain/task-form";
+import { logActionError } from "@/lib/log-action-error";
 import { completeTask, createTask, deleteTask, skipTask, updateTask } from "@/server/tasks";
 
 import type { TaskFormState } from "./task-types";
@@ -48,7 +49,8 @@ export async function createTaskAction(
 
   try {
     await createTask(parsed.value);
-  } catch {
+  } catch (error) {
+    logActionError("createTask", error);
     return { status: "error", message: "We couldn't add that task. Please try again." };
   }
 
@@ -69,7 +71,8 @@ export async function updateTaskAction(
 
   try {
     await updateTask(taskId, parsed.value);
-  } catch {
+  } catch (error) {
+    logActionError("updateTask", error);
     return { status: "error", message: "We couldn't save your changes. Please try again." };
   }
 
@@ -82,7 +85,8 @@ export async function deleteTaskAction(taskId: string, treeId: string): Promise<
   let deleted = true;
   try {
     await deleteTask(taskId);
-  } catch {
+  } catch (error) {
+    logActionError("deleteTask", error);
     deleted = false;
   }
 
@@ -109,7 +113,8 @@ export async function completeTaskAction(
       completedOn: safeCompletedOn(formData.get("completedOn")),
       logEvent: formData.get("logEvent") === "on",
     });
-  } catch {
+  } catch (error) {
+    logActionError("completeTask", error);
     ok = false;
   }
 
@@ -123,7 +128,8 @@ export async function skipTaskAction(treeId: string, taskId: string): Promise<vo
   let ok = true;
   try {
     await skipTask(taskId, new Date().toISOString().slice(0, 10));
-  } catch {
+  } catch (error) {
+    logActionError("skipTask", error);
     ok = false;
   }
 

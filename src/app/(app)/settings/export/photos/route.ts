@@ -1,5 +1,6 @@
 import { Zip, ZipPassThrough } from "fflate";
 
+import { logActionError } from "@/lib/log-action-error";
 import { photoEntryName } from "@/lib/photo-archive-name";
 import { createClient } from "@/lib/supabase/server";
 
@@ -112,6 +113,7 @@ export async function GET(): Promise<Response> {
           }
           zip.end();
         } catch (streamError) {
+          logActionError("exportPhotosStream", streamError);
           controller.error(streamError as Error);
         }
       })();

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { buttonVariants } from "@/components/ui/button";
+import { logActionError } from "@/lib/log-action-error";
 import { cn } from "@/lib/utils";
 import { listTrees, type TreeCard } from "@/server/trees";
 
@@ -15,7 +16,8 @@ export default async function LogPage() {
   let loadError = false;
   try {
     trees = await listTrees();
-  } catch {
+  } catch (error) {
+    logActionError("logPage.load", error);
     loadError = true;
   }
 

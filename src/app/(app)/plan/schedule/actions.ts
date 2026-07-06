@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { parseTaskForm } from "@/domain/task-form";
+import { logActionError } from "@/lib/log-action-error";
 import { TASK_TYPE_LABELS } from "@/lib/task-labels";
 import { createTasksForTrees } from "@/server/tasks";
 import { Constants, type Enums } from "@/types/database.types";
@@ -67,7 +68,8 @@ export async function createSchedulePlanAction(
     revalidatePath("/today");
     revalidatePath("/calendar");
     return { status: "success", count, label: TASK_TYPE_LABELS[type] };
-  } catch {
+  } catch (error) {
+    logActionError("createSchedulePlan", error);
     return { status: "error", message: "We couldn't create that plan. Please try again." };
   }
 }

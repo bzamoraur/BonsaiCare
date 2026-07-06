@@ -1,5 +1,6 @@
 import { strToU8, zipSync } from "fflate";
 
+import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
 import { collectExportBundle, csvFilesFromBundle } from "@/server/export";
 
@@ -55,6 +56,7 @@ export async function GET(request: Request): Promise<Response> {
       },
     });
   } catch (error) {
+    logActionError("exportDownload", error);
     const message = error instanceof Error ? error.message : "Export failed.";
     return new Response(message, { status: 500 });
   }

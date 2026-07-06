@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { parseTaskForm } from "@/domain/task-form";
+import { logActionError } from "@/lib/log-action-error";
 import { createTasksForTrees } from "@/server/tasks";
 
 export type FertilizeState =
@@ -54,7 +55,8 @@ export async function createFertilizePlanAction(
     revalidatePath("/today");
     revalidatePath("/calendar");
     return { status: "success", count };
-  } catch {
+  } catch (error) {
+    logActionError("createFertilizePlan", error);
     return { status: "error", message: "We couldn't create that schedule. Please try again." };
   }
 }

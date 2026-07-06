@@ -8,6 +8,7 @@
  * @sentry/nextjs dependency installs cleanly on Next 16 — see the backlog).
  */
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
@@ -50,6 +51,18 @@ export default function GlobalError({
           >
             Try again
           </button>
+          {error.digest && (
+            <p
+              style={{
+                color: "#838d84",
+                fontSize: "0.75rem",
+                fontFamily: "ui-monospace, Menlo, Consolas, monospace",
+                margin: "1rem 0 0",
+              }}
+            >
+              If you report this, quote: {error.digest}
+            </p>
+          )}
         </main>
       </body>
     </html>

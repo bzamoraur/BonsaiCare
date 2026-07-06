@@ -1,6 +1,7 @@
 import { cache } from "react";
 
 import type { TreeFormInput } from "@/domain/tree-form";
+import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
 import type { Enums, Tables } from "@/types/database.types";
 
@@ -40,14 +41,21 @@ async function coverUrlMap(
   const ids = coverIds.filter((v): v is string => Boolean(v));
   if (ids.length === 0) return new Map();
 
-  const { data: covers } = await supabase.from("photos").select("id, storage_path").in("id", ids);
+  // Cover art is decorative, so a failed lookup/sign degrades to "no image" —
+  // but it must never degrade silently (a Storage outage looked like nothing).
+  const { data: covers, error: coversError } = await supabase
+    .from("photos")
+    .select("id, storage_path")
+    .in("id", ids);
+  if (coversError) logActionError("coverUrlMap.photos", coversError);
   const pathById = new Map((covers ?? []).map((c) => [c.id, c.storage_path]));
   const paths = [...pathById.values()];
   if (paths.length === 0) return new Map();
 
-  const { data: signed } = await supabase.storage
+  const { data: signed, error: signError } = await supabase.storage
     .from("tree-photos")
     .createSignedUrls(paths, COVER_URL_TTL_SECONDS);
+  if (signError) logActionError("coverUrlMap.sign", signError);
   const urlByPath = new Map(
     (signed ?? []).flatMap((s) => (s.path && s.signedUrl ? [[s.path, s.signedUrl] as const] : [])),
   );

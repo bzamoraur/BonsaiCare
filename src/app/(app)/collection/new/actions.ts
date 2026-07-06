@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { parseTreeForm } from "@/domain/tree-form";
+import { logActionError } from "@/lib/log-action-error";
 import { createTree } from "@/server/trees";
 
 import type { NewTreeFormState } from "./types";
@@ -39,7 +40,8 @@ export async function createTreeAction(
 
   try {
     await createTree(parsed.value);
-  } catch {
+  } catch (error) {
+    logActionError("createTree", error);
     return { status: "error", message: "We couldn't save your tree. Please try again." };
   }
 

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { deleteAccount } from "@/server/account";
+import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database.types";
 
@@ -91,6 +92,7 @@ export async function deleteAccountAction(
   try {
     await deleteAccount(supabase, user.id);
   } catch (error) {
+    logActionError("deleteAccount", error);
     const message = error instanceof Error ? error.message : "We could not delete your account.";
     return { status: "error", message };
   }

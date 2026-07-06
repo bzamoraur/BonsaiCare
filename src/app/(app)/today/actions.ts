@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { logActionError } from "@/lib/log-action-error";
 import { completeTask, skipTask } from "@/server/tasks";
 
 /** A trusted "YYYY-MM-DD" completion date (real calendar validity), else today. */
@@ -22,7 +23,8 @@ export async function completeFromTodayAction(taskId: string, formData: FormData
       completedOn: safeCompletedOn(formData.get("completedOn")),
       logEvent: formData.get("logEvent") === "on",
     });
-  } catch {
+  } catch (error) {
+    logActionError("completeFromToday", error);
     ok = false;
   }
 
@@ -36,7 +38,8 @@ export async function skipFromTodayAction(taskId: string): Promise<void> {
   let ok = true;
   try {
     await skipTask(taskId, new Date().toISOString().slice(0, 10));
-  } catch {
+  } catch (error) {
+    logActionError("skipFromToday", error);
     ok = false;
   }
 

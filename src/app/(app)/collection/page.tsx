@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { TreeCard } from "@/components/tree-card";
 import { buttonVariants } from "@/components/ui/button";
+import { logActionError } from "@/lib/log-action-error";
 import { cn } from "@/lib/utils";
 import { listLocations, type LocationOption } from "@/server/locations";
 import { listTags, type TagOption } from "@/server/tags";
@@ -74,7 +75,8 @@ export default async function CollectionPage({
   let loadError = false;
   try {
     [trees, locations, tags] = await Promise.all([listTrees(filters), listLocations(), listTags()]);
-  } catch {
+  } catch (error) {
+    logActionError("collectionPage.load", error);
     loadError = true;
   }
 
