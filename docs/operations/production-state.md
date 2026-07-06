@@ -27,9 +27,17 @@
 
 | Secret | Arms | State |
 |---|---|---|
-| `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` | keep-warm | Set 2026-07-06 · test run pending (runbook v3, task 3) |
-| `SUPABASE_DB_URL` | weekly DB backup | **Not set** — use the **Session-pooler URI** (runbook v3, task 4) |
-| `SUPABASE_SERVICE_ROLE_KEY` | orphan sweep | **Hold** until the S08.1 pagination fix merges, then set (task 5) |
+| `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` | keep-warm | Set + verified correct 2026-07-06 (the owner's 401 was the workflow pinging the secret-key-only `/rest/v1/` root — fixed in S08.8; re-run the test after that merge) |
+| `SUPABASE_DB_URL` | weekly DB backup | Set 2026-07-06 but **malformed** — the CLI can't parse the URI (password contains special characters or leftover `[brackets]`); owner to reset the DB password and re-save (runbook v4, task 4) |
+| `SUPABASE_SERVICE_ROLE_KEY` | orphan sweep | **Hold lifted** once S08.1 merges — safe to set (runbook v4, task 5) |
+
+## Owner decisions in force (2026-07-06)
+
+Improvement plan **Accepted** as written · registration = **allowlist** (M7) ·
+repo → **public** (pending the visibility flip + branch protection, runbook
+v4) · photo backup → free object storage (account setup pending) · care dates
+= plain `date` ([ADR-0012](../decisions/0012-care-dates-are-calendar-dates.md),
+migrates in S08.3).
 
 ## Drills & manual cadences
 

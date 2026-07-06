@@ -1,6 +1,14 @@
 # Improvement Plan — from "feature-complete" to "loved" (post-M5)
 
-> **Status:** Proposed — awaiting owner review · **Updated:** 2026-07-06
+> **Status:** Accepted (owner, 2026-07-06) · **Updated:** 2026-07-06
+>
+> **Owner decisions recorded (2026-07-06):** ① plan order approved as written;
+> ② registration = **allowlist**; ③ repo goes **public** (branch protection +
+> unlimited Actions minutes; license stays proprietary); ④ photo backup =
+> free object storage (R2/B2 — final pick during account setup, both free at
+> our size); ⑤ care dates = **plain calendar dates**
+> ([ADR-0012](../decisions/0012-care-dates-are-calendar-dates.md)).
+> Execution started the same day: S08.8 (PR #59), S08.1 (PR #60), S08.2 (PR #61).
 >
 > The execution plan produced by the 2026-07-06 milestone audit
 > ([PROJECT_EXPORT.md](../../PROJECT_EXPORT.md) — 10 audit lenses, 24 agents,
