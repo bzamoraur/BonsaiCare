@@ -19,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   sweep:
@@ -42,3 +43,18 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
         run: node scripts/reconcile-storage.mjs
+
+      - name: Open an ops-alert issue on failure
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Ops alert: ${{ github.workflow }} failed"
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "Failed again: $run_url"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+              --body "Scheduled workflow failed: $run_url — triage steps in docs/operations/runbook.md."
+          fi

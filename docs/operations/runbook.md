@@ -30,10 +30,13 @@ the project so a personal "production" app stays responsive.
 - Needs GitHub **Action secrets** with exactly these names: `SUPABASE_URL`
   (`https://<ref>.supabase.co`, no trailing slash) and
   `SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`).
-- **Verify — a green run proves nothing by itself** (the workflow currently
-  fails open; fail-loud is scheduled, improvement plan S08.8). Open the run's
-  log and check for `Supabase REST responded with HTTP 200`; separately confirm
-  the project shows "Active" in the Supabase dashboard.
+- It queries a real table endpoint (`/rest/v1/species?select=id&limit=1`) —
+  **not** the bare `/rest/v1/` root, which requires a *secret* key under the
+  2026 API key system and 401s publishable keys.
+- **Verify: green now means pinged** (fails loud since S08.8: missing secrets
+  or a non-2xx response turn the run red and auto-file an "Ops alert" issue).
+  Success log line: `Supabase responded with HTTP 200 — database queried,
+  project is active.`
 - If the project still paused: open the Supabase dashboard once to resume, then
   confirm the cron is enabled and the secrets are set. GitHub also disables
   crons after ~60 days without repo activity — re-enable from the Actions tab
@@ -43,8 +46,12 @@ the project so a personal "production" app stays responsive.
 
 **What runs:** `.github/workflows/backup.yml` — every Sunday 05:00 UTC, dumps
 the hosted DB (schema + data) via `supabase db dump` and uploads
-`db-backup-<run>` artifacts kept **90 days**. Fails red on a failed dump; a
-no-op (with a notice) until its secret is set.
+`db-backup-<run>` artifacts kept **90 days**. **Fails loud** (since S08.8): a
+missing or malformed secret, a wrong connection type (direct/transaction
+pooler), a failed dump, or a trivially-empty dump all turn the run red and
+auto-file an "Ops alert" issue. A malformed-URL failure almost always means the
+DB password contains special characters or leftover `[brackets]` — reset the
+password until clean and rebuild the URI.
 
 **Arming it:** repo secret `SUPABASE_DB_URL` = the **Session-pooler URI** from
 the dashboard's **Connect** button (top bar) →

@@ -4,12 +4,14 @@ name: Weekly database backup
 # DATABASE (schema + data) every week and keeps it as a downloadable artifact.
 # NOTE: photos (Storage bucket bytes) are NOT included — see the runbook's
 # backups section for the monthly photo-archive cadence.
-# No-op until you add the SUPABASE_DB_URL repository Action secret: the
-# SESSION-POOLER URI from the dashboard's "Connect" button
+# Requires the SUPABASE_DB_URL repository Action secret: the SESSION-POOLER URI
+# from the dashboard's "Connect" button
 # (postgresql://postgres.<ref>:<pwd>@aws-0-<region>.pooler.supabase.com:5432/postgres).
 # Do NOT use the direct connection (IPv6-only on the free tier — GitHub-hosted
 # runners can't reach it) or the transaction pooler (port 6543 — breaks pg_dump).
-# Scheduled workflows run from the default branch only. Restore procedure:
+# This workflow FAILS LOUD: a missing/malformed secret or a failed/empty dump
+# turns the run red and files an ops-alert issue. Scheduled workflows run from
+# the default branch only. Restore procedure:
 # docs/operations/runbook.md#backups--restore-r9--free-tier-has-no-managed-backups
 
 on:
@@ -19,12 +21,33 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   dump:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check the connection-string secret
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::Secret SUPABASE_DB_URL is not set — the weekly backup is NOT running. Add the Session-pooler URI (dashboard → Connect)."
+            exit 1
+          fi
+          if ! node -e "new URL(process.env.SUPABASE_DB_URL)" 2>/dev/null; then
+            echo "::error::SUPABASE_DB_URL is not a parseable URL. Most common cause: the database password contains special characters (@ : / # ? & or spaces) or the [brackets] around [YOUR-PASSWORD] were left in. Fix: Supabase → Project Settings → Database → Reset database password (Generate again until it has no special characters — this does NOT affect the app), rebuild the URI, update the secret."
+            exit 1
+          fi
+          node -e '
+            const u = new URL(process.env.SUPABASE_DB_URL);
+            if (!u.hostname.endsWith("pooler.supabase.com"))
+              { console.error("::error::Host is " + u.hostname + " — use the SESSION POOLER URI (…pooler.supabase.com). The direct connection is IPv6-only on the free tier and unreachable from GitHub runners."); process.exit(1); }
+            if (u.port === "6543")
+              { console.error("::error::Port 6543 is the transaction pooler, which breaks pg_dump — copy the Session pooler URI (port 5432)."); process.exit(1); }
+          '
 
       - uses: pnpm/action-setup@v4
 
@@ -40,13 +63,17 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          if [ -z "$SUPABASE_DB_URL" ]; then
-            echo "::notice::Secret SUPABASE_DB_URL not set yet — skipping backup."
-            exit 0
-          fi
           pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" -f backup-schema.sql
           pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" -f backup-data.sql --data-only
           echo "Dumped $(wc -l < backup-schema.sql) schema lines, $(wc -l < backup-data.sql) data lines."
+
+      - name: Verify the dump is not trivially broken
+        run: |
+          grep -q "CREATE TABLE" backup-schema.sql || { echo "::error::backup-schema.sql contains no CREATE TABLE — the dump is unusable."; exit 1; }
+          [ -s backup-data.sql ] || { echo "::error::backup-data.sql is empty."; exit 1; }
+          if ! grep -qE "^(COPY|INSERT)" backup-data.sql; then
+            echo "::warning::backup-data.sql has no COPY/INSERT blocks — fine only if the database is genuinely empty."
+          fi
 
       - name: Upload backup artifact
         if: hashFiles('backup-*.sql') != ''
@@ -55,3 +82,18 @@ jobs:
           name: db-backup-${{ github.run_id }}
           path: backup-*.sql
           retention-days: 90
+
+      - name: Open an ops-alert issue on failure
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Ops alert: ${{ github.workflow }} failed"
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "Failed again: $run_url"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+              --body "Scheduled workflow failed: $run_url — triage steps in docs/operations/runbook.md."
+          fi
