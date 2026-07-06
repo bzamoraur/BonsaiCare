@@ -11,12 +11,13 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  // `next` must be a same-origin path: exactly one leading slash ("//evil.com"
-  // is a scheme-relative URL). Not exploitable today because `origin` is
+  // `next` must be a same-origin path: exactly one leading slash. "//evil.com"
+  // is a scheme-relative URL, and browsers treat "\" as "/" in URLs, so
+  // "/\evil.com" is the same trap. Not exploitable today because `origin` is
   // prepended, but this keeps a future refactor from turning it into an open
   // redirect (improvement plan S08.4).
   const rawNext = searchParams.get("next") ?? "/today";
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/today";
+  const next = /^\/(?![/\\])/.test(rawNext) ? rawNext : "/today";
 
   if (code) {
     const supabase = await createClient();
