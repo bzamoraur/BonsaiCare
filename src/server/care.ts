@@ -30,7 +30,10 @@ export async function listTreeEntries(treeId: string): Promise<CareEntry[]> {
     .from("care_log_entries")
     .select("*")
     .eq("tree_id", treeId)
-    .order("occurred_at", { ascending: false });
+    // occurred_on is a calendar date; created_at desc is the same-day tiebreaker
+    // (ADR-0012: newest logged first).
+    .order("occurred_on", { ascending: false })
+    .order("created_at", { ascending: false });
   if (error) throw new Error(`Failed to load care log: ${error.message}`);
   return data ?? [];
 }
@@ -57,8 +60,8 @@ export async function createCareEntry(input: CareEntryInput): Promise<{ id: stri
       owner_id: user.id,
       tree_id: input.treeId,
       type: input.type,
-      // Omit occurred_at when absent so the DB default (now()) applies.
-      ...(input.occurredAt ? { occurred_at: input.occurredAt } : {}),
+      // Omit occurred_on when absent so the DB default (current_date) applies.
+      ...(input.occurredAt ? { occurred_on: input.occurredAt } : {}),
       title: input.title,
       notes: input.notes,
       details: input.details as Json,
@@ -70,14 +73,14 @@ export async function createCareEntry(input: CareEntryInput): Promise<{ id: stri
 }
 
 /** Updates a care entry. RLS + the id filter scope the write to the owner. A
- * cleared date falls back to now() (the column is NOT NULL). */
+ * cleared date falls back to today (the column is NOT NULL). */
 export async function updateCareEntry(id: string, input: CareEntryInput): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("care_log_entries")
     .update({
       type: input.type,
-      occurred_at: input.occurredAt ?? new Date().toISOString(),
+      occurred_on: input.occurredAt ?? new Date().toISOString().slice(0, 10),
       title: input.title,
       notes: input.notes,
       details: input.details as Json,

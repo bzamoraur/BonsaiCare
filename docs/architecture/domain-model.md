@@ -136,7 +136,7 @@ styling, defoliation, observations and notes **without table sprawl**.
 | `owner_id` | uuid (FK profile) | |
 | `tree_id` | uuid (FK tree) | |
 | `type` | enum (see below) | |
-| `occurred_at` | timestamptz | When it happened (editable — defaults to now). The timeline sorts on this, **not** on `created_at`. Directly answers Planta's "can't backdate" complaint. |
+| `occurred_on` | date | The calendar day it happened (editable — defaults to today; ADR-0012). The timeline sorts on this, with `created_at` desc as the same-day tiebreaker. Directly answers Planta's "can't backdate" complaint. |
 | `title` | text, nullable | Short summary; auto-suggested from type. |
 | `notes` | text, nullable | Freeform body. |
 | `details` | jsonb | Type-specific structured fields, validated by a per-type Zod schema. E.g. fertilize → `{ product, npk, amount }`; repot → `{ new_pot, soil_mix, root_work }`. |
@@ -208,9 +208,10 @@ trivially editable.
 - Deleting a photo that is a cover sets `tree.cover_photo_id = null`.
 - Archiving a tree hides it from default views but preserves all history and
   photos; tasks for an archived tree are auto-cancelled (status `skipped`).
-- `occurred_at` / `taken_at` may be in the past (backdating) but a soft warning
+- `occurred_on` / `taken_at` may be in the past (backdating) but a soft warning
   if far in the future.
 - Recurrence with a season window must skip out-of-season months when computing
   the next `due_on` (the exact bug Bonsai Empire users hit in the Southern
   hemisphere — we test this explicitly; see testing strategy).
-- All timestamps stored UTC (`timestamptz`); rendered in the user's local zone.
+- Timestamps stored UTC (`timestamptz`), rendered in the user's local zone; care
+  `occurred_on` is a zone-free calendar `date` (ADR-0012).

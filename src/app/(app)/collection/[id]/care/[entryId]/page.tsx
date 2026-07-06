@@ -32,7 +32,7 @@ export default async function EditCarePage({ params }: { params: Promise<Params>
 
   const defaults: CareDefaults = {
     type: entry.type,
-    occurredAtDate: entry.occurred_at.slice(0, 10),
+    occurredAtDate: entry.occurred_on,
     title: entry.title ?? "",
     notes: entry.notes ?? "",
     details: detailsToStrings(entry.details),

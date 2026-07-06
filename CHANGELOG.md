@@ -6,6 +6,15 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed — ADR-0012: care events are calendar dates (2026-07-06)
+
+- **`care_log_entries.occurred_at` (timestamptz) → `occurred_on` (date)**, default
+  `current_date`. Same-day ordering is now deterministic — `created_at desc`
+  (newest logged first) as an explicit tiebreaker in the read index and the
+  timeline merge — and a dated entry can no longer render one day early in a
+  UTC-negative zone. Ships with matching app code + hand-updated types; needs a
+  `supabase db push` coordinated with the deploy.
+
 ### Added — Sprint 08 hardening, database layer (S08.3, 2026-07-06)
 
 - **Closed the anon-EXECUTE gap** (hosted advisor finding) — Supabase's default

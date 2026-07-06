@@ -54,9 +54,11 @@ function formatAcquired(iso: string): string {
   return dateFormatter.format(new Date(`${iso}T00:00:00`));
 }
 
-function formatTimelineDate(iso: string): string {
-  // occurred_at / taken_at are full timestamp instants; format the calendar date.
-  return dateFormatter.format(new Date(iso));
+function formatTimelineDate(value: string): string {
+  // occurred_on is a bare calendar date (YYYY-MM-DD) — pin it to local midnight
+  // so the day survives any timezone (ADR-0012); taken_at is a full instant.
+  const at = value.length === 10 ? new Date(`${value}T00:00:00`) : new Date(value);
+  return dateFormatter.format(at);
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }) {
@@ -366,7 +368,7 @@ function CareItem({
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm font-medium">{CARE_EVENT_LABELS[entry.type]}</span>
         <span className="text-muted-foreground shrink-0 text-xs">
-          {formatTimelineDate(entry.occurred_at)}
+          {formatTimelineDate(entry.occurred_on)}
         </span>
       </div>
       {entry.title ? <p className="text-sm">{entry.title}</p> : null}

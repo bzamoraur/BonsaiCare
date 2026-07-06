@@ -16,8 +16,15 @@ import { listTreePhotos, type PhotoWithUrl } from "@/server/photos";
  */
 
 export type TimelineItem =
-  | { kind: "care"; id: string; date: string; entry: CareEntry; photos: PhotoWithUrl[] }
-  | { kind: "photo"; id: string; date: string; photo: PhotoWithUrl };
+  | {
+      kind: "care";
+      id: string;
+      date: string;
+      sortAt: string;
+      entry: CareEntry;
+      photos: PhotoWithUrl[];
+    }
+  | { kind: "photo"; id: string; date: string; sortAt: string; photo: PhotoWithUrl };
 
 export async function listTreeTimeline(treeId: string): Promise<TimelineItem[]> {
   const [entries, photos] = await Promise.all([listTreeEntries(treeId), listTreePhotos(treeId)]);
@@ -39,17 +46,26 @@ export async function listTreeTimeline(treeId: string): Promise<TimelineItem[]> 
       (entry): TimelineItem => ({
         kind: "care",
         id: entry.id,
-        date: entry.occurred_at,
+        date: entry.occurred_on,
+        sortAt: entry.created_at,
         entry,
         photos: photosByEntry.get(entry.id) ?? [],
       }),
     ),
     ...standalone.map(
-      (photo): TimelineItem => ({ kind: "photo", id: photo.id, date: photo.taken_at, photo }),
+      (photo): TimelineItem => ({
+        kind: "photo",
+        id: photo.id,
+        date: photo.taken_at.slice(0, 10),
+        sortAt: photo.taken_at,
+        photo,
+      }),
     ),
   ];
 
-  // Both dates are timestamptz ISO strings, so lexical compare orders them.
-  items.sort((a, b) => b.date.localeCompare(a.date));
+  // `date` is a calendar day (YYYY-MM-DD) for both kinds. Sort by day descending,
+  // then most-recently-recorded first within a day (ADR-0012): care entries by
+  // created_at, photos by their capture instant.
+  items.sort((a, b) => b.date.localeCompare(a.date) || b.sortAt.localeCompare(a.sortAt));
   return items;
 }

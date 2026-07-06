@@ -39,7 +39,7 @@ export type Database = {
           details: Json;
           id: string;
           notes: string | null;
-          occurred_at: string;
+          occurred_on: string;
           owner_id: string;
           task_id: string | null;
           title: string | null;
@@ -52,7 +52,7 @@ export type Database = {
           details?: Json;
           id?: string;
           notes?: string | null;
-          occurred_at?: string;
+          occurred_on?: string;
           owner_id: string;
           task_id?: string | null;
           title?: string | null;
@@ -65,7 +65,7 @@ export type Database = {
           details?: Json;
           id?: string;
           notes?: string | null;
-          occurred_at?: string;
+          occurred_on?: string;
           owner_id?: string;
           task_id?: string | null;
           title?: string | null;
