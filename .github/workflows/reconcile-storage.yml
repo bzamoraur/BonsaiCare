@@ -1,0 +1,44 @@
+name: Reconcile storage (orphan sweep)
+
+# Removes stranded photo objects (no `photos` row, older than a 24h grace
+# window) from the tree-photos bucket — the storage-first/DB-second upload can
+# orphan bytes if a tab closes mid-upload. No-op until you add the
+# SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY repository Action secrets. The
+# service-role key lives ONLY here, never in the app runtime. Scheduled runs
+# delete; manual runs default to a dry-run preview.
+
+on:
+  schedule:
+    - cron: "0 4 1 * *" # monthly, the 1st at 04:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "List orphans without deleting"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Reconcile
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
+        run: node scripts/reconcile-storage.mjs
