@@ -6,6 +6,33 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Milestone audit & improvement plan (2026-07-06)
+- **Full multi-perspective audit at the M5/Phase-1 milestone** — 10 lenses
+  (architecture, security, data model, product, UX, design/a11y, testing/CI,
+  performance, PWA/offline, ops/docs) + toolchain execution + hosted Supabase
+  advisor checks; every critical/high finding adversarially verified (13
+  confirmed, 0 refuted). Snapshot: [PROJECT_EXPORT.md](PROJECT_EXPORT.md)
+  (now a living root doc, regenerated per milestone; the 2026-07-05 edition
+  stays archived).
+- **[Improvement plan](docs/roadmap/improvement-plan.md)** — Sprint 08
+  fix-first hardening → M6 daily-driver → M7 friends release → M8 bonsai
+  intelligence → M9 offline & sharing, with finding→fix traceability and the
+  owner-decision list.
+- **[Production-state record](docs/operations/production-state.md)** — what's
+  live and armed in production (migrations, env, Action secrets, drills).
+
+### Fixed — documentation truth sweep (2026-07-06, from audit findings)
+- CLAUDE.md + README status lines were two milestones stale (said "M3 next");
+  both now state Phase 1 feature-complete and point at the plan. CLAUDE.md's
+  directory map gained `e2e/`, `scripts/`, `.github/`.
+- Runbook: documented all three ops automations + a real **backups & restore**
+  section (the backup workflow's own comment pointed at a moved dashboard page
+  and an IPv6-only connection string GitHub's runners can't reach — the correct
+  value is the **Session-pooler URI**); risk register R1/R9 closed out;
+  roadmap/backlog/CHANGELOG stale-status cluster fixed; env reference now
+  covers `OWNER_USER_ID`, `SUPABASE_DB_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and
+  the keep-warm secret pair.
+
 ### Added — Milestone M5 (Sprint 07): polish, hardening & owner metrics (2026-07-06)
 - **Dark mode** — System / Light / Dark, applied before first paint (no flash) and
   remembered; toggle in Settings → Appearance.
@@ -251,9 +278,11 @@ All notable changes to this project are documented here. Format follows
   Sprint 01 locally.
 - Updated MVP scope, cost model, architecture overview, and risk register to match.
 
-_Milestones M1–M4 are complete — the full daily loop (schedule → dashboard →
-complete → next occurrence) ships end to end. Two automated e2e flows (M3's
-log→timeline, M4's daily loop) are deferred to the Playwright auth harness
-([backlog](docs/roadmap/backlog.md)); both are covered by unit + pgTAP tests
-meanwhile. **Phase 1's feature work is complete**; next is M5 — trust, data
-export, and production hardening ([roadmap](docs/roadmap/roadmap.md))._
+_**Phase 1 (MVP) is feature-complete — Milestones M1–M5 all shipped** (PRs
+#2–#57), including the once-deferred e2e flows, which the Sprint-06 Playwright
+auth harness closed for real. The 2026-07-06 milestone audit
+([PROJECT_EXPORT.md](PROJECT_EXPORT.md)) confirmed the claim and produced the
+sequenced next steps: the
+[improvement plan](docs/roadmap/improvement-plan.md) — Sprint 08 fix-first
+hardening, then M6 daily-driver, M7 friends release, M8 bonsai intelligence,
+M9 offline & sharing._

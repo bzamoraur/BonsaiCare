@@ -1,22 +1,24 @@
 # Operations Runbook
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-06
 >
 > How to keep the app healthy and recover from problems. Grows as we hit (and
-> document) real situations.
+> document) real situations. What's actually armed/live right now:
+> [production-state.md](./production-state.md).
 
 ## Environments
 - **Local:** `pnpm dev` + local or hosted Supabase.
 - **Preview:** automatic Vercel deploy per PR (own URL).
-- **Production:** Vercel deploy from `main`; hosted Supabase (EU).
+- **Production:** Vercel deploy from `main`; hosted Supabase (EU, eu-west-3).
 
 ## Routine
 - **Deploys:** merge to `main` → auto production deploy. Watch the Vercel build;
-  smoke-test sign-in + a read/write after a notable release.
-- **Backups:** run a **data export** periodically (it doubles as a backup,
-  [ADR-0008](../decisions/0008-data-ownership-and-export.md)); store the file
-  somewhere safe. Verify the free-tier DB backup situation in M5 production
-  hardening (R9).
+  smoke-test sign-in + a read/write after a notable release. (Note: Vercel
+  deploys `main` regardless of CI — branch protection is unavailable on a
+  private GitHub Free repo; see the improvement-plan owner decision.)
+- **Photo bytes:** the automated backup covers the **database only** — run the
+  in-app **photo-archive export monthly** until the bucket mirror ships
+  ([improvement plan](../roadmap/improvement-plan.md) M9.3).
 - **Usage check:** glance at Supabase **storage** usage at each phase boundary
   ([cost-model](./cost-model.md), R4).
 
@@ -24,13 +26,62 @@
 Free Supabase projects pause after ~7 days idle. A scheduled GitHub Action pings
 the project so a personal "production" app stays responsive.
 
-- Workflow: `.github/workflows/keep-warm.yml` (runs on a cron, e.g. every 3 days).
-- It makes a tiny authenticated REST request to the Supabase project.
-- Needs GitHub **Action secrets**: `SUPABASE_URL` (or reuse project ref) and
-  `SUPABASE_PUBLISHABLE_KEY`.
-- **Verify:** check the Action's run history is green; the project stays "Active".
+- Workflow: `.github/workflows/keep-warm.yml` (cron, every 3 days).
+- Needs GitHub **Action secrets** with exactly these names: `SUPABASE_URL`
+  (`https://<ref>.supabase.co`, no trailing slash) and
+  `SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`).
+- **Verify — a green run proves nothing by itself** (the workflow currently
+  fails open; fail-loud is scheduled, improvement plan S08.8). Open the run's
+  log and check for `Supabase REST responded with HTTP 200`; separately confirm
+  the project shows "Active" in the Supabase dashboard.
 - If the project still paused: open the Supabase dashboard once to resume, then
-  confirm the cron is enabled and the secrets are set.
+  confirm the cron is enabled and the secrets are set. GitHub also disables
+  crons after ~60 days without repo activity — re-enable from the Actions tab
+  during quiet periods.
+
+## Backups & restore (R9 — free tier has NO managed backups)
+
+**What runs:** `.github/workflows/backup.yml` — every Sunday 05:00 UTC, dumps
+the hosted DB (schema + data) via `supabase db dump` and uploads
+`db-backup-<run>` artifacts kept **90 days**. Fails red on a failed dump; a
+no-op (with a notice) until its secret is set.
+
+**Arming it:** repo secret `SUPABASE_DB_URL` = the **Session-pooler URI** from
+the dashboard's **Connect** button (top bar) →
+`postgresql://postgres.<ref>:<password>@aws-0-eu-west-3.pooler.supabase.com:5432/postgres`.
+⚠ **Not** the "Direct connection" (`db.<ref>.supabase.co` — IPv6-only on the
+free tier; GitHub-hosted runners have no IPv6, so it can never connect) and
+**not** the Transaction pooler (port 6543 — incompatible with pg_dump). The DB
+password can be reset at Project Settings → Database without affecting the app
+(the app authenticates with API keys).
+
+**What it does NOT cover:** photo bytes in the `tree-photos` bucket (see
+Routine above) and — pending the S08 restore drill — proof that `auth.users`
+rows survive a restore.
+
+**Restore procedure (untested until the S08 drill — update this section from
+the drill transcript):**
+1. Create a fresh Supabase project (or use the scratch one).
+2. Download the latest `db-backup-…` artifact; unzip →
+   `backup-schema.sql` + `backup-data.sql`.
+3. Apply schema: `psql "<new project session-pooler URI>" -f backup-schema.sql`
+   (alternatively `pnpm exec supabase db push` against the new project rebuilds
+   schema from migrations — pick ONE source of schema truth, not both).
+4. Load data: `psql "<uri>" -f backup-data.sql`.
+5. Re-point env vars (Vercel + `.env.local`) at the new project; verify
+   sign-in, a tree page, and a timeline.
+6. Photos: re-upload from the latest photo-archive export (paths in
+   `photos.storage_path` tell you where each file goes).
+
+## Storage-orphan sweep
+
+`.github/workflows/reconcile-storage.yml` (monthly, 1st 04:00 UTC) removes
+photo objects with no `photos` row, older than a 24h grace window. Manual runs
+default to **dry-run**; scheduled runs delete. Armed by repo secrets
+`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (the service-role key lives ONLY
+here, never in the app). **⚠ Do not arm until the S08.1 pagination fix lands**
+— the current DB read silently truncates at 1,000 rows, which would classify
+real photos as orphans at scale.
 
 ## Incident playbook
 
@@ -52,8 +103,9 @@ the project so a personal "production" app stays responsive.
 4. Note the rotation (date + reason) in the
    [risk register](../product/risks-and-assumptions.md) if it was an incident.
 
-## Restore from export
-The CSV/JSON export is the user-facing recovery path. A full automated restore
-isn't built for MVP; if needed, re-import manually or via a script (import is a
-Phase-2 backlog item). For schema, migrations rebuild the structure; data comes
-from the latest export.
+## Restore from export (user-facing path)
+The CSV/JSON export is the user-facing recovery path — distinct from the
+operational SQL restore above. A full automated re-import isn't built for MVP;
+if needed, re-import manually or via a script (import is a Phase-2 backlog
+item). For schema, migrations rebuild the structure; data comes from the latest
+export.

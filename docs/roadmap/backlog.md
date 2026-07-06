@@ -6,6 +6,12 @@
 > graduate into a sprint when their phase is active. Format: concise user
 > stories + notable technical items. Priority per item: (P1) next · (P2) later ·
 > (P3) maybe. Size: S (≤½ day) · M (1–3 days) · L (a sprint slice or more).
+>
+> **Post-M5 note:** the 2026-07-06 milestone audit produced a sequenced
+> execution plan — many P1 items below now have a concrete slot in the
+> [improvement plan](./improvement-plan.md) (batch logging → S09, i18n/allowlist/
+> onboarding/analytics → M7, digest/wiring/species rules → M8, …). This file
+> remains the holding pen; the plan is the order.
 
 ## How this works
 
@@ -26,25 +32,25 @@ These elaborate the [roadmap](./roadmap.md) milestones into reviewable stories.
 - [x] …set a cover photo and see a photo-first collection grid.
 - [x] …archive a tree (sold/died/gifted) without losing its history.
 
-### M3 — Timeline & logging (in progress — [Sprint 02](./sprint-02.md) / [03](./sprint-03.md))
+### M3 — Timeline & logging (shipped — [Sprint 02](./sprint-02.md) / [03](./sprint-03.md))
 
-- …log a care event (water/fertilize/prune/wire/repot/pest/observe) in <10 s. (P1)
-- …attach a photo to an event or add a standalone progress photo. (P1)
-- …see one merged, date-ordered timeline per tree, filterable by type. (P1)
-- …backdate an event/photo so history is accurate. (P1)
+- [x] …log a care event (water/fertilize/prune/wire/repot/pest/observe) in <10 s.
+- [x] …attach a photo to an event or add a standalone progress photo.
+- [x] …see one merged, date-ordered timeline per tree, filterable by type.
+- [x] …backdate an event/photo so history is accurate.
 
-### M4 — Tasks & dashboard ([Sprint 04](./sprint-04.md) / [05](./sprint-05.md))
+### M4 — Tasks & dashboard (shipped — [Sprint 04](./sprint-04.md) / [05](./sprint-05.md))
 
-- …create one-off and recurring tasks (incl. fertilize every N days in-season). (P1)
-- …complete/skip a task, optionally logging a care event, and auto-get the next. (P1)
-- …open the app and immediately see overdue / today / upcoming. (P1)
-- …edit any schedule's interval and dates freely. (P1)
+- [x] …create one-off and recurring tasks (incl. fertilize every N days in-season).
+- [x] …complete/skip a task, optionally logging a care event, and auto-get the next.
+- [x] …open the app and immediately see overdue / today / upcoming.
+- [x] …edit any schedule's interval and dates freely.
 
-### M5 — Trust & polish
+### M5 — Trust & polish (shipped — [Sprint 06](./sprint-06.md) / [07](./sprint-07.md))
 
 - [x] …export all my data to CSV/JSON (+ photo archive). (Sprint 06)
 - [x] …delete my account and have every row and photo actually removed. (Sprint 06)
-- …use the app comfortably in dark mode and with accessibility needs. (P1, Sprint 07)
+- [x] …use the app comfortably in dark mode and with accessibility needs. (Sprint 07)
 - [x] …trust the dashboard because the season logic is correct in my hemisphere.
   (season domain shipped in M4; the daily loop is now e2e-proven, Sprint 06)
 
@@ -93,12 +99,12 @@ list for the reasoning). Re-order from real usage evidence.
 - **Locations as care context** — sun/shade, winter-protection attributes →
   seasonal prompts ("frost forecast → move tender trees"). (P2, S–M)
 - **Trusted-user invites & polish** for 1→3 users. (P2, M)
-- **Owner metrics view (friends-release)** — an *owner-only* page: registered-user
-  count, signups over time, active users (last care log / task completion), and
-  per-user totals (trees, logs, tasks). Admin gate = owner id in env or an
-  `is_admin` flag on `profiles`; aggregate queries only (no per-user data
-  snooping beyond counts). The heart of "let me see how many are registered and
-  monitor activity." (P1 for the friends stage, S–M)
+- [x] **Owner metrics view (friends-release) — ✅ shipped early (PR #53).**
+  `/admin`, env-gated (`OWNER_USER_ID`, 404 otherwise), aggregate-only
+  `owner_metrics()` RPC. Remaining: v2 with per-feature counts + last-active,
+  fed by `usage_events` (improvement plan S12.2), and the S08.3 hardening
+  (revoke anon EXECUTE + in-DB owner gate — hosted advisors found Supabase's
+  default privileges leave `anon` able to call the RPC).
 - **Usage analytics (privacy-first, friends-release)** — "data will be key":
   see *which* features get used so development is evidence-led. Start with Vercel
   Web Analytics (routes, cookieless) + a small `usage_events` table for key
@@ -156,13 +162,13 @@ build a store presence for an app nobody has asked to pay for.
 
 Logged per the quality protocol; scheduled, not aspirational:
 
-- **Storage-orphan reconciliation** — upload is storage-first/DB-second with
-  client-side best-effort cleanup only; a closed tab strands objects. Add a
-  scheduled sweep (objects without a `photos.storage_path` row → delete past a
-  grace window). *Account deletion already removes all of a user's storage
-  objects (the 2-level prefix walk in `src/server/account.ts`, Sprint 06), so the
-  remaining work is only the periodic orphan sweep.* *(Due: M5 slice 8, Sprint 07;
-  flagged in the PR #12 security review.)*
+- **Storage-orphan reconciliation — ✅ DONE (Sprint 07, PR #56)** as
+  `scripts/reconcile-storage.mjs` + a monthly dormant-until-secret workflow
+  (dry-run default on manual dispatch; 24h grace window). **⚠ One confirmed
+  bug remains:** the DB-side read is unpaginated, so past PostgREST's 1,000-row
+  cap real photos would be classified as orphans and deleted — **do not arm the
+  secret** until the fix lands ([improvement plan](./improvement-plan.md)
+  S08.1, first slice of the hardening sprint).
 - **Playwright e2e auth harness — ✅ DONE (Sprint 06, PRs #42–#43).** Shipped as
   designed: a global-setup mints a confirmed user against the CI Supabase stack
   and injects a real `@supabase/ssr` session (produced by the library itself, not
@@ -198,9 +204,11 @@ Logged per the quality protocol; scheduled, not aspirational:
   if timeline/dashboard interactions feel laggy or optimistic UI becomes a real
   need, revisit TanStack Query. *(Trigger-gated.)*
 - **`supabase db push` discipline** — hosted migrations lag the repo until the
-  owner pushes; every schema PR must flag it. *(Standing; one migration currently
-  pending push: `account_deletion` (M5, PR #41) — a click-by-click guide + a
-  throwaway-account acceptance test were delivered with it.)*
+  owner pushes; every schema PR must flag it. *(Standing. As of 2026-07-06 the
+  hosted DB is fully caught up — all 8 migrations pushed and owner-verified
+  (account deletion live-tested; /admin loads). Current state is tracked in
+  [operations/production-state.md](../operations/production-state.md); a weekly
+  drift check reusing `SUPABASE_DB_URL` is proposed in the improvement plan.)*
 
 ## Parking lot (unvetted ideas)
 

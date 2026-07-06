@@ -4,13 +4,18 @@ Guidance for Claude Code (and humans) working in Bonsai Companion. Keep this lea
 and high-signal; detailed reasoning lives in `docs/`.
 
 ## What this is
-A personal, production-grade **bonsai care & tracking PWA**. Currently in
-**Phase 1 — Milestone M3 (timeline & care logging)**: M1 (auth, shell, schema,
-CI) and M2 (trees, photos, tags, locations, search) are **shipped and live**;
-the M3 `care_log_entries` schema is merged and the logging UI is next
-(`docs/roadmap/sprint-02.md`). Keep this status line current — update it in the
-same PR that changes it. Read `docs/product/product-brief.md` and
-`docs/architecture/overview.md` before non-trivial work.
+A personal, production-grade **bonsai care & tracking PWA**. **Phase 1 (MVP) is
+feature-complete**: M1–M5 all shipped and live (PRs #2–#57; auth/shell/schema →
+trees & photos → timeline & care logging → tasks/recurrence/dashboard → export,
+real deletion, dark mode, a11y, e2e harness, hardening). Execution order now
+comes from `docs/roadmap/improvement-plan.md` (2026-07-06 milestone audit:
+Sprint 08 fix-first hardening → M6 daily-driver → M7 friends release → M8
+intelligence → M9 offline/sharing); current audit snapshot:
+`PROJECT_EXPORT.md`; what's armed in prod: `docs/operations/production-state.md`.
+Keep this status line current — update it in the same PR that changes it (this
+is a Definition-of-Done item for every milestone-closing PR). Read
+`docs/product/product-brief.md` and `docs/architecture/overview.md` before
+non-trivial work.
 
 ## Golden rules (don't violate without an ADR)
 1. **Scope discipline.** Build only what's in `docs/product/mvp-scope.md`. New
@@ -49,6 +54,9 @@ src/lib/        supabase clients, env, labels, utils
 src/types/      generated DB types (supabase gen types --linked)
 src/proxy.ts    Next 16 proxy (session refresh + route gating)
 supabase/       migrations/ + tests/ (pgTAP RLS suites)
+e2e/            Playwright specs + cookie-capture auth harness (CI-only)
+scripts/        ops/utility scripts (icon generation, storage reconcile)
+.github/        CI + dormant-until-secret ops crons (keep-warm, backup, sweep)
 ```
 
 ## Core domain concepts (use this language)

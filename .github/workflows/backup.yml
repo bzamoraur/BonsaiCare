@@ -1,11 +1,16 @@
 name: Weekly database backup
 
 # Free-tier Supabase has NO managed backups (Risk R9). This dumps the hosted
-# database (schema + data) every week and keeps it as a downloadable artifact,
-# so there is always a recent full snapshot to restore from. It is a no-op until
-# you add the SUPABASE_DB_URL repository Action secret (the direct connection
-# string from Supabase → Settings → Database). Scheduled workflows run from the
-# default branch only. In-app JSON/CSV export remains the owner's on-demand backup.
+# DATABASE (schema + data) every week and keeps it as a downloadable artifact.
+# NOTE: photos (Storage bucket bytes) are NOT included — see the runbook's
+# backups section for the monthly photo-archive cadence.
+# No-op until you add the SUPABASE_DB_URL repository Action secret: the
+# SESSION-POOLER URI from the dashboard's "Connect" button
+# (postgresql://postgres.<ref>:<pwd>@aws-0-<region>.pooler.supabase.com:5432/postgres).
+# Do NOT use the direct connection (IPv6-only on the free tier — GitHub-hosted
+# runners can't reach it) or the transaction pooler (port 6543 — breaks pg_dump).
+# Scheduled workflows run from the default branch only. Restore procedure:
+# docs/operations/runbook.md#backups--restore-r9--free-tier-has-no-managed-backups
 
 on:
   schedule:
