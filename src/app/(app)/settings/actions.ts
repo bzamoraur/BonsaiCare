@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { deleteAccount } from "@/server/account";
 import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
+import { deleteAccount } from "@/server/account";
 import type { Database } from "@/types/database.types";
 
 import type { DeleteAccountState, ProfileFormState } from "./types";
@@ -60,6 +60,7 @@ export async function updateProfile(
     .eq("id", user.id);
 
   if (error) {
+    logActionError("updateProfile", error);
     return { status: "error", message: error.message };
   }
 

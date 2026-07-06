@@ -63,7 +63,10 @@ export async function GET(): Promise<Response> {
       photos.map((p) => p.storage_path),
       SIGNED_URL_TTL_SECONDS,
     );
-    if (error) return new Response(error.message, { status: 500 });
+    if (error) {
+      logActionError("exportPhotos.manifestSign", error);
+      return new Response(error.message, { status: 500 });
+    }
 
     const used = new Set<string>();
     const manifest = {
@@ -92,6 +95,7 @@ export async function GET(): Promise<Response> {
     start(controller) {
       const zip = new Zip((err, chunk, final) => {
         if (err) {
+          logActionError("exportPhotos.zip", err);
           controller.error(err);
           return;
         }
@@ -105,7 +109,12 @@ export async function GET(): Promise<Response> {
             const { data: blob, error } = await supabase.storage
               .from(BUCKET)
               .download(p.storage_path);
-            if (error || !blob) continue; // skip a missing object; the archive still completes
+            if (error || !blob) {
+              // Skip a missing object so one gap never fails the whole archive —
+              // but an export quietly missing photos must still leave a trace.
+              logActionError("exportPhotos.download", error ?? new Error("empty blob"));
+              continue;
+            }
             const bytes = new Uint8Array(await blob.arrayBuffer());
             const entry = new ZipPassThrough(nameFor(p, used));
             zip.add(entry);
