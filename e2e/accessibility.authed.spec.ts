@@ -13,13 +13,23 @@ import { readFixtures } from "./fixtures";
 
 const WCAG_AA = ["wcag2a", "wcag2aa"];
 
-/** Run axe and keep only the violations that meaningfully block users. */
+/** Run axe and keep only the violations that meaningfully block users. On a hit
+ * the report names each offending node (its selector) and axe's failure summary
+ * — which for color-contrast includes the exact fg/bg colors and the ratio — so
+ * a CI failure is actionable without a local repro. */
 async function seriousViolations(page: Page): Promise<{ ok: boolean; report: string }> {
   const { violations } = await new AxeBuilder({ page }).withTags(WCAG_AA).analyze();
   const serious = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   return {
     ok: serious.length === 0,
-    report: serious.map((v) => `${v.id} (${v.impact}): ${v.nodes.length} node(s)`).join("\n"),
+    report: serious
+      .map((v) => {
+        const nodes = v.nodes
+          .map((n) => `    at ${n.target.join(" ")}\n      ${(n.failureSummary ?? "").trim()}`)
+          .join("\n");
+        return `${v.id} (${v.impact}) — ${v.nodes.length} node(s):\n${nodes}`;
+      })
+      .join("\n\n"),
   };
 }
 
