@@ -2,7 +2,6 @@ import { Camera, ChevronLeft, Leaf, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { isOverdue } from "@/domain/scheduling";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CARE_EVENT_ICONS, CARE_EVENT_LABELS, careDetailSummary } from "@/lib/care-labels";
 import { TASK_TYPE_ICONS, TASK_TYPE_LABELS, describeRecurrence } from "@/lib/task-labels";
@@ -31,6 +30,7 @@ import {
   skipTaskAction,
 } from "./task-actions";
 import { TaskActions } from "@/components/task-actions";
+import { TaskDueLabel } from "./task-due-label";
 import { TimelineFilters, type FilterOption } from "./timeline-filters";
 
 type Params = { id: string };
@@ -85,8 +85,9 @@ export default async function TreeDetailPage({
   ]);
   if (!tree) notFound();
 
-  // Today as a floating calendar day for overdue comparison (see isOverdue).
-  const today = new Date().toISOString().slice(0, 10);
+  // The server's UTC day — SSR fallback for the client-local "today" the care plan
+  // resolves (TaskDueLabel / TaskActions), and the add-task default due date.
+  const serverToday = new Date().toISOString().slice(0, 10);
   const pendingTasks = tasks.filter((t) => t.status === "pending");
 
   const locationName = tree.location_id ? await getLocationName(tree.location_id) : null;
@@ -219,7 +220,7 @@ export default async function TreeDetailPage({
         <section className="flex flex-col gap-4">
           <h2 className="text-sm font-medium">Care plan</h2>
           {!isArchived ? (
-            <AddTaskForm action={createTaskAction.bind(null, tree.id)} defaultDueOn={today} />
+            <AddTaskForm action={createTaskAction.bind(null, tree.id)} defaultDueOn={serverToday} />
           ) : null}
           {pendingTasks.length === 0 ? (
             <p className="text-muted-foreground text-sm text-balance">
@@ -228,7 +229,7 @@ export default async function TreeDetailPage({
           ) : (
             <ol className="flex flex-col">
               {pendingTasks.map((task) => (
-                <TaskItem key={task.id} task={task} treeId={tree.id} today={today} />
+                <TaskItem key={task.id} task={task} treeId={tree.id} serverToday={serverToday} />
               ))}
             </ol>
           )}
@@ -291,8 +292,15 @@ export default async function TreeDetailPage({
   );
 }
 
-function TaskItem({ task, treeId, today }: { task: Task; treeId: string; today: string }) {
-  const overdue = isOverdue({ status: task.status, dueOn: task.due_on }, today);
+function TaskItem({
+  task,
+  treeId,
+  serverToday,
+}: {
+  task: Task;
+  treeId: string;
+  serverToday: string;
+}) {
   const Icon = TASK_TYPE_ICONS[task.type];
   return (
     <li className="flex gap-3">
@@ -302,15 +310,7 @@ function TaskItem({ task, treeId, today }: { task: Task; treeId: string; today: 
       <div className="border-border flex flex-1 flex-col gap-1 border-b pb-4 last:border-b-0">
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-sm font-medium">{task.title}</span>
-          <span
-            className={cn(
-              "shrink-0 text-xs",
-              overdue ? "text-destructive font-medium" : "text-muted-foreground",
-            )}
-          >
-            {overdue ? "Overdue · " : ""}
-            {formatAcquired(task.due_on)}
-          </span>
+          <TaskDueLabel status={task.status} dueOn={task.due_on} serverToday={serverToday} />
         </div>
         <p className="text-muted-foreground text-xs">
           {TASK_TYPE_LABELS[task.type]} · {describeRecurrence(task.recurrence)}
@@ -321,7 +321,7 @@ function TaskItem({ task, treeId, today }: { task: Task; treeId: string; today: 
         <div className="flex flex-wrap items-center gap-1">
           <TaskActions
             type={task.type}
-            defaultDate={today}
+            serverToday={serverToday}
             completeAction={completeTaskAction.bind(null, treeId, task.id)}
             skipAction={skipTaskAction.bind(null, treeId, task.id)}
           />

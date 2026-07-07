@@ -33,11 +33,12 @@ export async function completeFromTodayAction(taskId: string, formData: FormData
   revalidatePath("/calendar");
 }
 
-/** Skip a task from the dashboard (taskId bound). A recurring task still advances. */
-export async function skipFromTodayAction(taskId: string): Promise<void> {
+/** Skip a task from the dashboard (taskId bound). A recurring task still advances.
+ * `completedOn` is the viewer's local day, submitted by the skip form. */
+export async function skipFromTodayAction(taskId: string, formData: FormData): Promise<void> {
   let ok = true;
   try {
-    await skipTask(taskId, new Date().toISOString().slice(0, 10));
+    await skipTask(taskId, safeCompletedOn(formData.get("completedOn")));
   } catch (error) {
     logActionError("skipFromToday", error);
     ok = false;
