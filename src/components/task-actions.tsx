@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { TASK_TYPE_TO_CARE_EVENT } from "@/domain/task-form";
+import { useLocalToday } from "@/lib/local-day";
 import { useRevealFocus } from "@/lib/use-reveal-focus";
 import type { Enums } from "@/types/database.types";
 
@@ -18,16 +19,19 @@ const dateInputClass =
  */
 export function TaskActions({
   type,
-  defaultDate,
+  serverToday,
   completeAction,
   skipAction,
 }: {
   type: Enums<"task_type">;
-  defaultDate: string;
+  serverToday: string;
   completeAction: (formData: FormData) => void;
   skipAction: (formData: FormData) => void;
 }) {
   const [confirming, setConfirming] = useState(false);
+  // The viewer's local today — the default completion date and the date a skip
+  // records, so both reflect their clock, not the server's UTC day.
+  const defaultDate = useLocalToday(serverToday);
   const canLog = TASK_TYPE_TO_CARE_EVENT[type] !== null;
   const { triggerRef, revealRef } = useRevealFocus<HTMLButtonElement, HTMLInputElement>(confirming);
 
@@ -64,6 +68,9 @@ export function TaskActions({
         Done
       </Button>
       <form action={skipAction}>
+        {/* A skip records against the viewer's local day (controlled so it tracks
+            the post-hydration value), matching the "Done" date. */}
+        <input type="hidden" name="completedOn" value={defaultDate} readOnly />
         <Button type="submit" variant="ghost" size="sm">
           Skip
         </Button>

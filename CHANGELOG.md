@@ -6,6 +6,18 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Fixed — Sprint 08 hardening, one "today" everywhere (S08.9a, 2026-07-07)
+
+- **The overdue boundary is the viewer's local day, everywhere.** The tree-detail
+  care-plan "Overdue" badge and the completion/skip default date now resolve
+  "today" from the viewer's clock (shared `src/lib/local-day.ts`, the pattern the
+  Today dashboard already used) instead of the server's UTC day — so a task no
+  longer looks overdue on one screen but not another near midnight.
+- **Skip records the local day.** Skipping a task now stamps the viewer's local
+  calendar date (submitted by the skip form) rather than the server's UTC day, so
+  a recurring task advances from the right day. (The calendar month ring — S08.9b —
+  is the remaining server-UTC "today".)
+
 ### Fixed — Sprint 08 hardening, honest offline page (S08.6, 2026-07-07)
 
 - **A real offline fallback** — a static `offline.html` is precached and served

@@ -123,11 +123,15 @@ export async function completeTaskAction(
 }
 
 /** Form action (tree + task bound server-side): skip a task. A recurring task
- * still spawns its next occurrence. */
-export async function skipTaskAction(treeId: string, taskId: string): Promise<void> {
+ * still spawns its next occurrence. `completedOn` is the viewer's local day. */
+export async function skipTaskAction(
+  treeId: string,
+  taskId: string,
+  formData: FormData,
+): Promise<void> {
   let ok = true;
   try {
-    await skipTask(taskId, new Date().toISOString().slice(0, 10));
+    await skipTask(taskId, safeCompletedOn(formData.get("completedOn")));
   } catch (error) {
     logActionError("skipTask", error);
     ok = false;
