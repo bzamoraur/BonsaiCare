@@ -218,6 +218,74 @@ monetization — each behind demand and its own ADR.
 
 ---
 
+## Vision expansion — inspired by the Bonsai Empire app (proposed, 2026-07-07)
+
+> **Status:** Proposed — owner triage pending. **Source:** analysis of the
+> "Bonsai Care App" (Bonsai Empire) from the owner's walkthrough + screenshots,
+> 2026-07-07 (3-lens ideation grounded in this plan). Nothing here is scheduled
+> until the owner picks what to pull forward; it is captured, not locked.
+
+**Finding:** the inspiration app **validates ~70% of this plan** — batch logging
+(S09.1), species intelligence (M8.1), onboarding tour (S12.1), OTP (S11.1),
+hemisphere (S11.4), read-only share (M9.4), weather prompts (M8.3), archived
+filter (S09.6), calendar (S09.7). The one structural gap it exposes:
+`trees.species_id` is **never set today** (the tree form writes only free-text
+`species_label`), so the seeded `species` table and `species.default_care` are
+dormant — **activating that link is the unlock** for everything below.
+
+### Keystone — a category care-knowledge layer (reprioritizes M8.1)
+
+Author `species.default_care` at the **category** level (5 rows: conifer /
+deciduous / broadleaf-evergreen / tropical / other) as bundled, Zod-validated,
+i18n-ready content in `src/domain` (unit-tested like `scheduling.ts`):
+sunlight/location, watering rhythm, feed/repot/prune windows, winter-protection
+threshold, and a plain-language guidelines paragraph. This pulls the **data**
+half out of M8.1 as a prerequisite slice; M8.1's Today suggestion cards become
+one of several readers of the same seam.
+
+### Net-new slices (all €0, no heavy deps)
+
+**Knowledge (M8, after the keystone + `species_id`):**
+- **Care-guidelines block on tree detail** (M) — their "Pautas para el cuidado",
+  collapsible, hemisphere-phrased; needs a `species_id` join added to the detail
+  read (renders nothing when only free-text species exists — never blocks capture).
+- **In-context micro-tips** (S) — one authored line by care-type × category under
+  the log form and on task rows; dismissible / first-use.
+- **"This month" seasonal calendar** (M) — a category × month matrix from the
+  model + the existing season/hemisphere logic; on the Calendar tab + a Today teaser.
+- **`/learn` primers + curated links** (M, M8→M9) — 4–6 bundled how-to primers +
+  a tiny curated external list, reached from **Settings, not a 5th nav tab**
+  (mobile nav is at its slot ceiling). Lowest-priority Learn item — the in-context
+  surfaces already do most of the teaching.
+
+**Daily-driver (M6):**
+- **Grouped reminders + "mark all done"** (M) — sub-group Today's tasks by care
+  type + a new `completeManyTasks` action; explicit group confirm + "log events"
+  toggle. Sibling of S09.1 batch logging.
+- **"Next care" summary cards on tree detail** (S) — forward-looking per-type
+  cards ("Water · due today", "Feed · in 12 days") derived from already-loaded tasks.
+- **Least-watered sort + due dots** (S) — sort the collection by longest-since-
+  watered; due/overdue dot on tree cards + a count on the Today nav item. Extends S09.3.
+
+**Identity & data:**
+- **Activate `species_id`: guided category → species picker** (M, M7) — grows
+  S11.5 from a combobox into a guided picker that actually sets `species_id`. The unlock.
+- **Sun-exposure + environment enums on `locations`** (S, M8) — full/partial/shade;
+  outdoor/greenhouse/cold-frame/indoor. Feeds care advice + sharpens M8.3.
+- **Estimated-age tracking on trees** (S, M6) — optional "≈ N years" live fact
+  (their "Edad: 88 años" touch); rides the species-form pass.
+- **Tree status: sold/dead/gifted + "graveyard" filter** (M, M6) — extends S09.6
+  archive into a reason (the Planta pattern the domain model already admires); one
+  small schema add.
+
+### Explicitly rejected (reinforces "What we deliberately do NOT do")
+
+Pro paywall / tiers; a **global** social network (a revocable read-only share
+link, M9.4, is the right dose); a collectibles/pots upsell; course ads / discount
+codes — all commercial-product patterns misaligned with a €0 personal→friends tool.
+
+---
+
 ## Traceability — audit finding → plan slot
 
 | # | Finding (confirmed severity) | Where fixed |
