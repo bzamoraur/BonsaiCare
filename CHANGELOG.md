@@ -6,6 +6,20 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Fixed — Sprint 08 hardening, the calendar's "today" is local too (S08.9b, 2026-07-07)
+
+- **The calendar month ring and agenda now mark the viewer's local day.** The
+  highlighted grid cell, the "· Today" agenda header, and the "Today" back-link
+  resolve "today" from the viewer's clock instead of the server's UTC day (the
+  month grid + agenda moved into a client `calendar-view.tsx` driven by
+  `useLocalToday(serverToday)`) — hydration-safe, matching the dashboard and
+  care-plan. This closes the "today" split-brain: every surface now agrees.
+- **The "Today" link self-corrects at a month boundary.** The data fetch still
+  picks the default month from the server's UTC clock, so a viewer in another
+  timezone can land on the UTC month at a boundary — but the "Today" link now
+  points at their *local* month, so one tap reaches the right place (the old bare
+  `/calendar` link re-defaulted to UTC and could never leave it).
+
 ### Fixed — Sprint 08 hardening, one "today" everywhere (S08.9a, 2026-07-07)
 
 - **The overdue boundary is the viewer's local day, everywhere.** The tree-detail
@@ -15,8 +29,8 @@ All notable changes to this project are documented here. Format follows
   longer looks overdue on one screen but not another near midnight.
 - **Skip records the local day.** Skipping a task now stamps the viewer's local
   calendar date (submitted by the skip form) rather than the server's UTC day, so
-  a recurring task advances from the right day. (The calendar month ring — S08.9b —
-  is the remaining server-UTC "today".)
+  a recurring task advances from the right day. (The calendar month ring is
+  handled in S08.9b, above.)
 
 ### Fixed — Sprint 08 hardening, honest offline page (S08.6, 2026-07-07)
 
