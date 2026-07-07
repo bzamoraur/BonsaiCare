@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offline · Bonsai Companion</title>
+    <!--
+      Static offline fallback, precached by public/sw.js and served on a failed
+      navigation. It must be self-contained (no external CSS/JS/fonts) and must
+      NOT redirect — the app's "/" redirects to /today or /login, and the Cache
+      API refuses to serve a redirected response for a navigation, which is why
+      the old cached-"/" fallback was dead.
+    -->
+    <style>
+      :root {
+        --bg: #f3f5f1;
+        --ink: #1b2420;
+        --soft: #4a564f;
+        --line: #dde3db;
+        --accent: #37604a;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #10140f;
+          --ink: #e6eae2;
+          --soft: #aab4a9;
+          --line: #2a332a;
+          --accent: #85bd95;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem;
+      }
+      main {
+        max-width: 24rem;
+        text-align: center;
+      }
+      .mark {
+        font-size: 3rem;
+        line-height: 1;
+      }
+      h1 {
+        font-size: 1.5rem;
+        letter-spacing: -0.01em;
+        margin: 1rem 0 0.5rem;
+      }
+      p {
+        color: var(--soft);
+        margin: 0 0 1.75rem;
+      }
+      button {
+        font: inherit;
+        font-weight: 600;
+        color: #fff;
+        background: var(--accent);
+        border: 0;
+        border-radius: 10px;
+        padding: 0.7rem 1.5rem;
+        cursor: pointer;
+      }
+      @media (prefers-color-scheme: dark) {
+        button {
+          color: #10140f;
+        }
+      }
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true">🌱</div>
+      <h1>You're offline</h1>
+      <p>
+        Your bonsai are safe — this page just needs a connection to load. Reconnect
+        and try again.
+      </p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

@@ -19,6 +19,14 @@ export function ServiceWorkerRegister() {
       });
     };
 
+    // If the page has already finished loading (e.g. this component mounted after
+    // a client-side navigation), the 'load' event has fired and won't fire again —
+    // register immediately. Otherwise defer to 'load' so we don't compete with the
+    // initial page load.
+    if (document.readyState === "complete") {
+      register();
+      return;
+    }
     window.addEventListener("load", register);
     return () => window.removeEventListener("load", register);
   }, []);
