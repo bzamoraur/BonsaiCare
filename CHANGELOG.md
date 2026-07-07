@@ -6,6 +6,17 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Fixed — Sprint 08 hardening, honest offline page (S08.6, 2026-07-07)
+
+- **A real offline fallback** — a static `offline.html` is precached and served
+  on a failed navigation. The previous cached-`/` fallback was dead: `/`
+  redirects (to `/today` or `/login`) and the Cache API refuses to serve a
+  redirected response for a navigation. Cache name bumped to invalidate the
+  stale entry.
+- **The service worker registers reliably** — a `readyState` guard registers
+  immediately when the page has already loaded (e.g. after a client-side
+  navigation), instead of waiting for a `load` event that already fired.
+
 ### Added — Sprint 08 hardening, native controls & theme (S08.5, 2026-07-07)
 
 - **Native controls match the theme** — `color-scheme` (light/dark) so scrollbars
