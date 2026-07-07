@@ -24,6 +24,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-strong: var(--destructive-strong);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -70,6 +71,11 @@
   --accent: oklch(0.96 0.012 145);
   --accent-foreground: oklch(0.28 0.02 150);
   --destructive: oklch(0.577 0.245 27.325);
+  /* Destructive TEXT on the subtle `bg-destructive/10` tint (the ghost-danger
+     buttons). Full --destructive on that tint is only 3.9:1 — below WCAG 1.4.3
+     (4.5:1) — so text uses this darker red (~5.2:1 on the tint) while the tint
+     itself stays soft. --destructive is unchanged for fills/rings/error text. */
+  --destructive-strong: oklch(0.48 0.245 27.325);
   --border: oklch(0.91 0.006 130);
   /* Field boundary — darker than --border so an input's edge clears WCAG 1.4.11
      (3:1) against both the page and card white; --border stays soft for dividers. */
@@ -108,6 +114,9 @@
   --accent: oklch(0.3 0.02 150);
   --accent-foreground: oklch(0.97 0.005 120);
   --destructive: oklch(0.704 0.191 22.216);
+  /* On dark, the destructive tint sits on a dark ground, so the lighter
+     --destructive red already clears 4.5:1 as text — keep it as the strong tone. */
+  --destructive-strong: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.72 0.1 150);
