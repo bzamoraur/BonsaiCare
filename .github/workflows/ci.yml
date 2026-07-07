@@ -1,9 +1,11 @@
 name: CI
 
 # Quality gates on every PR and push to main:
-#  - build:   typecheck, lint, unit tests, production build
-#  - db-test: apply migrations to a local Supabase stack and run the pgTAP
-#             RLS isolation tests (Docker is preinstalled on ubuntu runners).
+#  - build:   typecheck, lint, format check, unit tests, production build
+#  - db-test: apply migrations to a local Supabase stack, run the pgTAP RLS
+#             isolation tests, and verify the committed DB types match the schema
+#             (Docker is preinstalled on ubuntu runners).
+#  - e2e:     Playwright auth/care journeys against the same local stack.
 
 on:
   push:
@@ -40,6 +42,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Format check
+        run: pnpm format:check
+
       - name: Test
         run: pnpm test
 
@@ -75,6 +80,33 @@ jobs:
       - name: Run database tests (pgTAP)
         run: pnpm exec supabase test db
 
+      # The committed TS types must match what the migrations produce. Regenerate
+      # from the running local stack and diff — this catches a migration that
+      # changed a column, enum, or relationship without a matching `pnpm gen:types`
+      # (e.g. a single-column FK upgraded to composite). The PostgREST version
+      # marker reflects the stack (local here vs the hosted project the committed
+      # file targets), not the schema, so it is normalized out of the comparison.
+      - name: Check generated types are in sync with the schema
+        id: types_check
+        run: |
+          pnpm exec supabase gen types typescript --local > src/types/database.types.ts
+          pnpm exec prettier --write src/types/database.types.ts
+          norm='s/PostgrestVersion: "[^"]*"/PostgrestVersion: "_"/'
+          if ! diff <(git show HEAD:src/types/database.types.ts | sed -E "$norm") \
+                    <(sed -E "$norm" src/types/database.types.ts); then
+            echo "::error::src/types/database.types.ts is out of sync with the migrations. Run 'pnpm gen:types' and commit the result (see the uploaded artifact for the expected file)."
+            exit 1
+          fi
+
+      # On drift, hand back the exact expected file so it can be committed verbatim.
+      - name: Upload expected types (on drift)
+        if: failure() && steps.types_check.outcome == 'failure'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: expected-database-types
+          path: src/types/database.types.ts
+          retention-days: 7
+
       - name: Stop Supabase
         if: always()
         run: pnpm exec supabase stop
@@ -95,8 +127,23 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # Cache the downloaded browser between runs (keyed on the lockfile, so a
+      # Playwright version bump busts it). System libraries are not cached, so on
+      # a hit we still run the fast `install-deps`.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+
       - name: Install Playwright browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       # Boots the same local Supabase stack the db-test job uses.
       - name: Start Supabase

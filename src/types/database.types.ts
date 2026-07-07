@@ -83,10 +83,10 @@ export type Database = {
           },
           {
             foreignKeyName: "care_log_entries_tree_id_fkey";
-            columns: ["tree_id"];
+            columns: ["tree_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "trees";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
         ];
       };
@@ -161,10 +161,10 @@ export type Database = {
           },
           {
             foreignKeyName: "photos_tree_id_fkey";
-            columns: ["tree_id"];
+            columns: ["tree_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "trees";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
         ];
       };
@@ -298,10 +298,10 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tasks_tree_id_fkey";
-            columns: ["tree_id"];
+            columns: ["tree_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "trees";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
         ];
       };
@@ -324,17 +324,17 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tree_tags_tag_id_fkey";
-            columns: ["tag_id"];
+            columns: ["tag_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "tags";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
           {
             foreignKeyName: "tree_tags_tree_id_fkey";
-            columns: ["tree_id"];
+            columns: ["tree_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "trees";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
         ];
       };

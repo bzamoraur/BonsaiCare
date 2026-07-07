@@ -51,7 +51,7 @@ src/components/ shared UI (shadcn-based; components/ui/ = primitives)
 src/domain/     PURE logic + validators + tests (no React/Supabase)
 src/server/     RLS-aware data access (server-only)
 src/lib/        supabase clients, env, labels, utils
-src/types/      generated DB types (supabase gen types --linked)
+src/types/      generated DB types (`pnpm gen:types`; CI fails on drift)
 src/proxy.ts    Next 16 proxy (session refresh + route gating)
 supabase/       migrations/ + tests/ (pgTAP RLS suites)
 e2e/            Playwright specs + cookie-capture auth harness (CI-only)

@@ -6,6 +6,27 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Sprint 08 hardening, CI freshness gates (S08.7, 2026-07-07)
+
+- **Generated DB types can no longer drift from the schema.** The db-test job now
+  regenerates `src/types/database.types.ts` from the migrated local stack and
+  fails on any difference (the PostgREST version marker is normalized out, so only
+  real column/enum/relationship drift trips it). It immediately caught stale types
+  — the committed file still listed the pre-S08.3 single-column FKs
+  (`["tree_id"]`) instead of the composite owner-consistency FKs
+  (`["tree_id", "owner_id"]`); regenerated. New `pnpm gen:types` script; on drift
+  CI uploads the expected file as an artifact to commit verbatim.
+- **Formatting is enforced on the whole tree.** A `pnpm format:check` gate in the
+  build job — which caught `public/offline.html` (shipped unformatted in S08.6,
+  because lint-staged only formats staged code files, not `.html`); reformatted.
+- **e2e is cheaper.** The Playwright browser is cached between runs (keyed on the
+  lockfile), saving the ~download each run — fewer Actions minutes.
+- Docs corrected: CLAUDE.md and the local-dev setup guide now point at
+  `pnpm gen:types` (the setup guide previously wrote the wrong filename,
+  `database.ts`). The "single Supabase stack boot per pipeline" optimization is
+  deferred — it means merging db-test + e2e into one job, which renames the
+  required checks and needs an owner branch-protection update to land safely.
+
 ### Fixed — Sprint 08 hardening, the calendar's "today" is local too (S08.9b, 2026-07-07)
 
 - **The calendar month ring and agenda now mark the viewer's local day.** The
