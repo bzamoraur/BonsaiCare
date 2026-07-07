@@ -6,6 +6,23 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Sprint 08 hardening, the missing critical journeys + smokes (S08.10, 2026-07-07)
+
+- **The two uncovered critical journeys now have e2e tests.** F2 — add a tree via
+  the form, then attach a photo — exercising the real client-side Supabase Storage
+  upload to the `tree-photos` bucket and the `recordPhoto` action (feeding a real,
+  decodable PNG so the `createImageBitmap` → WebP compression path runs). F7 —
+  export downloads a dated file (JSON bundle + photos zip), asserting a real
+  browser download fires on any account.
+- **Accessibility smoke** (axe) on the four core screens — Today, Collection, tree
+  detail, Calendar — failing only on **serious/critical** WCAG 2 A/AA violations,
+  so it catches real blockers without going noisy on cosmetic findings.
+- **PWA smoke** — the manifest, its four icons, and `sw.js` are served, and the
+  document links the manifest; pins the install/offline surface shipped in
+  S08.5/S08.6 against regression.
+- New dev dependency `@axe-core/playwright`. All seven F1–F7 journeys are now
+  covered (see [testing-strategy](docs/development/testing-strategy.md)).
+
 ### Added — Sprint 08 hardening, CI freshness gates (S08.7, 2026-07-07)
 
 - **Generated DB types can no longer drift from the schema.** The db-test job now

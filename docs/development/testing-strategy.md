@@ -1,6 +1,6 @@
 # Testing Strategy
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-07
 > Pragmatic, not dogmatic. Test where bugs are costly and logic is subtle — not
 > for a coverage number. "Production-oriented, not demo-oriented" means the
 > risky parts are actually verified.
@@ -47,13 +47,22 @@ Against a **local Supabase** test database:
 ## E2E tests (Playwright) — the critical journeys only
 
 Keep this set small and stable; cover the flows whose breakage makes the app
-unusable ([ux/information-architecture](../ux/information-architecture.md)):
-- F1 sign in → empty dashboard.
-- F2 add a tree (name + photo) → appears in collection.
-- F3 quick-log a care event → shows on the tree timeline.
+unusable ([ux/information-architecture](../ux/information-architecture.md)). All
+seven journeys are now covered (each `e2e/*` spec noted):
+- F1 sign in / auth harness → protected routes (`smoke`, `today.authed`).
+- F2 add a tree (name + photo) → appears in collection, photo attaches
+  (`add-tree-photo.authed` — exercises the real Storage upload).
+- F3 quick-log a care event → shows on the tree timeline (`timeline.authed`).
 - F5 create a recurring task → appears on Today when due → complete → next
-  occurrence scheduled.
-- F7 export → file downloads with the data.
+  occurrence scheduled (`daily-loop.authed`).
+- F7 export → file downloads with the data (`export.authed` — JSON + photos zip).
+
+Plus two lightweight **smokes** (a smoke, not a full audit):
+- **Accessibility** (`accessibility.authed`) — axe on the four core screens
+  (Today, Collection, tree detail, Calendar), failing only on **serious/critical**
+  WCAG 2 A/AA violations so it stays honest and low-noise.
+- **PWA** (`pwa.smoke`) — the manifest, its icons, and `sw.js` are served and the
+  document links the manifest (guards the install/offline surface).
 
 ## What we do NOT test (deliberately)
 - Third-party internals (Supabase, Next.js) — trust their tests.
