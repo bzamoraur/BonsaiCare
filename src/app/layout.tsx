@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { cn } from "@/lib/utils";
@@ -6,9 +6,12 @@ import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
-// Runs before first paint so the correct theme is applied with no flash. Mirrors
-// src/lib/theme.ts; kept inline (and tiny) because it must execute synchronously.
-const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||((t===null||t==='system')&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
+// Runs before first paint so the correct theme (and browser-UI theme-color) is
+// applied with no flash. Mirrors src/lib/theme.ts (class + THEME_COLORS); kept
+// inline (and tiny) because it must execute synchronously. It OWNS the single
+// theme-color meta — so there is no static one to conflict with an explicit
+// light/dark choice that differs from the OS.
+const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||((t===null||t==='system')&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.setAttribute('name','theme-color');document.head.appendChild(m);}m.setAttribute('content',d?'#1a2a1f':'#5a7d54');}catch(e){}})();`;
 
 export const metadata: Metadata = {
   applicationName: "Bonsai Companion",
@@ -27,13 +30,6 @@ export const metadata: Metadata = {
     icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
-};
-
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#5a7d54" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a2a1f" },
-  ],
 };
 
 export default function RootLayout({

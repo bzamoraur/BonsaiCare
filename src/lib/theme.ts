@@ -27,10 +27,32 @@ function prefersDark(): boolean {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-/** Toggle the `.dark` class on <html> to match a preference + the OS setting. */
+// Browser-UI (status bar / address bar) colour per resolved theme. MUST mirror
+// the values in the no-flash THEME_SCRIPT in src/app/layout.tsx.
+const THEME_COLORS = { light: "#5a7d54", dark: "#1a2a1f" } as const;
+
+/**
+ * Keep `<meta name="theme-color">` in step with the RESOLVED theme, not just the
+ * OS preference: an explicit light/dark choice that differs from the OS would
+ * otherwise leave the status bar showing the wrong colour. Creates the meta if
+ * the no-flash script somehow hasn't (defensive).
+ */
+function syncThemeColor(dark: boolean): void {
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute("name", "theme-color");
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content", dark ? THEME_COLORS.dark : THEME_COLORS.light);
+}
+
+/** Toggle the `.dark` class on <html> to match a preference + the OS setting,
+ * and sync the browser-UI theme colour to the resolved theme. */
 export function applyTheme(theme: Theme): void {
   const dark = theme === "dark" || (theme === "system" && prefersDark());
   document.documentElement.classList.toggle("dark", dark);
+  syncThemeColor(dark);
 }
 
 export function getTheme(): Theme {
