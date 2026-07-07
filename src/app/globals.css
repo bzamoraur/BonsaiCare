@@ -53,6 +53,8 @@
  * deliberately light first pass; the full design system is a later UX task.
  */
 :root {
+  /* Match native controls, scrollbars and form widgets to the theme. */
+  color-scheme: light;
   --background: oklch(0.994 0.003 95);
   --foreground: oklch(0.2 0.01 140);
   --card: oklch(1 0 0);
@@ -90,6 +92,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.17 0.008 150);
   --foreground: oklch(0.97 0.005 120);
   --card: oklch(0.215 0.01 150);
@@ -132,6 +135,8 @@
   }
   html {
     @apply font-sans;
+    /* Native controls (checkboxes, radios, range, date pickers) use the brand green. */
+    accent-color: var(--primary);
   }
 
   /* Respect a reduced-motion preference: neutralize transitions/animations. */

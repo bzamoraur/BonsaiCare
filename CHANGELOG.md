@@ -6,6 +6,16 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Sprint 08 hardening, native controls & theme (S08.5, 2026-07-07)
+
+- **Native controls match the theme** — `color-scheme` (light/dark) so scrollbars
+  and form widgets follow the palette, and `accent-color: var(--primary)` so
+  checkboxes, radios, range and date pickers pick up the brand green.
+- **theme-color follows your actual choice** — the browser status-bar colour now
+  tracks the *resolved* theme (synced from the no-flash script and the toggle),
+  not just the OS preference, so an explicit light/dark pick no longer leaves the
+  status bar showing the wrong colour.
+
 ### Changed — ADR-0012: care events are calendar dates (2026-07-06)
 
 - **`care_log_entries.occurred_at` (timestamptz) → `occurred_on` (date)**, default
