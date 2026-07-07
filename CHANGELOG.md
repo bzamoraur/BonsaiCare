@@ -16,7 +16,11 @@ All notable changes to this project are documented here. Format follows
   browser download fires on any account.
 - **Accessibility smoke** (axe) on the four core screens — Today, Collection, tree
   detail, Calendar — failing only on **serious/critical** WCAG 2 A/AA violations,
-  so it catches real blockers without going noisy on cosmetic findings.
+  so it catches real blockers without going noisy on cosmetic findings. It earned
+  its keep on the first run: it caught the **destructive (ghost-danger) buttons** —
+  red text on a soft red tint was only **3.9:1**, below WCAG 1.4.3. Fixed with a
+  new `--destructive-strong` text token (~5.7:1 on the tint) that keeps the soft
+  tint; `--destructive` is unchanged for fills, rings, and error text.
 - **PWA smoke** — the manifest, its four icons, and `sw.js` are served, and the
   document links the manifest; pins the install/offline surface shipped in
   S08.5/S08.6 against regression.
