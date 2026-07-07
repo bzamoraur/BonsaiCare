@@ -1,11 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5";
-  };
   graphql_public: {
     Tables: {
       [_ in never]: never;
@@ -83,10 +78,10 @@ export type Database = {
           },
           {
             foreignKeyName: "care_log_entries_tree_id_fkey";
-            columns: ["tree_id"];
+            columns: ["tree_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "trees";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
         ];
       };
@@ -161,10 +156,10 @@ export type Database = {
           },
           {
             foreignKeyName: "photos_tree_id_fkey";
-            columns: ["tree_id"];
+            columns: ["tree_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "trees";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
         ];
       };
@@ -298,10 +293,10 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tasks_tree_id_fkey";
-            columns: ["tree_id"];
+            columns: ["tree_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "trees";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
         ];
       };
@@ -324,17 +319,17 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tree_tags_tag_id_fkey";
-            columns: ["tag_id"];
+            columns: ["tag_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "tags";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
           {
             foreignKeyName: "tree_tags_tree_id_fkey";
-            columns: ["tree_id"];
+            columns: ["tree_id", "owner_id"];
             isOneToOne: false;
             referencedRelation: "trees";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "owner_id"];
           },
         ];
       };
@@ -443,14 +438,8 @@ export type Database = {
         };
         Returns: Json;
       };
-      delete_my_account: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
-      owner_metrics: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
+      delete_my_account: { Args: never; Returns: undefined };
+      owner_metrics: { Args: never; Returns: Json };
     };
     Enums: {
       care_event_type:

@@ -13,6 +13,7 @@
     "format": "prettier --write .",
     "icons": "node scripts/generate-icons.mjs",
     "format:check": "prettier --check .",
+    "gen:types": "supabase gen types typescript --local > src/types/database.types.ts && prettier --write src/types/database.types.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

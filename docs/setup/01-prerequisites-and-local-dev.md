@@ -76,7 +76,7 @@ pnpm build          # production build (what CI runs)
 
 supabase migration new <name>   # create a new migration
 supabase db reset               # re-apply all migrations + seed locally
-supabase gen types typescript --local > src/types/database.ts
+pnpm gen:types                  # regenerate src/types/database.types.ts (CI fails on drift)
 ```
 
 ## Common errors & fixes
