@@ -2,7 +2,9 @@ import { Camera, ChevronLeft, Leaf, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { CareRecencyChips } from "@/components/care-recency-chips";
 import { Button, buttonVariants } from "@/components/ui/button";
+import type { CareEventType, CareRecency } from "@/domain/care";
 import { CARE_EVENT_ICONS, CARE_EVENT_LABELS, careDetailSummary } from "@/lib/care-labels";
 import { TASK_TYPE_ICONS, TASK_TYPE_LABELS, describeRecurrence } from "@/lib/task-labels";
 import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@/lib/tree-labels";
@@ -17,7 +19,7 @@ import { Constants } from "@/types/database.types";
 import { archiveTreeAction } from "./actions";
 import { AddTaskForm } from "./add-task-form";
 import { ArchiveTreeForm } from "./archive-tree-form";
-import { deleteCareAction, logCareAction } from "./care-actions";
+import { deleteCareAction, logCareAction, repeatLastCareAction } from "./care-actions";
 import { ConfirmDeleteButton } from "./confirm-delete-button";
 import { DeletePhotoButton } from "./delete-photo-button";
 import { LogCareForm } from "./log-care-form";
@@ -146,6 +148,19 @@ export default async function TreeDetailPage({
       )
     : timeline;
 
+  // Care recency (chips) + the most-recent care type (one-tap "Repeat last care").
+  // The timeline is newest-first, so the first care item is the latest, and the
+  // first date seen per type is that type's latest.
+  const careRecency: CareRecency = {};
+  let latestCareType: CareEventType | null = null;
+  for (const item of timeline) {
+    if (item.kind !== "care") continue;
+    if (latestCareType === null) latestCareType = item.entry.type;
+    if (careRecency[item.entry.type] === undefined) {
+      careRecency[item.entry.type] = item.entry.occurred_on;
+    }
+  }
+
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
       <Link
@@ -182,6 +197,7 @@ export default async function TreeDetailPage({
           ) : null}
         </div>
         {tree.species_label ? <p className="text-muted-foreground">{tree.species_label}</p> : null}
+        <CareRecencyChips recency={careRecency} serverToday={serverToday} className="mt-0.5" />
       </header>
 
       {tags.length > 0 ? (
@@ -240,7 +256,16 @@ export default async function TreeDetailPage({
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-sm font-medium">Timeline</h2>
-          <PhotoUploader treeId={tree.id} ownerId={tree.owner_id} />
+          <div className="flex items-center gap-2">
+            {latestCareType && !isArchived ? (
+              <form action={repeatLastCareAction.bind(null, tree.id)}>
+                <Button type="submit" variant="outline" size="sm">
+                  Repeat: {CARE_EVENT_LABELS[latestCareType]}
+                </Button>
+              </form>
+            ) : null}
+            <PhotoUploader treeId={tree.id} ownerId={tree.owner_id} />
+          </div>
         </div>
 
         <LogCareForm action={logCareAction.bind(null, tree.id)} defaultOpen={log === "1"} />

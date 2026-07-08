@@ -6,6 +6,17 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Recency chips + one-tap repeat (M6 / Sprint 09, 2026-07-08)
+
+- **See when each tree was last watered or fed, at a glance.** Collection cards and
+  the tree header now show recency chips — "watered 2d ago · fed 12d ago" — from
+  one aggregate query, computed against your *local* day (hydration-safe, the same
+  `useLocalToday` pattern as the overdue badges).
+- **Repeat the last care event in one tap.** The tree page shows a "Repeat: {last
+  care}" button that re-logs the most recent entry with today's date — no form —
+  for the trees you tend the same way each time. The entry to clone is fetched
+  server-side (never trusted from the client). **No schema change.**
+
 ### Added — Batch care logging: many trees, one action (M6 / Sprint 09, 2026-07-08)
 
 - **Log the same care event across every tree you pick, in one go.** A new

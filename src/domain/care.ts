@@ -13,6 +13,9 @@ import { Constants, type Enums } from "@/types/database.types";
 
 export type CareEventType = Enums<"care_event_type">;
 
+/** The most recent `occurred_on` ("YYYY-MM-DD") per care type, for one tree. */
+export type CareRecency = Partial<Record<CareEventType, string>>;
+
 /** Trimmed, length-capped optional text; a blank value becomes absent (kept out
  * of the JSONB payload). */
 const optionalText = (max: number, label: string) =>

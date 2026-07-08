@@ -5,7 +5,12 @@ import { redirect } from "next/navigation";
 
 import { parseCareForm } from "@/lib/care-form";
 import { logActionError } from "@/lib/log-action-error";
-import { createCareEntry, deleteCareEntry, updateCareEntry } from "@/server/care";
+import {
+  createCareEntry,
+  deleteCareEntry,
+  getLatestCareEntry,
+  updateCareEntry,
+} from "@/server/care";
 
 import type { LogCareState } from "./care-types";
 
@@ -57,6 +62,35 @@ export async function updateCareAction(
 
   revalidatePath(`/collection/${treeId}`);
   redirect(`/collection/${treeId}`);
+}
+
+/**
+ * Re-logs a tree's most recent care entry with today's date — the one-tap
+ * "Repeat last" on the tree page. `treeId` is bound server-side; the entry to
+ * clone is fetched server-side (never trusted from the client). `redirect()`
+ * stays outside the try/catch.
+ */
+export async function repeatLastCareAction(treeId: string): Promise<void> {
+  let ok = true;
+  try {
+    const last = await getLatestCareEntry(treeId);
+    if (!last) throw new Error("No care to repeat.");
+    await createCareEntry({
+      treeId,
+      type: last.type,
+      occurredAt: null, // today — a fresh re-log, not a copy of the original date
+      title: last.title,
+      notes: last.notes,
+      details: (last.details ?? {}) as Record<string, unknown>,
+    });
+  } catch (error) {
+    logActionError("repeatLastCare", error);
+    ok = false;
+  }
+
+  if (!ok) redirect(`/collection/${treeId}?error=care`);
+  revalidatePath(`/collection/${treeId}`);
+  revalidatePath("/collection");
 }
 
 /** Form action (entry + tree bound server-side): delete a care entry. */

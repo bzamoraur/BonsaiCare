@@ -3,8 +3,10 @@ import Link from "next/link";
 
 import { TreeCard } from "@/components/tree-card";
 import { buttonVariants } from "@/components/ui/button";
+import type { CareRecency } from "@/domain/care";
 import { logActionError } from "@/lib/log-action-error";
 import { cn } from "@/lib/utils";
+import { listTreeRecency } from "@/server/care";
 import { listLocations, type LocationOption } from "@/server/locations";
 import { listTags, type TagOption } from "@/server/tags";
 import {
@@ -80,6 +82,21 @@ export default async function CollectionPage({
     loadError = true;
   }
 
+  // Recency chips are a nice-to-have — fetched separately so a failure here (or an
+  // empty collection) never blanks the grid; the cards just render without chips.
+  let recency = new Map<string, CareRecency>();
+  if (!loadError && trees.length > 0) {
+    try {
+      recency = await listTreeRecency();
+    } catch (error) {
+      logActionError("collectionPage.recency", error);
+    }
+  }
+
+  // The server's UTC day — SSR fallback for the client-local "today" the recency
+  // chips resolve against (see CareRecencyChips / the S08.9 local-day pattern).
+  const serverToday = new Date().toISOString().slice(0, 10);
+
   // Show the toolbar + Add button whenever the user has trees or is filtering; the
   // bare "add your first tree" state is only for a genuinely empty collection.
   const showToolbar = trees.length > 0 || hasActiveFilters;
@@ -125,7 +142,7 @@ export default async function CollectionPage({
             <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {trees.map((tree) => (
                 <li key={tree.id}>
-                  <TreeCard tree={tree} />
+                  <TreeCard tree={tree} recency={recency.get(tree.id)} serverToday={serverToday} />
                 </li>
               ))}
             </ul>
