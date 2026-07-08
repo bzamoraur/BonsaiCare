@@ -2,11 +2,11 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { type CareDefaults } from "@/components/care-entry-fields";
 import { getCareEntry } from "@/server/care";
 import { getTree } from "@/server/trees";
 
 import { updateCareAction } from "../../care-actions";
-import { type CareDefaults } from "../../care-entry-fields";
 import { EditCareForm } from "../../edit-care-form";
 
 export const metadata = {

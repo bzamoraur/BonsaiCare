@@ -72,6 +72,43 @@ export async function createCareEntry(input: CareEntryInput): Promise<{ id: stri
   return data;
 }
 
+/**
+ * Bulk-logs the same care event across many trees — the batch-log flow. One
+ * ownership check (`.in`) + one array insert (atomic); trees not owned by the
+ * caller are dropped. Returns the count actually logged. Mirrors
+ * `createTasksForTrees`.
+ */
+export async function createCareEntriesForTrees(
+  treeIds: string[],
+  entry: Omit<CareEntryInput, "treeId">,
+): Promise<number> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated.");
+
+  const { data: owned } = await supabase.from("trees").select("id").in("id", treeIds);
+  const ownedIds = new Set((owned ?? []).map((t) => t.id));
+  const valid = treeIds.filter((id) => ownedIds.has(id));
+  if (valid.length === 0) throw new Error("No matching trees.");
+
+  const details = entry.details as Json;
+  const rows = valid.map((treeId) => ({
+    owner_id: user.id,
+    tree_id: treeId,
+    type: entry.type,
+    // Omit occurred_on when absent so the DB default (current_date) applies.
+    ...(entry.occurredAt ? { occurred_on: entry.occurredAt } : {}),
+    title: entry.title,
+    notes: entry.notes,
+    details,
+  }));
+  const { error } = await supabase.from("care_log_entries").insert(rows);
+  if (error) throw new Error(`Failed to log care: ${error.message}`);
+  return valid.length;
+}
+
 /** Updates a care entry. RLS + the id filter scope the write to the owner. A
  * cleared date falls back to today (the column is NOT NULL). */
 export async function updateCareEntry(id: string, input: CareEntryInput): Promise<void> {
