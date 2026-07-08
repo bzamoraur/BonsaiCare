@@ -20,10 +20,11 @@ export type CareDefaults = {
 };
 
 /**
- * The shared field set for logging/editing a care entry. Controlled `type` drives
- * which per-type detail fields render; everything else is uncontrolled with
- * defaults, so a parent `<form>` can read it via FormData and `reset()` it. Date
- * is day-granular (care logging is), which keeps it timezone-simple.
+ * The shared field set for logging/editing a care entry (single or batch).
+ * Controlled `type` drives which per-type detail fields render; everything else
+ * is uncontrolled with defaults, so a parent `<form>` can read it via FormData and
+ * `reset()` it. Date is day-granular (care logging is), which keeps it
+ * timezone-simple.
  */
 export function CareEntryFields({ defaults }: { defaults: CareDefaults }) {
   const [type, setType] = useState<CareEventType>(defaults.type);

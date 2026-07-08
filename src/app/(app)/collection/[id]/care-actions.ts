@@ -3,34 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { parseCareEntry } from "@/domain/care";
-import { ALL_DETAIL_FIELD_NAMES } from "@/lib/care-fields";
+import { parseCareForm } from "@/lib/care-form";
 import { logActionError } from "@/lib/log-action-error";
 import { createCareEntry, deleteCareEntry, updateCareEntry } from "@/server/care";
 
 import type { LogCareState } from "./care-types";
-
-/** Collects only the known detail field names; the per-type schema decides which
- * are valid for the chosen type (and rejects the rest). */
-function collectDetails(formData: FormData): Record<string, string> {
-  const details: Record<string, string> = {};
-  for (const name of ALL_DETAIL_FIELD_NAMES) {
-    const value = formData.get(name);
-    if (typeof value === "string" && value.trim() !== "") details[name] = value;
-  }
-  return details;
-}
-
-function parseFromForm(treeId: string, formData: FormData) {
-  return parseCareEntry({
-    treeId,
-    type: formData.get("type"),
-    occurredAt: formData.get("occurred_at"),
-    title: formData.get("title"),
-    notes: formData.get("notes"),
-    details: collectDetails(formData),
-  });
-}
 
 /**
  * Logs a care entry against a tree. `treeId` is bound server-side (`.bind`).
@@ -43,7 +20,7 @@ export async function logCareAction(
   _prev: LogCareState,
   formData: FormData,
 ): Promise<LogCareState> {
-  const parsed = parseFromForm(treeId, formData);
+  const parsed = parseCareForm(treeId, formData);
   if (!parsed.ok) return { status: "error", message: parsed.message };
 
   try {
@@ -68,7 +45,7 @@ export async function updateCareAction(
   _prev: LogCareState,
   formData: FormData,
 ): Promise<LogCareState> {
-  const parsed = parseFromForm(treeId, formData);
+  const parsed = parseCareForm(treeId, formData);
   if (!parsed.ok) return { status: "error", message: parsed.message };
 
   try {

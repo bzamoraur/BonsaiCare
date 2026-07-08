@@ -6,6 +6,22 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Batch care logging: many trees, one action (M6 / Sprint 09, 2026-07-08)
+
+- **Log the same care event across every tree you pick, in one go.** A new
+  "Log care for several trees" screen — reached from the global **+** → Log →
+  **Several trees** — pairs the tree multi-select picker with the care-entry form:
+  choose e.g. "watered", pick the trees, and it writes one care-log entry per tree
+  in a single atomic insert. This closes the backlog's P1 "kills the habit" gap —
+  capturing a whole watering round used to mean visiting each tree separately.
+- Reuse-first, so it also tidies the codebase: the "which trees?" picker (until now
+  copy-pasted in the plan and fertilize forms) is extracted to a shared
+  `TreeMultiSelect`; the care-entry fields moved to a shared
+  `components/care-entry-fields`; and the form-reading is a shared `parseCareForm`.
+  **No schema change** — the bulk write reuses the existing `care_log_entries`
+  table + owner RLS, mirroring the fertilize-schedule bulk path (one `.in()`
+  ownership check + one array insert; non-owned trees are dropped).
+
 ### Verified — Sprint 08 hardening, the restore drill (S08.11, 2026-07-08)
 
 - **The weekly backup provably restores.** A guided drill restored the latest DB

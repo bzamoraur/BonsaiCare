@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
+import { TreeMultiSelect } from "@/components/tree-multi-select";
 import { Button } from "@/components/ui/button";
 
 import type { FertilizeState } from "./actions";
@@ -55,8 +56,6 @@ export function FertilizeForm({
     if (state.status === "success") successRef.current?.focus();
   }, [state.status]);
 
-  const allSelected = trees.length > 0 && selected.size === trees.length;
-
   const toggle = (id: string) =>
     setSelected((prev) => {
       const next = new Set(prev);
@@ -88,39 +87,12 @@ export function FertilizeForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
-      <fieldset className="flex flex-col gap-2">
-        <legend className="sr-only">Which trees?</legend>
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-sm font-medium" aria-hidden="true">
-            Which trees?
-          </span>
-          <button
-            type="button"
-            onClick={() => setSelected(allSelected ? new Set() : new Set(trees.map((t) => t.id)))}
-            className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-4 hover:underline"
-          >
-            {allSelected ? "Clear" : "Select all"}
-          </button>
-        </div>
-        <div className="border-border flex max-h-64 flex-col gap-0.5 overflow-y-auto rounded-xl border p-2">
-          {trees.map((tree) => (
-            <label
-              key={tree.id}
-              className="hover:bg-muted flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm"
-            >
-              <input
-                type="checkbox"
-                name="treeId"
-                value={tree.id}
-                checked={selected.has(tree.id)}
-                onChange={() => toggle(tree.id)}
-                className="size-4"
-              />
-              {tree.name}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <TreeMultiSelect
+        trees={trees}
+        selected={selected}
+        onToggle={toggle}
+        onToggleAll={(all) => setSelected(all ? new Set(trees.map((t) => t.id)) : new Set())}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">

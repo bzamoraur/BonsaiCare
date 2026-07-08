@@ -5,7 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { type CareDefaults, CareEntryFields } from "./care-entry-fields";
+import { type CareDefaults, CareEntryFields } from "@/components/care-entry-fields";
 import type { LogCareState } from "./care-types";
 
 const initialState: LogCareState = { status: "idle" };

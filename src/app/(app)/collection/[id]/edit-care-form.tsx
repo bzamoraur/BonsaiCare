@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { type CareDefaults, CareEntryFields } from "@/components/care-entry-fields";
 import { Button } from "@/components/ui/button";
 
-import { type CareDefaults, CareEntryFields } from "./care-entry-fields";
 import type { LogCareState } from "./care-types";
 
 const initialState: LogCareState = { status: "idle" };

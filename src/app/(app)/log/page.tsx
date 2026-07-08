@@ -45,7 +45,15 @@ export default async function LogPage() {
         </section>
       ) : (
         <>
-          <p className="text-muted-foreground text-sm">Which tree?</p>
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-muted-foreground text-sm">Which tree?</p>
+            <Link
+              href="/log/batch"
+              className="text-primary text-sm font-medium underline-offset-4 hover:underline"
+            >
+              Several trees →
+            </Link>
+          </div>
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {trees.map((tree) => (
               <li key={tree.id}>
