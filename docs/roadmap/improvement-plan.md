@@ -231,6 +231,11 @@ monetization — each behind demand and its own ADR.
 > "Bonsai Care App" (Bonsai Empire) from the owner's walkthrough + screenshots,
 > 2026-07-07 (3-lens ideation grounded in this plan). Nothing here is scheduled
 > until the owner picks what to pull forward; it is captured, not locked.
+>
+> **2026-07-09 update:** the species-knowledge features + a **pots collection** +
+> two friction fixes (completed-task history, batch-on-Today) now have researched,
+> €0 designs — see
+> [knowledge-and-collection-plan](./knowledge-and-collection-plan.md).
 
 **Finding:** the inspiration app **validates ~70% of this plan** — batch logging
 (S09.1), species intelligence (M8.1), onboarding tour (S12.1), OTP (S11.1),
