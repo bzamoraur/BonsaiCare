@@ -1,6 +1,6 @@
 # Production State
 
-> **Status:** Living · **Updated:** 2026-07-06
+> **Status:** Living · **Updated:** 2026-07-08
 >
 > The one-page answer to "what is actually live and armed in production?" —
 > the question no other doc could answer at the 2026-07-06 audit. The owner (or
@@ -13,7 +13,7 @@
 |---|---|---|
 | Migration high-water mark | `20260706130000_owner_metrics` (all 8 repo migrations pushed) | 2026-07-06 (owner ran `db push`; /admin loads) |
 | Account deletion live-tested | Yes — throwaway-account acceptance test | 2026-07-06 |
-| Known grant gap | `anon` can EXECUTE the 3 SECURITY DEFINER fns (advisors) | fix scheduled — [improvement plan](../roadmap/improvement-plan.md) S08.3 |
+| `anon` EXECUTE on SECURITY DEFINER fns | ✅ Revoked in S08.3 (#72); advisors cleared | 2026-07-07 |
 
 ## GitHub repository
 
@@ -53,5 +53,5 @@ S08.3).
 
 | Item | Last done | Cadence |
 |---|---|---|
-| Restore drill (backup → scratch project) | **Never** | once at S08 (guided), then after any schema overhaul |
+| Restore drill (backup → scratch project) | **2026-07-08 ✅** — `db-backup-28816036702` restored into a throwaway project via the SQL Editor, ~20 min, no errors; complete round-trip incl. `auth.users`/identity/session + all 15 species (runbook §Backups corrected from the drill) | after any schema overhaul |
 | In-app photo-archive export | superseded as a backup by the automated B2 mirror; still the on-demand user copy | on demand |
