@@ -162,13 +162,14 @@ build a store presence for an app nobody has asked to pay for.
 
 Logged per the quality protocol; scheduled, not aspirational:
 
-- **Storage-orphan reconciliation — ✅ DONE (Sprint 07, PR #56)** as
-  `scripts/reconcile-storage.mjs` + a monthly dormant-until-secret workflow
-  (dry-run default on manual dispatch; 24h grace window). **⚠ One confirmed
-  bug remains:** the DB-side read is unpaginated, so past PostgREST's 1,000-row
-  cap real photos would be classified as orphans and deleted — **do not arm the
-  secret** until the fix lands ([improvement plan](./improvement-plan.md)
-  S08.1, first slice of the hardening sprint).
+- **Storage-orphan reconciliation — ✅ DONE (Sprint 07, PR #56; hardened S08.1, PR #60)**
+  as `scripts/reconcile-storage.mjs` + a monthly dormant-until-secret workflow
+  (dry-run default on manual dispatch; 24h grace window). The unpaginated-read
+  bug (past PostgREST's 1,000-row cap real photos could be classified as orphans)
+  is **fixed in S08.1** — the DB read is now keyset-paginated with a sanity guard
+  that refuses to delete when orphans exceed 20% of scanned objects. The sweep
+  secret is **armed and dry-run-verified** (see
+  [production-state](../operations/production-state.md)).
 - **Playwright e2e auth harness — ✅ DONE (Sprint 06, PRs #42–#43).** Shipped as
   designed: a global-setup mints a confirmed user against the CI Supabase stack
   and injects a real `@supabase/ssr` session (produced by the library itself, not

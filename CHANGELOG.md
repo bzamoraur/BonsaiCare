@@ -6,6 +6,25 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Verified — Sprint 08 hardening, the restore drill (S08.11, 2026-07-08)
+
+- **The weekly backup provably restores.** A guided drill restored the latest DB
+  dump (`db-backup-28816036702`) into a throwaway Supabase project via the
+  dashboard SQL Editor in ~20 minutes with zero errors — a complete round-trip
+  including the login identity (`auth.users` + identities + sessions), the tree
+  and its task/care/photo rows, all 15 species, and storage metadata. Free-tier
+  Supabase has no managed backups, so "the dump restores" is now proven, not
+  assumed.
+- **Runbook corrected from what actually happened** (`docs/operations/runbook.md`):
+  the restore procedure is marked TESTED (2026-07-08) with the browser-SQL-Editor
+  path documented, plus two confirmed caveats — photo *bytes* aren't in a DB dump
+  (restore them from the B2 mirror) and the `on_auth_user_created` trigger is
+  excluded by `supabase db dump` (recreate from migrations before promoting a
+  restore). Drill logged in `production-state.md`.
+- **Sprint 08 is complete** — its 10 code slices (S08.1–8.10) merged as PRs
+  #59–#81, ADR-0012 landed, and this S08.11 restore drill passed (2026-07-08); the
+  fix-first hardening sprint is closed.
+
 ### Added — Sprint 08 hardening, the missing critical journeys + smokes (S08.10, 2026-07-07)
 
 - **The two uncovered critical journeys now have e2e tests.** F2 — add a tree via

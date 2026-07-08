@@ -61,23 +61,48 @@ free tier; GitHub-hosted runners have no IPv6, so it can never connect) and
 password can be reset at Project Settings → Database without affecting the app
 (the app authenticates with API keys).
 
-**What it does NOT cover:** photo bytes in the `tree-photos` bucket (see
-Routine above) and — pending the S08 restore drill — proof that `auth.users`
-rows survive a restore.
+**What it does NOT cover:** photo *bytes* in the `tree-photos` bucket (the dump
+holds only the photo row/metadata — bytes are the B2 mirror's job, below) and
+the `auth` new-user trigger `on_auth_user_created` (a Supabase-managed object
+that `supabase db dump` excludes). The S08.11 drill confirmed `auth.users` +
+identities + sessions **do** restore (the login identity survives); but with the
+trigger absent from the dump, a *promoted* restore must recreate it from
+migrations or new signups won't get a `profiles` row.
 
-**Restore procedure (untested until the S08 drill — update this section from
-the drill transcript):**
-1. Create a fresh Supabase project (or use the scratch one).
-2. Download the latest `db-backup-…` artifact; unzip →
-   `backup-schema.sql` + `backup-data.sql`.
-3. Apply schema: `psql "<new project session-pooler URI>" -f backup-schema.sql`
-   (alternatively `pnpm exec supabase db push` against the new project rebuilds
-   schema from migrations — pick ONE source of schema truth, not both).
-4. Load data: `psql "<uri>" -f backup-data.sql`.
-5. Re-point env vars (Vercel + `.env.local`) at the new project; verify
-   sign-in, a tree page, and a timeline.
-6. Photos: re-upload from the latest photo-archive export (paths in
-   `photos.storage_path` tell you where each file goes).
+**Restore procedure — TESTED 2026-07-08 (S08.11 drill: `db-backup-28816036702`
+restored into a throwaway project, ~20 min, zero errors, complete round-trip):**
+The dump is small and `INSERT`-based, so it restores through the dashboard **SQL
+Editor** with no local tooling — the drill used that path.
+1. Create a fresh Supabase project (the drill used a throwaway
+   `bonsai-restore-drill`; delete it afterwards — it holds a real copy of
+   `auth.users`).
+2. Download the latest `db-backup-…` artifact (Actions → Weekly database backup →
+   newest run → Artifacts); unzip → `backup-schema.sql` + `backup-data.sql`.
+3. In the **new project's** SQL Editor, run `backup-schema.sql` (builds tables,
+   RLS, functions, FKs → "Success, no rows"; a few "already exists" NOTICEs are
+   normal), then run **the whole** `backup-data.sql`. Its first line
+   (`SET session_replication_role = replica;`) suppresses FK + trigger enforcement
+   for the load — that's what lets the circular `trees.cover_photo_id` ↔
+   `photos.tree_id` references (a non-deferrable FK pair) and any trigger load
+   cleanly, so exact ordering isn't required. ⚠ Run it as **one script** — if you
+   paste only the `INSERT` block, that `SET` is lost and the tree insert fails a
+   foreign-key check. **Do NOT also run migrations** — the dump is the single
+   source of schema truth.
+   *Real-recovery / large-DB equivalent:* `psql "<new project SESSION-POOLER
+   URI>" -f backup-schema.sql` then `-f backup-data.sql` — Session pooler only
+   (Connect button), not the direct connection (IPv6-only) or the 6543
+   transaction pooler.
+4. Verify with a row-count check (`select count(*)` per table). The drill
+   round-tripped 1 user + identity/session, 1 profile, 1 tree, 1 task, 1 care
+   entry, 1 photo row, 15 species, 1 storage-object row.
+   ⚠ In the dashboard, confirm the count runs against the **scratch** project,
+   not production — the counts differ only where live data has moved since the
+   dump, so a same-looking result can hide a wrong-project query.
+5. Re-point env vars (Vercel + `.env.local`) at the new project; recreate the
+   `on_auth_user_created` trigger from migrations; verify sign-in, a tree page,
+   and a timeline.
+6. Photos: re-upload the image bytes from the B2 mirror (below) — the DB restore
+   only brought back the photo rows; `photos.storage_path` says where each goes.
 
 ## Photo mirror (Backblaze B2)
 

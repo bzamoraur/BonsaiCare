@@ -1,6 +1,6 @@
 # Improvement Plan — from "feature-complete" to "loved" (post-M5)
 
-> **Status:** Accepted (owner, 2026-07-06) · **Updated:** 2026-07-06
+> **Status:** Accepted (owner, 2026-07-06) · **Updated:** 2026-07-08 (Sprint 08 complete)
 >
 > **Owner decisions recorded (2026-07-06):** ① plan order approved as written;
 > ② registration = **allowlist**; ③ repo goes **public** (branch protection +
@@ -49,6 +49,13 @@
 ---
 
 ## Sprint 08 — "Nothing silent, nothing lost" (fix-first hardening)
+
+> ✅ **COMPLETE — 2026-07-08.** The 10 code slices (S08.1–8.10) merged as PRs
+> #59–#81, ADR-0012 landed, and S08.11's restore drill passed: `db-backup-28816036702`
+> restored into a throwaway project via the SQL Editor in ~20 min with a complete
+> round-trip (login identity + all data), and the runbook's restore section is
+> corrected from the drill. Details in the [CHANGELOG](../../CHANGELOG.md); live
+> state in [production-state](../operations/production-state.md).
 
 Slices, in merge order (one PR each unless noted):
 
