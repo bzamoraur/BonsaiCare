@@ -42,7 +42,7 @@ export default async function TodayPage({
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {triage.map((tree) => (
               <li key={tree.id}>
-                <TreeCard tree={tree} />
+                <TreeCard tree={tree} serverToday={serverToday} />
               </li>
             ))}
           </ul>

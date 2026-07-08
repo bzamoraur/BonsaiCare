@@ -2,6 +2,8 @@ import { Leaf } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { CareRecencyChips } from "@/components/care-recency-chips";
+import type { CareRecency } from "@/domain/care";
 import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS } from "@/lib/tree-labels";
 import type { TreeCard as TreeCardData } from "@/server/trees";
 
@@ -9,7 +11,15 @@ import type { TreeCard as TreeCardData } from "@/server/trees";
  * Card for one tree in the collection grid — a link to its detail screen. Photos
  * land in a later M2 slice, so the image area shows a botanical placeholder.
  */
-export function TreeCard({ tree }: { tree: TreeCardData }) {
+export function TreeCard({
+  tree,
+  recency,
+  serverToday,
+}: {
+  tree: TreeCardData;
+  recency?: CareRecency;
+  serverToday: string;
+}) {
   const stage = tree.development_stage ? DEVELOPMENT_STAGE_LABELS[tree.development_stage] : null;
   const health = tree.health_status ? HEALTH_STATUS_LABELS[tree.health_status] : null;
 
@@ -40,6 +50,7 @@ export function TreeCard({ tree }: { tree: TreeCardData }) {
               {health ? <Badge>{health}</Badge> : null}
             </div>
           ) : null}
+          <CareRecencyChips recency={recency} serverToday={serverToday} className="mt-1" />
         </div>
       </article>
     </Link>

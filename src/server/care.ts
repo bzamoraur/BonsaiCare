@@ -1,4 +1,4 @@
-import type { CareEntryInput } from "@/domain/care";
+import type { CareEntryInput, CareRecency } from "@/domain/care";
 import { createClient } from "@/lib/supabase/server";
 import type { Json, Tables } from "@/types/database.types";
 
@@ -20,6 +20,49 @@ export async function getCareEntry(id: string): Promise<CareEntry | null> {
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`Failed to load care entry: ${error.message}`);
+  return data;
+}
+
+/**
+ * The latest date each care type was logged, per tree, for the whole collection —
+ * one query, reduced in memory (rows are date-desc, so the first row seen for a
+ * (tree, type) is the newest). Powers the "watered 2d ago · fed 12d ago" chips.
+ * Bounded by a row cap; a `distinct on` recency view is the scaling follow-up.
+ */
+export async function listTreeRecency(): Promise<Map<string, CareRecency>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("care_log_entries")
+    .select("tree_id, type, occurred_on")
+    .order("occurred_on", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(2000);
+  if (error) throw new Error(`Failed to load care recency: ${error.message}`);
+
+  const byTree = new Map<string, CareRecency>();
+  for (const row of data ?? []) {
+    let recency = byTree.get(row.tree_id);
+    if (!recency) {
+      recency = {};
+      byTree.set(row.tree_id, recency);
+    }
+    if (recency[row.type] === undefined) recency[row.type] = row.occurred_on;
+  }
+  return byTree;
+}
+
+/** A tree's single most-recent care entry (or null) — used to repeat it. */
+export async function getLatestCareEntry(treeId: string): Promise<CareEntry | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("care_log_entries")
+    .select("*")
+    .eq("tree_id", treeId)
+    .order("occurred_on", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`Failed to load latest care: ${error.message}`);
   return data;
 }
 
