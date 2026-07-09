@@ -28,9 +28,7 @@ test("add a tree, then attach a photo to it", async ({ page }, testInfo) => {
   await page.locator("#name").fill(treeName);
   await page.getByRole("button", { name: "Save tree" }).click();
 
-  // 2. The create redirects to the collection; open the new tree via its card.
-  await expect(page).toHaveURL(/\/collection$/);
-  await page.getByRole("link").filter({ hasText: treeName }).first().click();
+  // 2. Create redirects straight to the new tree's detail page (S09.5).
   await expect(page).toHaveURL(/\/collection\/[0-9a-f-]{36}$/);
 
   // 3. Attach a photo. The file input is hidden, but setInputFiles drives it
