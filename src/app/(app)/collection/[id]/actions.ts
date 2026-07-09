@@ -8,7 +8,7 @@ import { parseTreeForm } from "@/domain/tree-form";
 import { logActionError } from "@/lib/log-action-error";
 import { findOrCreateLocation } from "@/server/locations";
 import { syncTreeTags } from "@/server/tags";
-import { archiveTree, updateTree } from "@/server/trees";
+import { archiveTree, unarchiveTree, updateTree } from "@/server/trees";
 
 import type { TreeFormState } from "./types";
 
@@ -81,4 +81,25 @@ export async function archiveTreeAction(id: string): Promise<void> {
 
   revalidatePath("/collection");
   redirect("/collection");
+}
+
+/** Restores an archived tree and returns to its detail page (now back in the
+ * collection). `id` is pre-bound, so no FormData argument is needed. Unarchiving is
+ * non-destructive, so it needs no confirm step. */
+export async function unarchiveTreeAction(id: string): Promise<void> {
+  let restored = true;
+  try {
+    await unarchiveTree(id);
+  } catch (error) {
+    logActionError("unarchiveTree", error);
+    restored = false;
+  }
+
+  if (!restored) {
+    redirect(`/collection/${id}?error=unarchive`);
+  }
+
+  revalidatePath("/collection");
+  revalidatePath(`/collection/${id}`);
+  redirect(`/collection/${id}`);
 }

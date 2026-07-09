@@ -76,6 +76,8 @@ export type TreeFilters = {
   stage?: Enums<"development_stage">;
   health?: Enums<"health_status">;
   sort?: TreeSort;
+  /** When true, list the *archived* trees instead of the active ones. */
+  archived?: boolean;
 };
 
 /** Strips characters that are special in a PostgREST `.or()` filter (and ilike
@@ -107,7 +109,8 @@ export async function listTrees(filters: TreeFilters = {}): Promise<TreeCard[]> 
     if (tagTreeIds.length === 0) return [];
   }
 
-  let query = supabase.from("trees").select(TREE_CARD_COLUMNS).is("archived_at", null);
+  let query = supabase.from("trees").select(TREE_CARD_COLUMNS);
+  query = filters.archived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
 
   if (filters.locationId) query = query.eq("location_id", filters.locationId);
   if (filters.stage) query = query.eq("development_stage", filters.stage);
@@ -181,6 +184,18 @@ export async function listQuickAddTrees(): Promise<QuickAddTree[]> {
   return data ?? [];
 }
 
+/** How many archived trees the owner has — drives the collection's "Archived (n)"
+ * link (hidden at 0). A head-only exact count, so no rows are fetched. */
+export async function countArchivedTrees(): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("trees")
+    .select("id", { count: "exact", head: true })
+    .not("archived_at", "is", null);
+  if (error) throw new Error(`Failed to count archived trees: ${error.message}`);
+  return count ?? 0;
+}
+
 /**
  * One tree by id, or null if it doesn't exist or isn't the caller's (RLS). Wrapped
  * in `cache` so a page and its `generateMetadata` share a single query per request.
@@ -250,4 +265,12 @@ export async function archiveTree(id: string): Promise<void> {
     .update({ archived_at: new Date().toISOString() })
     .eq("id", id);
   if (error) throw new Error(`Failed to archive tree: ${error.message}`);
+}
+
+/** Restores an archived tree (clears `archived_at`), returning it to default views.
+ * RLS + the id filter scope the write to the owner. */
+export async function unarchiveTree(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("trees").update({ archived_at: null }).eq("id", id);
+  if (error) throw new Error(`Failed to unarchive tree: ${error.message}`);
 }
