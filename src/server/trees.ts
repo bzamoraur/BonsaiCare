@@ -164,6 +164,23 @@ export async function listTriageTrees(): Promise<TreeCard[]> {
   }));
 }
 
+export type QuickAddTree = Pick<Tree, "id" | "name">;
+
+/**
+ * Minimal non-archived tree list (id + name, name-sorted) for the global quick-add
+ * sheet — no cover signing, so it's a single cheap indexed read. Owner-scoped by RLS.
+ */
+export async function listQuickAddTrees(): Promise<QuickAddTree[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("trees")
+    .select("id, name")
+    .is("archived_at", null)
+    .order("name", { ascending: true });
+  if (error) throw new Error(`Failed to load your trees: ${error.message}`);
+  return data ?? [];
+}
+
 /**
  * One tree by id, or null if it doesn't exist or isn't the caller's (RLS). Wrapped
  * in `cache` so a page and its `generateMetadata` share a single query per request.

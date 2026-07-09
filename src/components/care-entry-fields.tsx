@@ -25,19 +25,31 @@ export type CareDefaults = {
  * is uncontrolled with defaults, so a parent `<form>` can read it via FormData and
  * `reset()` it. Date is day-granular (care logging is), which keeps it
  * timezone-simple.
+ *
+ * `idPrefix` namespaces the field ids/label associations. It matters when two
+ * instances can be in the DOM at once — e.g. the global quick-add sheet open over
+ * a tree page that also renders this form — where shared ids would otherwise make
+ * a label point at the wrong (hidden) input. Defaults to `care` so existing single
+ * mounts keep their stable ids.
  */
-export function CareEntryFields({ defaults }: { defaults: CareDefaults }) {
+export function CareEntryFields({
+  defaults,
+  idPrefix = "care",
+}: {
+  defaults: CareDefaults;
+  idPrefix?: string;
+}) {
   const [type, setType] = useState<CareEventType>(defaults.type);
   const fields = CARE_FIELDS[type];
 
   return (
     <>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="care-type" className="text-sm font-medium">
+        <label htmlFor={`${idPrefix}-type`} className="text-sm font-medium">
           What did you do?
         </label>
         <select
-          id="care-type"
+          id={`${idPrefix}-type`}
           name="type"
           value={type}
           onChange={(e) => setType(e.target.value as CareEventType)}
@@ -55,12 +67,12 @@ export function CareEntryFields({ defaults }: { defaults: CareDefaults }) {
         <div className="grid gap-4 sm:grid-cols-2">
           {fields.map((field) => (
             <div key={field.name} className="flex flex-col gap-1.5">
-              <label htmlFor={`care-${field.name}`} className="text-sm font-medium">
+              <label htmlFor={`${idPrefix}-${field.name}`} className="text-sm font-medium">
                 {field.label}
               </label>
               {field.kind === "text" ? (
                 <input
-                  id={`care-${field.name}`}
+                  id={`${idPrefix}-${field.name}`}
                   name={field.name}
                   type="text"
                   maxLength={field.maxLength}
@@ -70,7 +82,7 @@ export function CareEntryFields({ defaults }: { defaults: CareDefaults }) {
                 />
               ) : (
                 <select
-                  id={`care-${field.name}`}
+                  id={`${idPrefix}-${field.name}`}
                   name={field.name}
                   defaultValue={defaults.details[field.name] ?? ""}
                   className={inputClass}
@@ -90,11 +102,11 @@ export function CareEntryFields({ defaults }: { defaults: CareDefaults }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="care-when" className="text-sm font-medium">
+          <label htmlFor={`${idPrefix}-when`} className="text-sm font-medium">
             When <span className="text-muted-foreground font-normal">(defaults to today)</span>
           </label>
           <input
-            id="care-when"
+            id={`${idPrefix}-when`}
             name="occurred_at"
             type="date"
             defaultValue={defaults.occurredAtDate}
@@ -102,11 +114,11 @@ export function CareEntryFields({ defaults }: { defaults: CareDefaults }) {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="care-title" className="text-sm font-medium">
+          <label htmlFor={`${idPrefix}-title`} className="text-sm font-medium">
             Title <span className="text-muted-foreground font-normal">(optional)</span>
           </label>
           <input
-            id="care-title"
+            id={`${idPrefix}-title`}
             name="title"
             type="text"
             maxLength={120}
@@ -117,11 +129,11 @@ export function CareEntryFields({ defaults }: { defaults: CareDefaults }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="care-notes" className="text-sm font-medium">
+        <label htmlFor={`${idPrefix}-notes`} className="text-sm font-medium">
           Notes <span className="text-muted-foreground font-normal">(optional)</span>
         </label>
         <textarea
-          id="care-notes"
+          id={`${idPrefix}-notes`}
           name="notes"
           rows={2}
           maxLength={2000}
