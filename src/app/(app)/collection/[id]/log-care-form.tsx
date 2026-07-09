@@ -35,6 +35,20 @@ export function LogCareForm({ action, defaultOpen = false }: Props) {
     if (state.status === "success") formRef.current?.reset();
   }, [state]);
 
+  // Arriving via ?log=1 (the quick-log entry point) opens the form, but it lives
+  // far down a long profile — you'd land at the top and have to hunt for it
+  // (finding #5). Bring it into view and focus the first field so logging is
+  // immediate. Runs once on mount; honors reduced-motion.
+  useEffect(() => {
+    if (!defaultOpen) return;
+    const form = formRef.current;
+    if (!form) return;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    form.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    // preventScroll so the focus doesn't fight the smooth scroll above.
+    form.querySelector<HTMLSelectElement>("#care-type")?.focus({ preventScroll: true });
+  }, [defaultOpen]);
+
   if (!open) {
     return (
       <div className="flex items-center gap-3">
