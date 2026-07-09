@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import { useLocalToday } from "@/lib/local-day";
@@ -34,6 +34,14 @@ const agendaFormatter = new Intl.DateTimeFormat("en-GB", {
 // Format a bare "YYYY-MM-DD" at local midnight so the day survives any timezone.
 const formatDayHeader = (iso: string) => agendaFormatter.format(new Date(`${iso}T00:00:00`));
 
+// Grid dot count, read out for assistive tech: e.g. "2 due, 1 done".
+function dotsLabel(pending: number, done: number): string {
+  const parts: string[] = [];
+  if (pending > 0) parts.push(`${pending} due`);
+  if (done > 0) parts.push(`${done} done`);
+  return parts.join(", ");
+}
+
 /**
  * The month grid + agenda. A client component so every "today" marker — the
  * highlighted cell, the "· Today" agenda header, and the "Today" back-link —
@@ -57,7 +65,7 @@ export function CalendarView({
   year: number;
   month: number;
   cells: (number | null)[];
-  counts: Record<string, number>;
+  counts: Record<string, { pending: number; done: number }>;
   agenda: { iso: string; tasks: DashboardTask[] }[];
   prevParam: string;
   nextParam: string;
@@ -115,7 +123,10 @@ export function CalendarView({
           {cells.map((day, idx) => {
             if (day === null) return <div key={idx} aria-hidden />;
             const iso = `${monthPrefix}-${pad(day)}`;
-            const count = counts[iso] ?? 0;
+            const count = counts[iso];
+            const pending = count?.pending ?? 0;
+            const done = count?.done ?? 0;
+            const total = pending + done;
             const isToday = iso === today;
             return (
               <div
@@ -126,10 +137,21 @@ export function CalendarView({
                 )}
               >
                 <span className={isToday ? "font-semibold" : undefined}>{day}</span>
-                {count > 0 ? (
-                  <span className="flex gap-0.5" aria-label={`${count} due`}>
-                    {Array.from({ length: Math.min(count, 3) }).map((_, i) => (
-                      <span key={i} className="bg-primary size-1 rounded-full" />
+                {total > 0 ? (
+                  // Pending dots (solid brand) come first, then completed ones (a
+                  // muted grey — clearly "settled", but opaque enough to still read
+                  // as a dot so an all-done day never looks empty); capped at 3, so
+                  // a busy day never overflows the cell. The agenda + aria-label
+                  // carry the pending/done split for non-colour and assistive paths.
+                  <span className="flex gap-0.5" aria-label={dotsLabel(pending, done)}>
+                    {Array.from({ length: Math.min(total, 3) }).map((_, i) => (
+                      <span
+                        key={i}
+                        className={cn(
+                          "size-1 rounded-full",
+                          i < pending ? "bg-primary" : "bg-muted-foreground/70",
+                        )}
+                      />
                     ))}
                   </span>
                 ) : (
@@ -173,10 +195,18 @@ export function CalendarView({
 }
 
 function AgendaRow({ task }: { task: DashboardTask }) {
-  const Icon = TASK_TYPE_ICONS[task.type];
+  const done = task.status === "done";
+  // A completed action reads as settled: a check in a primary-tint circle plus a
+  // "Done" tag, so it's clearly history and not another open to-do to act on.
+  const Icon = done ? Check : TASK_TYPE_ICONS[task.type];
   const body = (
     <div className="border-border bg-card flex items-center gap-3 rounded-xl border p-3">
-      <div className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
+      <div
+        className={cn(
+          "flex size-8 shrink-0 items-center justify-center rounded-full",
+          done ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+        )}
+      >
         <Icon className="size-4" aria-hidden />
       </div>
       <div className="flex flex-1 flex-col">
@@ -184,6 +214,7 @@ function AgendaRow({ task }: { task: DashboardTask }) {
         <span className="text-muted-foreground text-xs">
           {TASK_TYPE_LABELS[task.type]}
           {task.tree ? ` · ${task.tree.name}` : " · Collection task"}
+          {done ? " · Done" : ""}
         </span>
       </div>
     </div>

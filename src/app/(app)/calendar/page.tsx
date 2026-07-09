@@ -9,6 +9,9 @@ export const metadata = {
 const pad = (n: number) => String(n).padStart(2, "0");
 const monthParam = (year: number, month: number) => `${year}-${pad(month)}`;
 
+// Within a day, still-to-do tasks sort before completed ones (actionable first).
+const statusRank = (task: DashboardTask) => (task.status === "done" ? 1 : 0);
+
 /** Parse `?m=YYYY-MM` to `{year, month}` (1-based month); default to the server's
  * current month. The viewer's local month may differ at a boundary — the view's
  * "Today" link corrects that — but the data fetch has to pick a month server-side. */
@@ -40,15 +43,22 @@ export default async function CalendarPage({
   const monthEnd = `${monthParam(year, month)}-${pad(daysInMonth)}`;
   const tasks = await listCalendarTasks(monthStart, monthEnd);
 
-  const counts: Record<string, number> = {};
+  // Per-day tallies split by status so the grid can show open vs. settled dots.
+  const counts: Record<string, { pending: number; done: number }> = {};
   const byDay = new Map<string, DashboardTask[]>();
   for (const task of tasks) {
-    counts[task.due_on] = (counts[task.due_on] ?? 0) + 1;
+    const bucket = counts[task.due_on] ?? { pending: 0, done: 0 };
+    counts[task.due_on] = bucket;
+    if (task.status === "done") bucket.done += 1;
+    else bucket.pending += 1;
     const list = byDay.get(task.due_on);
     if (list) list.push(task);
     else byDay.set(task.due_on, [task]);
   }
-  const agenda = [...byDay.keys()].sort().map((iso) => ({ iso, tasks: byDay.get(iso)! }));
+  const agenda = [...byDay.keys()].sort().map((iso) => ({
+    iso,
+    tasks: byDay.get(iso)!.sort((a, b) => statusRank(a) - statusRank(b)),
+  }));
 
   // Month structure (day count, weekday of the 1st) is timezone-independent, so it
   // stays server-side. Weekday of the 1st, Monday-first (0 = Mon … 6 = Sun).
