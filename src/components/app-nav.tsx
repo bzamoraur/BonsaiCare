@@ -3,7 +3,9 @@
 import { Calendar, Home, LayoutGrid, Plus, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
+import { QuickAddSheet } from "@/components/quick-add-sheet";
 import { cn } from "@/lib/utils";
 
 type Tab = {
@@ -52,38 +54,58 @@ function TabLink({ tab, active }: { tab: Tab; active: boolean }) {
 
 /**
  * Bottom tab bar (mobile-first) for the app shell: Today, Collection, Calendar,
- * Settings, plus a central quick-add that opens the "log care" flow (pick a tree,
- * then log — one tap fewer when you only have one tree).
+ * Settings, plus a central "+" that opens the quick-add sheet (pick a tree, then
+ * log care or add a photo — without loading the full profile). The "+" is an
+ * `<a href="/log">` first, so with JS disabled it still reaches the log flow; when
+ * hydrated it opens the sheet instead. The sheet closes on navigation.
  */
 export function AppNav() {
   const pathname = usePathname();
   const [today, collection, calendar, settings] = tabs;
-  const logActive = isActive(pathname, "/log");
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Close the sheet whenever the route changes — it lives in the persistent shell,
+  // so it would otherwise stay open across a navigation. Resetting during render on
+  // a changed pathname (React's recommended pattern) avoids a setState-in-effect.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    setSheetOpen(false);
+  }
 
   return (
-    <nav
-      aria-label="Primary"
-      className="border-border bg-background/95 fixed inset-x-0 bottom-0 z-50 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur"
-    >
-      <div className="mx-auto flex w-full max-w-2xl items-center px-2">
-        <TabLink tab={today} active={isActive(pathname, today.href)} />
-        <TabLink tab={collection} active={isActive(pathname, collection.href)} />
+    <>
+      <nav
+        aria-label="Primary"
+        className="border-border bg-background/95 fixed inset-x-0 bottom-0 z-50 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur"
+      >
+        <div className="mx-auto flex w-full max-w-2xl items-center px-2">
+          <TabLink tab={today} active={isActive(pathname, today.href)} />
+          <TabLink tab={collection} active={isActive(pathname, collection.href)} />
 
-        <div className="flex flex-1 flex-col items-center gap-0.5">
-          <Link
-            href="/log"
-            aria-label="Log care"
-            aria-current={logActive ? "page" : undefined}
-            className="bg-primary text-primary-foreground ring-background focus-visible:ring-ring -mt-6 flex size-14 items-center justify-center rounded-full shadow-md ring-4 transition-transform outline-none hover:scale-105 focus-visible:ring-2 active:scale-95"
-          >
-            <Plus className="size-6" aria-hidden />
-          </Link>
-          <span className="text-muted-foreground pb-1 text-[0.65rem] font-medium">Log</span>
+          <div className="flex flex-1 flex-col items-center gap-0.5">
+            <a
+              href="/log"
+              aria-label="Quick log"
+              aria-haspopup="dialog"
+              aria-expanded={sheetOpen}
+              onClick={(e) => {
+                e.preventDefault();
+                setSheetOpen(true);
+              }}
+              className="bg-primary text-primary-foreground ring-background focus-visible:ring-ring -mt-6 flex size-14 items-center justify-center rounded-full shadow-md ring-4 transition-transform outline-none hover:scale-105 focus-visible:ring-2 active:scale-95"
+            >
+              <Plus className="size-6" aria-hidden />
+            </a>
+            <span className="text-muted-foreground pb-1 text-[0.65rem] font-medium">Log</span>
+          </div>
+
+          <TabLink tab={calendar} active={isActive(pathname, calendar.href)} />
+          <TabLink tab={settings} active={isActive(pathname, settings.href)} />
         </div>
+      </nav>
 
-        <TabLink tab={calendar} active={isActive(pathname, calendar.href)} />
-        <TabLink tab={settings} active={isActive(pathname, settings.href)} />
-      </div>
-    </nav>
+      <QuickAddSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+    </>
   );
 }
