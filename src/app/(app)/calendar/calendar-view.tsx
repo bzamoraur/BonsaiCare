@@ -3,6 +3,7 @@
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { TaskActions } from "@/components/task-actions";
 import { useLocalToday } from "@/lib/local-day";
 import { TASK_TYPE_ICONS, TASK_TYPE_LABELS } from "@/lib/task-labels";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,14 @@ function dotsLabel(pending: number, done: number): string {
   return parts.join(", ");
 }
 
+/** One agenda entry: the task plus its complete/skip server actions, pre-bound to
+ * the task id on the server. Only pending rows render the actions. */
+export type AgendaTask = {
+  task: DashboardTask;
+  complete: (formData: FormData) => void;
+  skip: (formData: FormData) => void;
+};
+
 /**
  * The month grid + agenda. A client component so every "today" marker — the
  * highlighted cell, the "· Today" agenda header, and the "Today" back-link —
@@ -60,15 +69,17 @@ export function CalendarView({
   agenda,
   prevParam,
   nextParam,
+  hasError,
 }: {
   serverToday: string;
   year: number;
   month: number;
   cells: (number | null)[];
   counts: Record<string, { pending: number; done: number }>;
-  agenda: { iso: string; tasks: DashboardTask[] }[];
+  agenda: { iso: string; tasks: AgendaTask[] }[];
   prevParam: string;
   nextParam: string;
+  hasError: boolean;
 }) {
   const today = useLocalToday(serverToday);
   const monthPrefix = `${year}-${pad(month)}`; // "YYYY-MM" of the rendered month
@@ -88,6 +99,12 @@ export function CalendarView({
           </Link>
         ) : null}
       </div>
+
+      {hasError ? (
+        <p role="alert" className="text-destructive text-sm">
+          We couldn&apos;t update that task. Please try again.
+        </p>
+      ) : null}
 
       {/* Month navigation */}
       <div className="flex items-center justify-between gap-4">
@@ -128,22 +145,18 @@ export function CalendarView({
             const done = count?.done ?? 0;
             const total = pending + done;
             const isToday = iso === today;
-            return (
-              <div
-                key={idx}
-                className={cn(
-                  "flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border text-sm",
-                  isToday ? "border-foreground" : "border-border",
-                )}
-              >
+            const cellClass = cn(
+              "flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border text-sm",
+              isToday ? "border-foreground" : "border-border",
+            );
+            // Pending dots (solid brand) first, then completed ones (a muted grey —
+            // "settled" but opaque enough to still read as a dot); capped at 3.
+            // Decorative here: the enclosing cell carries the label for AT.
+            const content = (
+              <>
                 <span className={isToday ? "font-semibold" : undefined}>{day}</span>
                 {total > 0 ? (
-                  // Pending dots (solid brand) come first, then completed ones (a
-                  // muted grey — clearly "settled", but opaque enough to still read
-                  // as a dot so an all-done day never looks empty); capped at 3, so
-                  // a busy day never overflows the cell. The agenda + aria-label
-                  // carry the pending/done split for non-colour and assistive paths.
-                  <span className="flex gap-0.5" aria-label={dotsLabel(pending, done)}>
+                  <span className="flex gap-0.5" aria-hidden>
                     {Array.from({ length: Math.min(total, 3) }).map((_, i) => (
                       <span
                         key={i}
@@ -157,6 +170,24 @@ export function CalendarView({
                 ) : (
                   <span className="size-1" aria-hidden />
                 )}
+              </>
+            );
+            // A day with tasks jumps to its agenda section; empty days are inert.
+            return total > 0 ? (
+              <a
+                key={idx}
+                href={`#day-${iso}`}
+                aria-label={`${dotsLabel(pending, done)} — ${formatDayHeader(iso)}`}
+                className={cn(
+                  cellClass,
+                  "hover:border-foreground/40 focus-visible:ring-ring outline-none focus-visible:ring-2",
+                )}
+              >
+                {content}
+              </a>
+            ) : (
+              <div key={idx} className={cellClass}>
+                {content}
               </div>
             );
           })}
@@ -171,7 +202,9 @@ export function CalendarView({
           </p>
         ) : (
           agenda.map(({ iso, tasks }) => (
-            <div key={iso} className="flex flex-col gap-2">
+            // scroll-mt gives the day a little breathing room when a grid cell
+            // anchors to it (#day-<iso>).
+            <div key={iso} id={`day-${iso}`} className="flex scroll-mt-6 flex-col gap-2">
               <h2
                 className={cn(
                   "text-sm font-medium",
@@ -182,8 +215,8 @@ export function CalendarView({
                 {iso === today ? " · Today" : ""}
               </h2>
               <ol className="flex flex-col gap-2">
-                {tasks.map((task) => (
-                  <AgendaRow key={task.id} task={task} />
+                {tasks.map((item) => (
+                  <AgendaRow key={item.task.id} item={item} serverToday={serverToday} />
                 ))}
               </ol>
             </div>
@@ -194,42 +227,52 @@ export function CalendarView({
   );
 }
 
-function AgendaRow({ task }: { task: DashboardTask }) {
+function AgendaRow({ item, serverToday }: { item: AgendaTask; serverToday: string }) {
+  const { task, complete, skip } = item;
   const done = task.status === "done";
   // A completed action reads as settled: a check in a primary-tint circle plus a
-  // "Done" tag, so it's clearly history and not another open to-do to act on.
+  // "Done" tag. Pending rows carry inline Done/Skip actions; the title links to the
+  // owning tree (kept out of the same interactive element as the buttons).
   const Icon = done ? Check : TASK_TYPE_ICONS[task.type];
-  const body = (
-    <div className="border-border bg-card flex items-center gap-3 rounded-xl border p-3">
-      <div
-        className={cn(
-          "flex size-8 shrink-0 items-center justify-center rounded-full",
-          done ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
-        )}
-      >
-        <Icon className="size-4" aria-hidden />
+  return (
+    <li className="border-border bg-card flex flex-col gap-2 rounded-xl border p-3">
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-full",
+            done ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+          )}
+        >
+          <Icon className="size-4" aria-hidden />
+        </div>
+        <div className="flex flex-1 flex-col">
+          {task.tree ? (
+            <Link
+              href={`/collection/${task.tree.id}`}
+              className="focus-visible:ring-ring w-fit rounded text-sm font-medium underline-offset-2 outline-none hover:underline focus-visible:ring-2"
+            >
+              {task.title}
+            </Link>
+          ) : (
+            <span className="text-sm font-medium">{task.title}</span>
+          )}
+          <span className="text-muted-foreground text-xs">
+            {TASK_TYPE_LABELS[task.type]}
+            {task.tree ? ` · ${task.tree.name}` : " · Collection task"}
+            {done ? " · Done" : ""}
+          </span>
+        </div>
       </div>
-      <div className="flex flex-1 flex-col">
-        <span className="text-sm font-medium">{task.title}</span>
-        <span className="text-muted-foreground text-xs">
-          {TASK_TYPE_LABELS[task.type]}
-          {task.tree ? ` · ${task.tree.name}` : " · Collection task"}
-          {done ? " · Done" : ""}
-        </span>
-      </div>
-    </div>
-  );
-  // Link to the owning tree when there is one; collection-wide tasks aren't linkable.
-  return task.tree ? (
-    <li>
-      <Link
-        href={`/collection/${task.tree.id}`}
-        className="focus-visible:ring-ring block rounded-xl outline-none focus-visible:ring-2"
-      >
-        {body}
-      </Link>
+      {!done ? (
+        <div className="flex flex-wrap items-center gap-1 pl-11">
+          <TaskActions
+            type={task.type}
+            serverToday={serverToday}
+            completeAction={complete}
+            skipAction={skip}
+          />
+        </div>
+      ) : null}
     </li>
-  ) : (
-    <li>{body}</li>
   );
 }

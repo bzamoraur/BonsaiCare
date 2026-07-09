@@ -1,6 +1,7 @@
 import { listCalendarTasks, type DashboardTask } from "@/server/dashboard";
 
-import { CalendarView } from "./calendar-view";
+import { completeFromCalendarAction, skipFromCalendarAction } from "./actions";
+import { CalendarView, type AgendaTask } from "./calendar-view";
 
 export const metadata = {
   title: "Calendar",
@@ -32,9 +33,9 @@ function shiftMonth(year: number, month: number, delta: number): { year: number;
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ m?: string }>;
+  searchParams: Promise<{ m?: string; error?: string }>;
 }) {
-  const { m } = await searchParams;
+  const { m, error } = await searchParams;
   const serverToday = new Date().toISOString().slice(0, 10);
   const { year, month } = parseMonth(m, serverToday);
 
@@ -55,9 +56,23 @@ export default async function CalendarPage({
     if (list) list.push(task);
     else byDay.set(task.due_on, [task]);
   }
+  // Sort each day (pending first), then bind the per-task complete/skip actions so
+  // the agenda rows can act inline. Only pending rows render them, but binding is
+  // cheap and keeps the shape uniform. The viewed month is bound too so an action's
+  // error redirect keeps the viewer on this month, not the server's current one.
+  const monthKey = monthParam(year, month);
   const agenda = [...byDay.keys()].sort().map((iso) => ({
     iso,
-    tasks: byDay.get(iso)!.sort((a, b) => statusRank(a) - statusRank(b)),
+    tasks: byDay
+      .get(iso)!
+      .sort((a, b) => statusRank(a) - statusRank(b))
+      .map(
+        (task): AgendaTask => ({
+          task,
+          complete: completeFromCalendarAction.bind(null, task.id, monthKey),
+          skip: skipFromCalendarAction.bind(null, task.id, monthKey),
+        }),
+      ),
   }));
 
   // Month structure (day count, weekday of the 1st) is timezone-independent, so it
@@ -81,6 +96,7 @@ export default async function CalendarPage({
       agenda={agenda}
       prevParam={monthParam(prev.year, prev.month)}
       nextParam={monthParam(next.year, next.month)}
+      hasError={error === "task"}
     />
   );
 }
