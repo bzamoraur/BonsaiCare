@@ -31,7 +31,10 @@ export function ArchiveTreeForm({ action }: { action: (formData: FormData) => vo
 
   return (
     <form action={action} className="flex flex-wrap items-center gap-3">
-      <span className="text-muted-foreground text-sm">Archive this tree?</span>
+      <span className="text-muted-foreground text-sm text-balance">
+        Archive this tree? It leaves your collection but keeps its history — you can unarchive it
+        anytime.
+      </span>
       <ArchiveSubmit />
       <Button ref={revealRef} type="button" variant="ghost" onClick={() => setConfirming(false)}>
         Cancel

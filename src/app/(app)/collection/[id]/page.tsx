@@ -16,7 +16,7 @@ import { listTreeTimeline, type TimelineItem } from "@/server/timeline";
 import { getTree } from "@/server/trees";
 import { Constants } from "@/types/database.types";
 
-import { archiveTreeAction } from "./actions";
+import { archiveTreeAction, unarchiveTreeAction } from "./actions";
 import { AddTaskForm } from "./add-task-form";
 import { ArchiveTreeForm } from "./archive-tree-form";
 import { deleteCareAction, logCareAction, repeatLastCareAction } from "./care-actions";
@@ -39,6 +39,7 @@ type Params = { id: string };
 
 const ERROR_MESSAGES: Record<string, string> = {
   archive: "We couldn't archive this tree. Please try again.",
+  unarchive: "We couldn't unarchive this tree. Please try again.",
   cover: "We couldn't set that cover photo. Please try again.",
   photo: "We couldn't delete that photo. Please try again.",
   care: "We couldn't update the care log. Please try again.",
@@ -311,7 +312,16 @@ export default async function TreeDetailPage({
           <Pencil aria-hidden />
           Edit
         </Link>
-        {!isArchived ? <ArchiveTreeForm action={archiveTreeAction.bind(null, tree.id)} /> : null}
+        {isArchived ? (
+          // Unarchiving is non-destructive, so no confirm step — one tap restores it.
+          <form action={unarchiveTreeAction.bind(null, tree.id)}>
+            <Button type="submit" variant="outline">
+              Unarchive
+            </Button>
+          </form>
+        ) : (
+          <ArchiveTreeForm action={archiveTreeAction.bind(null, tree.id)} />
+        )}
       </div>
     </main>
   );
