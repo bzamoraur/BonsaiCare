@@ -71,9 +71,13 @@ export async function listPastTasks(sinceDays = 14, limit = 20): Promise<Dashboa
 }
 
 /**
- * Pending tasks with `due_on` in `[fromIso, toIso]` (inclusive), soonest first,
- * each with its tree name — for the calendar's month grid + agenda. Same indexed
- * range scan, owner-scoped by RLS.
+ * Tasks with `due_on` in `[fromIso, toIso]` (inclusive) for the calendar's month
+ * grid + agenda — both **pending** (still to do) and **done**, so a completed
+ * action leaves a visible trace on the calendar instead of vanishing. `skipped`
+ * tasks are excluded: they carry no `completed_at` and represent a deliberate
+ * "not this time", so on the calendar they'd be noise rather than history. Soonest
+ * first, each with its tree name; the `(owner_id, status, due_on)` index still
+ * serves the range scan. Owner-scoped by RLS.
  */
 export async function listCalendarTasks(fromIso: string, toIso: string): Promise<DashboardTask[]> {
   const supabase = await createClient();
@@ -81,7 +85,7 @@ export async function listCalendarTasks(fromIso: string, toIso: string): Promise
   const { data, error } = await supabase
     .from("tasks")
     .select("*, tree:trees(id, name)")
-    .eq("status", "pending")
+    .in("status", ["pending", "done"])
     .gte("due_on", fromIso)
     .lte("due_on", toIso)
     .order("due_on", { ascending: true });
