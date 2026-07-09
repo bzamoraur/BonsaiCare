@@ -6,6 +6,56 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Act on the calendar; jump to any day (M6 / Sprint 09, 2026-07-09)
+
+- **Complete or skip a task without leaving the calendar.** Pending agenda rows now
+  carry the same Done/Skip controls as Today (backdatable, with the optional "log a
+  care event" toggle) — the month view was read-only before. Completed rows stay as
+  settled "Done" history rather than sprouting buttons.
+- **Tap a day to jump to it.** A day cell with tasks anchors to that day's agenda
+  section, so a busy month is one tap to scan. **No schema change** — the actions
+  reuse `complete_task`/`skip_task`, and a failed action keeps you on the month you
+  were viewing.
+
+### Added — Archiving a tree is reversible (M6 / Sprint 09, 2026-07-09)
+
+- **Archived trees have a home, and a way back.** Archiving used to be a one-way
+  door: no archived view, and an archived tree was reachable only by typing its URL.
+  Now the collection shows a "View archived (n)" link → a simple archived grid, and
+  a tree's page offers **Unarchive** (one tap, no confirm — it's non-destructive).
+- The archive confirm is honest about it now: "_it leaves your collection but keeps
+  its history — you can unarchive it anytime._" **No schema change** — `archived_at`
+  already existed, and unarchive is owner-scoped by RLS, symmetric with archive.
+
+### Added — A new tree opens to its own page (M6 / Sprint 09, 2026-07-09)
+
+- **Create a tree and land on it, ready to add the first photo or log.** Creating a
+  tree dropped you back on the collection grid; now it opens the new tree's detail
+  page, whose empty state already invites exactly that. **No schema change.**
+
+### Added — Log care or a photo from anywhere (M6 / Sprint 09, 2026-07-09)
+
+- **The nav "+" opens a quick-add sheet.** Pick a tree, then log care or add a photo
+  — without loading the full tree profile. It's the first _global_ way to attach a
+  photo (previously only reachable from inside a tree). Built on the native dialog,
+  so keyboard focus, Esc-to-close, and focus-return come for free; with JavaScript
+  off, the "+" still falls back to the log page.
+- **Quick-log lands on the form.** Arriving via the log entry point now scrolls the
+  care form into view and focuses it, instead of leaving it below the fold on a long
+  profile. **No schema change.**
+
+### Added — Completed tasks stay visible (M6 / Sprint 09, 2026-07-09)
+
+- **Finishing a task leaves a trace instead of vanishing.** Today gains a "Recently
+  done" list, and the calendar now shows completed tasks (a muted "Done" row on the
+  day, plus a settled dot in the month grid) — before, a done task disappeared from
+  both. (Skipped tasks stay off the calendar: they're a deliberate "not this time",
+  not history.)
+- **Batch care is discoverable where the day lives.** Today gains a "Log several"
+  button, so capturing a whole watering round no longer means finding it buried
+  under "Plan care" in the collection. **No schema change** — completed task rows
+  already persist with their completion date.
+
 ### Added — Recency chips + one-tap repeat (M6 / Sprint 09, 2026-07-08)
 
 - **See when each tree was last watered or fed, at a glance.** Collection cards and
