@@ -14,8 +14,7 @@ test("completing a task keeps it in Today's 'Recently done'", async ({ page }, t
   await page.goto("/collection/new");
   await page.locator("#name").fill(treeName);
   await page.getByRole("button", { name: "Save tree" }).click();
-  await page.getByRole("link").filter({ hasText: treeName }).first().click();
-  await expect(page).toHaveURL(/\/collection\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/collection\/[0-9a-f-]{36}$/); // create → detail (S09.5)
 
   await page.getByRole("button", { name: "Add task" }).click(); // open the form
   await page.locator("#task-title").fill(taskTitle);
@@ -44,8 +43,7 @@ test("a completed task stays visible (as done) on the Calendar", async ({ page }
   await page.goto("/collection/new");
   await page.locator("#name").fill(treeName);
   await page.getByRole("button", { name: "Save tree" }).click();
-  await page.getByRole("link").filter({ hasText: treeName }).first().click();
-  await expect(page).toHaveURL(/\/collection\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/collection\/[0-9a-f-]{36}$/); // create → detail (S09.5)
 
   await page.getByRole("button", { name: "Add task" }).click(); // open the form
   await page.locator("#task-title").fill(taskTitle);

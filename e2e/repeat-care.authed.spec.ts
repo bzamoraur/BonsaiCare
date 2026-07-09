@@ -13,8 +13,7 @@ test("repeat the last care event with one tap", async ({ page }, testInfo) => {
   await page.goto("/collection/new");
   await page.locator("#name").fill(treeName);
   await page.getByRole("button", { name: "Save tree" }).click();
-  await page.getByRole("link").filter({ hasText: treeName }).first().click();
-  await expect(page).toHaveURL(/\/collection\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/collection\/[0-9a-f-]{36}$/); // create → detail (S09.5)
 
   // Log an initial watering (the care-type default).
   await page.getByRole("button", { name: "Log care" }).click();

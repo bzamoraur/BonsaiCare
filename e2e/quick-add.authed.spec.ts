@@ -9,11 +9,11 @@ test("quick-add sheet: log care and reach photo mode from the nav", async ({ pag
   const treeName = `E2E QuickAdd Tree ${testInfo.retry}`;
   const marker = `E2E quickadd-care ${testInfo.retry}`;
 
-  // Isolated tree (create → lands back on the collection list).
+  // Isolated tree (create → its detail page, S09.5).
   await page.goto("/collection/new");
   await page.locator("#name").fill(treeName);
   await page.getByRole("button", { name: "Save tree" }).click();
-  await expect(page.getByRole("link").filter({ hasText: treeName }).first()).toBeVisible();
+  await expect(page).toHaveURL(/\/collection\/[0-9a-f-]{36}$/);
 
   // Open the sheet from the nav "+".
   await page.goto("/today");
