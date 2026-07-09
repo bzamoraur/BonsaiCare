@@ -47,6 +47,30 @@ export async function listDashboardTasks(horizonDays = 8): Promise<DashboardTask
 }
 
 /**
+ * Recently completed tasks (done), newest first — the Today "Recently done"
+ * history, so finishing a task leaves a visible trace instead of vanishing from
+ * the dashboard. Bounded to the last `sinceDays` days and a row cap; owner-scoped
+ * by RLS. (A `done` task always carries `completed_at`, set by `complete_task`.)
+ */
+export async function listPastTasks(sinceDays = 14, limit = 20): Promise<DashboardTask[]> {
+  const supabase = await createClient();
+
+  const since = new Date();
+  since.setUTCDate(since.getUTCDate() - sinceDays);
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*, tree:trees(id, name)")
+    .eq("status", "done")
+    .gte("completed_at", since.toISOString())
+    .order("completed_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`Failed to load your history: ${error.message}`);
+
+  return normalizeTasks(data);
+}
+
+/**
  * Pending tasks with `due_on` in `[fromIso, toIso]` (inclusive), soonest first,
  * each with its tree name — for the calendar's month grid + agenda. Same indexed
  * range scan, owner-scoped by RLS.
