@@ -235,7 +235,10 @@ monetization — each behind demand and its own ADR.
 > **2026-07-09 update:** the species-knowledge features + a **pots collection** +
 > two friction fixes (completed-task history, batch-on-Today) now have researched,
 > €0 designs — see
-> [knowledge-and-collection-plan](./knowledge-and-collection-plan.md).
+> [knowledge-and-collection-plan](./knowledge-and-collection-plan.md). The
+> **final milestone — taking the app public** (App Store / Play Store, with
+> security, privacy/GDPR, and monetization) is researched in
+> [going-public-plan](./going-public-plan.md).
 
 **Finding:** the inspiration app **validates ~70% of this plan** — batch logging
 (S09.1), species intelligence (M8.1), onboarding tour (S12.1), OTP (S11.1),
