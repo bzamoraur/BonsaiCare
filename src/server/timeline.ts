@@ -42,25 +42,21 @@ export async function listTreeTimeline(treeId: string): Promise<TimelineItem[]> 
   }
 
   const items: TimelineItem[] = [
-    ...entries.map(
-      (entry): TimelineItem => ({
-        kind: "care",
-        id: entry.id,
-        date: entry.occurred_on,
-        sortAt: entry.created_at,
-        entry,
-        photos: photosByEntry.get(entry.id) ?? [],
-      }),
-    ),
-    ...standalone.map(
-      (photo): TimelineItem => ({
-        kind: "photo",
-        id: photo.id,
-        date: photo.taken_at.slice(0, 10),
-        sortAt: photo.taken_at,
-        photo,
-      }),
-    ),
+    ...entries.map((entry): TimelineItem => ({
+      kind: "care",
+      id: entry.id,
+      date: entry.occurred_on,
+      sortAt: entry.created_at,
+      entry,
+      photos: photosByEntry.get(entry.id) ?? [],
+    })),
+    ...standalone.map((photo): TimelineItem => ({
+      kind: "photo",
+      id: photo.id,
+      date: photo.taken_at.slice(0, 10),
+      sortAt: photo.taken_at,
+      photo,
+    })),
   ];
 
   // `date` is a calendar day (YYYY-MM-DD) for both kinds. Sort by day descending,

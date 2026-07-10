@@ -66,13 +66,11 @@ export default async function CalendarPage({
     tasks: byDay
       .get(iso)!
       .sort((a, b) => statusRank(a) - statusRank(b))
-      .map(
-        (task): AgendaTask => ({
-          task,
-          complete: completeFromCalendarAction.bind(null, task.id, monthKey),
-          skip: skipFromCalendarAction.bind(null, task.id, monthKey),
-        }),
-      ),
+      .map((task): AgendaTask => ({
+        task,
+        complete: completeFromCalendarAction.bind(null, task.id, monthKey),
+        skip: skipFromCalendarAction.bind(null, task.id, monthKey),
+      })),
   }));
 
   // Month structure (day count, weekday of the 1st) is timezone-independent, so it
