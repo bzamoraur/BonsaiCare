@@ -7,6 +7,21 @@
     "linkProblem": "That sign-in link didn't work — it may have expired or already been used. Enter your email below for a fresh one.",
     "signInProblem": "We couldn't sign you in. Please try again."
   },
+  "privacy": {
+    "title": "Privacy",
+    "home": "← Bonsai Companion",
+    "intro": "Bonsai Companion is a personal project shared with a few friends. Here's exactly what it keeps and your rights over it, in plain language.",
+    "storeTitle": "What it stores",
+    "storeBody": "Your email address (to sign you in), and the trees, care history, tasks, and photos you add — nothing else. No tracking, no analytics, no advertising.",
+    "whereTitle": "Where it lives",
+    "whereBody": "In a Supabase database hosted in the EU. Photos sit in a private bucket (location data is stripped from each image) and are served through short-lived signed links. An encrypted off-site backup is kept for recovery.",
+    "rightsTitle": "Your rights",
+    "rightsBody": "Export everything at any time — JSON, CSV, and your photos — from Settings, and permanently delete your account and all its data from Settings.",
+    "retentionTitle": "When you delete",
+    "retentionBody": "Your account and data are removed from the app and active storage immediately. Copies in the encrypted off-site backup are purged on request — just ask.",
+    "contactTitle": "Questions",
+    "contactBody": "Reach the owner directly at the address you were invited from."
+  },
   "cover": {
     "change": "Change cover",
     "title": "Choose cover",
@@ -85,7 +100,8 @@
     "downloadPhotos": "Download photos",
     "signedIn": "Signed in",
     "signOut": "Sign out",
-    "ownerMetrics": "Owner metrics"
+    "ownerMetrics": "Owner metrics",
+    "privacyNote": "Privacy note"
   },
   "taskTypes": {
     "watering": "Water",

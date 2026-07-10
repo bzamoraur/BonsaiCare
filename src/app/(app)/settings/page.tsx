@@ -102,6 +102,13 @@ export default async function SettingsPage() {
         </form>
       </div>
 
+      <Link
+        href="/privacy"
+        className="text-muted-foreground hover:text-foreground w-fit text-sm underline-offset-4 hover:underline"
+      >
+        {t("privacyNote")}
+      </Link>
+
       {isOwner ? (
         <Link
           href="/admin"
