@@ -42,7 +42,11 @@ test("add a tree, then attach a photo to it", async ({ page }, testInfo) => {
   // 4. The tree's hero image (its newest photo, alt = the tree name) now renders,
   //    proving the upload + DB record landed. The polling assertion also waits
   //    out the upload's round-trip, so we never end the test mid-action.
-  await expect(page.getByRole("img", { name: treeName })).toBeVisible({ timeout: 15_000 });
+  // exact: the hero's alt is exactly the tree name; the timeline photo's alt now
+  // *contains* it ("<tree> photo"), which the default substring match would also hit.
+  await expect(page.getByRole("img", { name: treeName, exact: true })).toBeVisible({
+    timeout: 15_000,
+  });
 
   // 5. S10.1: the timeline shows the small thumbnail rendition — its signed URL
   //    path ends in `.thumb.webp` — proving the thumb was generated at upload,
