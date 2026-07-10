@@ -3,6 +3,11 @@
     "collectionTask": "Collection task",
     "taskUpdateError": "We couldn't update that task. Please try again."
   },
+  "cover": {
+    "change": "Change cover",
+    "title": "Choose cover",
+    "current": "Current"
+  },
   "calendar": {
     "title": "Calendar",
     "today": "Today",
