@@ -43,7 +43,7 @@ export function TreeCard({
           )}
         </div>
         <div className="flex flex-col gap-1 p-3">
-          <h2 className="truncate text-sm font-medium" title={tree.name}>
+          <h2 className="font-heading truncate text-sm font-medium" title={tree.name}>
             {tree.name}
           </h2>
           {tree.species_label ? (
