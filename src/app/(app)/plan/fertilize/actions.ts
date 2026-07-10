@@ -7,9 +7,7 @@ import { logActionError } from "@/lib/log-action-error";
 import { createTasksForTrees } from "@/server/tasks";
 
 export type FertilizeState =
-  | { status: "idle" }
-  | { status: "success"; count: number }
-  | { status: "error"; message: string };
+  { status: "idle" } | { status: "success"; count: number } | { status: "error"; message: string };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

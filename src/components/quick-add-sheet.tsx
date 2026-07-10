@@ -28,9 +28,7 @@ const initialCare: LogCareState = { status: "idle" };
 
 type Mode = "care" | "photo";
 type LoadState =
-  | { status: "loading" }
-  | { status: "ready"; data: QuickAddData }
-  | { status: "error" };
+  { status: "loading" } | { status: "ready"; data: QuickAddData } | { status: "error" };
 
 /**
  * The global quick-add: a bottom sheet (native `<dialog>`, so focus trapping,

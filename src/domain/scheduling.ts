@@ -79,8 +79,7 @@ export const RecurrenceSchema = z
 export type Recurrence = z.infer<typeof RecurrenceSchema>;
 
 export type ParseRecurrenceResult =
-  | { ok: true; value: Recurrence }
-  | { ok: false; message: string };
+  { ok: true; value: Recurrence } | { ok: false; message: string };
 
 /**
  * Validates a raw recurrence rule (from a form or the DB JSONB column) per
