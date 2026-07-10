@@ -1,4 +1,8 @@
 {
+  "common": {
+    "collectionTask": "Tarea de la colección",
+    "taskUpdateError": "No pudimos actualizar esa tarea. Inténtalo de nuevo."
+  },
   "nav": {
     "today": "Hoy",
     "collection": "Colección",
@@ -6,6 +10,34 @@
     "settings": "Ajustes",
     "quickLog": "Registro rápido",
     "log": "Registrar"
+  },
+  "today": {
+    "title": "Hoy",
+    "logSeveral": "Registrar varias",
+    "empty": "Nada que atender por ahora. Disfruta de tus árboles. 🌱",
+    "overdue": "Atrasadas",
+    "dueToday": "Hoy",
+    "nothingDueToday": "Nada para hoy.",
+    "next7Days": "Próximos 7 días",
+    "needsAttention": "Necesita atención",
+    "recentlyDone": "Hecho recientemente"
+  },
+  "collection": {
+    "title": "Colección",
+    "planCare": "Planificar cuidados",
+    "addTree": "Añadir árbol",
+    "loadError": "No pudimos cargar tu colección en este momento. Actualiza para volver a intentarlo.",
+    "emptyArchived": "No hay árboles activos ahora mismo. Añade uno o mira tus árboles archivados más abajo.",
+    "emptyNoTrees": "Aún no hay árboles. Añade tu primer bonsái para empezar a seguir su historia.",
+    "addATree": "Añadir un árbol",
+    "addFirstTree": "Añade tu primer árbol",
+    "noMatch": "Ningún árbol coincide con tus filtros.",
+    "viewArchived": "Ver archivados ({count})",
+    "archivedTitle": "Archivados",
+    "backToCollection": "← Colección",
+    "archivedLoadError": "No pudimos cargar tus árboles archivados en este momento. Actualiza para volver a intentarlo.",
+    "archivedEmpty": "No hay árboles archivados. Archivar un árbol lo oculta de tu colección sin perder su historial.",
+    "archivedIntro": "Ocultos de tu colección, con su historial intacto. Abre un árbol para desarchivarlo."
   },
   "settings": {
     "title": "Ajustes",
