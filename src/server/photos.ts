@@ -76,6 +76,61 @@ export const listTreePhotos = cache(async (treeId: string): Promise<PhotoWithUrl
   }));
 });
 
+export type RecentPhoto = {
+  id: string;
+  treeId: string;
+  treeName: string;
+  url: string | null;
+  thumbUrl: string | null;
+  caption: string | null;
+  taken_at: string;
+};
+
+/**
+ * The most recent photos across the whole collection (newest first) for the Today
+ * "recent moments" strip. Best-effort signed URLs like listTreePhotos; a load
+ * failure degrades to an empty strip (never blanks Today). The `tree:trees(name)`
+ * embed is safe — `photos` has a single FK to `trees`.
+ */
+export const listRecentPhotos = cache(async (limit = 6): Promise<RecentPhoto[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("photos")
+    .select("id, tree_id, storage_path, taken_at, caption, tree:trees(name)")
+    .order("taken_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    logActionError("listRecentPhotos", error);
+    return [];
+  }
+
+  const photos = data ?? [];
+  if (photos.length === 0) return [];
+
+  const [full, thumbs] = await Promise.all([
+    signPaths(
+      supabase,
+      photos.map((p) => p.storage_path),
+      "listRecentPhotos.sign",
+    ),
+    signPaths(
+      supabase,
+      photos.map((p) => thumbPath(p.storage_path)),
+      "listRecentPhotos.signThumb",
+    ),
+  ]);
+
+  return photos.map((p) => ({
+    id: p.id,
+    treeId: p.tree_id,
+    treeName: p.tree?.name ?? "",
+    url: full.get(p.storage_path) ?? null,
+    thumbUrl: thumbs.get(thumbPath(p.storage_path)) ?? null,
+    caption: p.caption,
+    taken_at: p.taken_at,
+  }));
+});
+
 /**
  * Records an uploaded photo. `owner_id` comes from the session (matched by RLS);
  * we additionally confirm the tree belongs to the caller (defense-in-depth beyond

@@ -205,6 +205,17 @@ export async function countArchivedTrees(): Promise<number> {
   return count ?? 0;
 }
 
+/** How many active (non-archived) trees the caller has — for the Today summary. */
+export async function countActiveTrees(): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("trees")
+    .select("id", { count: "exact", head: true })
+    .is("archived_at", null);
+  if (error) throw new Error(`Failed to count active trees: ${error.message}`);
+  return count ?? 0;
+}
+
 /**
  * One tree by id, or null if it doesn't exist or isn't the caller's (RLS). Wrapped
  * in `cache` so a page and its `generateMetadata` share a single query per request.

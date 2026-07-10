@@ -26,38 +26,54 @@ const formatDue = (iso: string) => dueFormatter.format(new Date(`${iso}T00:00:00
 export function TodayDashboard({
   items,
   serverToday,
+  treeCount,
 }: {
   items: DashboardItem[];
   serverToday: string;
+  treeCount: number;
 }) {
   // serverToday on the server + first hydration render (matches SSR); the viewer's
   // real local today on the client thereafter — no effect, no hydration mismatch.
   const today = useLocalToday(serverToday);
   const t = useTranslations("today");
 
-  if (items.length === 0) {
-    return (
-      <section className="border-border bg-card rounded-2xl border p-8 text-center">
-        <p className="text-muted-foreground text-balance">{t("empty")}</p>
-      </section>
-    );
-  }
-
   const in7 = addLocalDaysIso(today, 7);
   const overdue = items.filter((i) => i.task.due_on < today);
   const dueToday = items.filter((i) => i.task.due_on === today);
   const upcoming = items.filter((i) => i.task.due_on > today && i.task.due_on <= in7);
 
+  // A scannable status line above the buckets: what needs doing + collection size.
+  const parts: string[] = [];
+  if (overdue.length > 0) parts.push(t("summaryOverdue", { count: overdue.length }));
+  if (dueToday.length > 0) parts.push(t("summaryDueToday", { count: dueToday.length }));
+  if (parts.length === 0) parts.push(t("summaryAllClear"));
+  if (treeCount > 0) parts.push(t("summaryTrees", { count: treeCount }));
+  const summary = <p className="text-muted-foreground text-sm">{parts.join(" · ")}</p>;
+
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col gap-4">
+        {summary}
+        <section className="border-border bg-card rounded-2xl border p-8 text-center">
+          <p className="text-muted-foreground text-balance">{t("empty")}</p>
+        </section>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-8">
-      <Bucket title={t("overdue")} items={overdue} serverToday={serverToday} />
-      <Bucket
-        title={t("dueToday")}
-        items={dueToday}
-        serverToday={serverToday}
-        emptyHint={t("nothingDueToday")}
-      />
-      <Bucket title={t("next7Days")} items={upcoming} serverToday={serverToday} />
+    <div className="flex flex-col gap-6">
+      {summary}
+      <div className="flex flex-col gap-8">
+        <Bucket title={t("overdue")} items={overdue} serverToday={serverToday} />
+        <Bucket
+          title={t("dueToday")}
+          items={dueToday}
+          serverToday={serverToday}
+          emptyHint={t("nothingDueToday")}
+        />
+        <Bucket title={t("next7Days")} items={upcoming} serverToday={serverToday} />
+      </div>
     </div>
   );
 }
