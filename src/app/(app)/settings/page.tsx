@@ -1,5 +1,7 @@
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { logActionError } from "@/lib/log-action-error";
@@ -15,6 +17,7 @@ export const metadata = {
 };
 
 export default async function SettingsPage() {
+  const t = await getTranslations("settings");
   const supabase = await createClient();
   const {
     data: { user },
@@ -31,11 +34,11 @@ export default async function SettingsPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
 
       {error || !profile ? (
         <p role="alert" className="text-destructive text-sm">
-          We could not load your settings right now. Please refresh the page to try again.
+          {t("loadError")}
         </p>
       ) : (
         <SettingsForm
@@ -49,10 +52,8 @@ export default async function SettingsPage() {
 
       <section className="flex flex-col gap-3">
         <div>
-          <h2 className="text-sm font-medium">Appearance</h2>
-          <p className="text-muted-foreground text-sm">
-            Choose a light or dark theme, or follow your device.
-          </p>
+          <h2 className="text-sm font-medium">{t("appearance")}</h2>
+          <p className="text-muted-foreground text-sm">{t("appearanceDescription")}</p>
         </div>
         <ThemeToggle />
       </section>
@@ -61,22 +62,28 @@ export default async function SettingsPage() {
 
       <section className="flex flex-col gap-3">
         <div>
-          <h2 className="text-sm font-medium">Your data</h2>
-          <p className="text-muted-foreground text-sm">
-            Export a complete, portable copy of your collection — trees, care history, tasks, and
-            photo details. Your record is always yours to keep. JSON is the lossless format for
-            backup; CSV opens in any spreadsheet.
-          </p>
+          <h2 className="text-sm font-medium">{t("language")}</h2>
+          <p className="text-muted-foreground text-sm">{t("languageDescription")}</p>
+        </div>
+        <LocaleSwitcher />
+      </section>
+
+      <hr className="border-border" />
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-sm font-medium">{t("yourData")}</h2>
+          <p className="text-muted-foreground text-sm">{t("yourDataDescription")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <DownloadButton href="/settings/export?format=json" fallbackName="bonsai-export.json">
-            Export as JSON
+            {t("exportJson")}
           </DownloadButton>
           <DownloadButton href="/settings/export?format=csv" fallbackName="bonsai-export-csv.zip">
-            Export as CSV
+            {t("exportCsv")}
           </DownloadButton>
           <DownloadButton href="/settings/export/photos" fallbackName="bonsai-photos.zip">
-            Download photos
+            {t("downloadPhotos")}
           </DownloadButton>
         </div>
       </section>
@@ -85,12 +92,12 @@ export default async function SettingsPage() {
 
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-medium">Signed in</p>
+          <p className="text-sm font-medium">{t("signedIn")}</p>
           <p className="text-muted-foreground truncate text-sm">{user?.email}</p>
         </div>
         <form action="/auth/signout" method="post">
           <Button type="submit" variant="outline" size="sm">
-            Sign out
+            {t("signOut")}
           </Button>
         </form>
       </div>
@@ -100,7 +107,7 @@ export default async function SettingsPage() {
           href="/admin"
           className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
         >
-          Owner metrics
+          {t("ownerMetrics")}
         </Link>
       ) : null}
 

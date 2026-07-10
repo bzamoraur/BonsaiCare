@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "today": "Hoy",
+    "collection": "Colección",
+    "calendar": "Calendario",
+    "settings": "Ajustes",
+    "quickLog": "Registro rápido",
+    "log": "Registrar"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "loadError": "No pudimos cargar tus ajustes en este momento. Actualiza la página para volver a intentarlo.",
+    "appearance": "Apariencia",
+    "appearanceDescription": "Elige un tema claro u oscuro, o sigue el de tu dispositivo.",
+    "language": "Idioma",
+    "languageDescription": "Elige el idioma de la aplicación.",
+    "yourData": "Tus datos",
+    "yourDataDescription": "Exporta una copia completa y portable de tu colección: árboles, historial de cuidados, tareas y detalles de las fotos. Tu registro siempre es tuyo. JSON es el formato sin pérdidas para copias de seguridad; CSV se abre en cualquier hoja de cálculo.",
+    "exportJson": "Exportar como JSON",
+    "exportCsv": "Exportar como CSV",
+    "downloadPhotos": "Descargar fotos",
+    "signedIn": "Sesión iniciada",
+    "signOut": "Cerrar sesión",
+    "ownerMetrics": "Métricas del propietario"
+  }
+}
