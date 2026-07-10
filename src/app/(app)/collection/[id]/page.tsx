@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import type { CareLastByType } from "@/components/care-entry-fields";
 import { CareRecencyChips } from "@/components/care-recency-chips";
-import { Photo } from "@/components/photo";
+import { PhotoZoom } from "@/components/photo-zoom";
 import { careDetailsToStrings } from "@/lib/care-details";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { CareEventType, CareRecency } from "@/domain/care";
@@ -304,7 +304,12 @@ export default async function TreeDetailPage({
                       treeName={tree.name}
                     />
                   ) : (
-                    <PhotoItem item={item} treeId={tree.id} coverPhotoId={tree.cover_photo_id} />
+                    <PhotoItem
+                      item={item}
+                      treeId={tree.id}
+                      treeName={tree.name}
+                      coverPhotoId={tree.cover_photo_id}
+                    />
                   )}
                 </div>
               </li>
@@ -426,7 +431,7 @@ function CareItem({
         <div className="mt-1 grid grid-cols-3 gap-2">
           {photos.map((photo) =>
             photo.url ? (
-              <Photo
+              <PhotoZoom
                 key={photo.id}
                 thumbSrc={photo.thumbUrl}
                 fullSrc={photo.url}
@@ -457,10 +462,12 @@ function CareItem({
 function PhotoItem({
   item,
   treeId,
+  treeName,
   coverPhotoId,
 }: {
   item: Extract<TimelineItem, { kind: "photo" }>;
   treeId: string;
+  treeName: string;
   coverPhotoId: string | null;
 }) {
   const { photo } = item;
@@ -475,10 +482,10 @@ function PhotoItem({
       </div>
       <div className="bg-muted max-w-xs overflow-hidden rounded-xl">
         {photo.url ? (
-          <Photo
+          <PhotoZoom
             thumbSrc={photo.thumbUrl}
             fullSrc={photo.url}
-            alt=""
+            alt={`${treeName} photo`}
             width={photo.width}
             height={photo.height}
             className="h-auto w-full"
