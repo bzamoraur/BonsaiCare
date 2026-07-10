@@ -32,6 +32,14 @@ export function Photo({
   // Derive from props (not copied into state) so re-signed URLs stay live; a flag
   // records only that the thumb failed, so we don't loop between the two sources.
   const [thumbFailed, setThumbFailed] = useState(false);
+  // When the thumb source changes (e.g. a fresh signed URL after router.refresh),
+  // clear the failure so the card reclaims the thumb — a render-time reset rather
+  // than an effect (the repo bans setState-in-effect, and this avoids an extra paint).
+  const [lastThumb, setLastThumb] = useState(thumbSrc);
+  if (thumbSrc !== lastThumb) {
+    setLastThumb(thumbSrc);
+    setThumbFailed(false);
+  }
   const src = !thumbFailed && thumbSrc ? thumbSrc : fullSrc;
 
   if (!src) return null;
