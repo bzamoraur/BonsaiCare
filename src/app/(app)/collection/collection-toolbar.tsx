@@ -1,11 +1,11 @@
 "use client";
 
 import { SlidersHorizontal, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS } from "@/lib/tree-labels";
 import { cn } from "@/lib/utils";
 import { Constants } from "@/types/database.types";
 
@@ -46,6 +46,8 @@ function isActiveFilter(key: string, value: string | null): boolean {
 export function CollectionToolbar({ locations, tags }: { locations: Option[]; tags: Option[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const tStage = useTranslations("stages");
+  const tHealth = useTranslations("health");
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -219,7 +221,7 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
                   <option value="">All stages</option>
                   {Constants.public.Enums.development_stage.map((v) => (
                     <option key={v} value={v}>
-                      {DEVELOPMENT_STAGE_LABELS[v]}
+                      {tStage(v)}
                     </option>
                   ))}
                 </select>
@@ -235,7 +237,7 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
                   <option value="">All health</option>
                   {Constants.public.Enums.health_status.map((v) => (
                     <option key={v} value={v}>
-                      {HEALTH_STATUS_LABELS[v]}
+                      {tHealth(v)}
                     </option>
                   ))}
                 </select>

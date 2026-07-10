@@ -14,23 +14,9 @@ import {
 
 import type { CareEventType } from "@/domain/care";
 
-/**
- * Past-tense labels for care event types — read naturally on a timeline
- * ("Watered", "Repotted"). Exhaustive `Record` so a new enum value fails the
- * build until it gets a label.
- */
-export const CARE_EVENT_LABELS: Record<CareEventType, string> = {
-  watering: "Watered",
-  fertilizing: "Fertilized",
-  pruning: "Pruned",
-  wiring: "Wired",
-  repotting: "Repotted",
-  pest_treatment: "Pest treatment",
-  styling: "Styled",
-  defoliation: "Defoliated",
-  observation: "Observation",
-  note: "Note",
-};
+// Past-tense labels for care event types ("Watered", "Repotted") now live in the
+// `careTypes` message namespace (translate via useTranslations/getTranslations).
+// The messages.test.ts parity+coverage guard keeps every enum value present.
 
 /** An icon per care event type for the timeline. Exhaustive `Record`. */
 export const CARE_EVENT_ICONS: Record<CareEventType, LucideIcon> = {

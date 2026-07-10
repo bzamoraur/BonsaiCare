@@ -1,10 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS } from "@/lib/tree-labels";
 import { Constants } from "@/types/database.types";
 
 import { createTreeAction } from "./actions";
@@ -17,6 +17,8 @@ const fieldClass =
 
 export function NewTreeForm() {
   const [state, formAction, pending] = useActionState(createTreeAction, initialState);
+  const tStage = useTranslations("stages");
+  const tHealth = useTranslations("health");
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -63,7 +65,7 @@ export function NewTreeForm() {
           <option value="">Not sure yet</option>
           {Constants.public.Enums.development_stage.map((stage) => (
             <option key={stage} value={stage}>
-              {DEVELOPMENT_STAGE_LABELS[stage]}
+              {tStage(stage)}
             </option>
           ))}
         </select>
@@ -77,7 +79,7 @@ export function NewTreeForm() {
           <option value="">Not sure yet</option>
           {Constants.public.Enums.health_status.map((status) => (
             <option key={status} value={status}>
-              {HEALTH_STATUS_LABELS[status]}
+              {tHealth(status)}
             </option>
           ))}
         </select>

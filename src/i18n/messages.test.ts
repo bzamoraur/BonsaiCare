@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { Constants } from "@/types/database.types";
+
 import en from "../../messages/en.json";
 import es from "../../messages/es.json";
 
@@ -20,5 +22,22 @@ function flatKeys(obj: Record<string, unknown>, prefix = ""): string[] {
 describe("message catalogs", () => {
   it("en and es expose the identical set of keys", () => {
     expect(flatKeys(es).sort()).toEqual(flatKeys(en).sort());
+  });
+
+  // The enum-label namespaces replaced the old `satisfies Record<Enum, string>`
+  // maps; this restores the "a new enum value fails until it gets a label" safety.
+  const enumNamespaces = [
+    ["taskTypes", Constants.public.Enums.task_type],
+    ["careTypes", Constants.public.Enums.care_event_type],
+    ["stages", Constants.public.Enums.development_stage],
+    ["health", Constants.public.Enums.health_status],
+    ["origins", Constants.public.Enums.tree_origin],
+  ] as const;
+
+  it.each(enumNamespaces)("%s has a label for every enum value (en + es)", (ns, values) => {
+    for (const value of values) {
+      expect(en[ns], `en.${ns}.${value}`).toHaveProperty(value);
+      expect(es[ns], `es.${ns}.${value}`).toHaveProperty(value);
+    }
   });
 });

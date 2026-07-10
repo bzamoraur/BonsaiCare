@@ -1,10 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import type { CareEventType } from "@/domain/care";
 import { CARE_FIELDS } from "@/lib/care-fields";
-import { CARE_EVENT_LABELS } from "@/lib/care-labels";
 import { Constants } from "@/types/database.types";
 
 const fieldBase =
@@ -47,6 +47,7 @@ export function CareEntryFields({
   lastByType?: CareLastByType;
 }) {
   const [type, setType] = useState<CareEventType>(defaults.type);
+  const tCare = useTranslations("careTypes");
   const fields = CARE_FIELDS[type];
 
   // Prefer the explicit default (e.g. when editing an entry), then the last-used
@@ -70,7 +71,7 @@ export function CareEntryFields({
         >
           {Constants.public.Enums.care_event_type.map((t) => (
             <option key={t} value={t}>
-              {CARE_EVENT_LABELS[t]}
+              {tCare(t)}
             </option>
           ))}
         </select>

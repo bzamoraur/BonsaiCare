@@ -1,8 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { TASK_TYPE_LABELS } from "@/lib/task-labels";
 import { Constants, type Enums } from "@/types/database.types";
 
 // `:user-invalid` turns a required field's border red once the user has tried to
@@ -50,6 +50,7 @@ export type TaskDefaults = {
 export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
   const [recurring, setRecurring] = useState(defaults.recurring);
   const [seasonal, setSeasonal] = useState(defaults.seasonal);
+  const tType = useTranslations("taskTypes");
 
   return (
     <>
@@ -76,7 +77,7 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
           <select id="task-type" name="type" defaultValue={defaults.type} className={inputClass}>
             {Constants.public.Enums.task_type.map((t) => (
               <option key={t} value={t}>
-                {TASK_TYPE_LABELS[t]}
+                {tType(t)}
               </option>
             ))}
           </select>
