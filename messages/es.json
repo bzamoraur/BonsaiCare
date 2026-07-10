@@ -7,6 +7,21 @@
     "linkProblem": "Ese enlace de acceso no funcionó — puede haber caducado o ya haberse usado. Escribe tu correo abajo para recibir uno nuevo.",
     "signInProblem": "No pudimos iniciar tu sesión. Inténtalo de nuevo."
   },
+  "privacy": {
+    "title": "Privacidad",
+    "home": "← Bonsai Companion",
+    "intro": "Bonsai Companion es un proyecto personal compartido con unos pocos amigos. Esto es exactamente lo que guarda y tus derechos sobre ello, en lenguaje claro.",
+    "storeTitle": "Qué se guarda",
+    "storeBody": "Tu correo electrónico (para iniciar sesión) y los árboles, el historial de cuidados, las tareas y las fotos que añades — nada más. Sin rastreo, sin analíticas, sin publicidad.",
+    "whereTitle": "Dónde se guarda",
+    "whereBody": "En una base de datos de Supabase alojada en la UE. Las fotos están en un bucket privado (se eliminan los datos de ubicación de cada imagen) y se sirven mediante enlaces firmados de corta duración. Se conserva una copia de seguridad cifrada fuera del sitio para su recuperación.",
+    "rightsTitle": "Tus derechos",
+    "rightsBody": "Exporta todo cuando quieras — JSON, CSV y tus fotos — desde Ajustes, y elimina de forma permanente tu cuenta y todos sus datos desde Ajustes.",
+    "retentionTitle": "Cuando eliminas",
+    "retentionBody": "Tu cuenta y tus datos se eliminan de la aplicación y del almacenamiento activo de inmediato. Las copias en la copia de seguridad cifrada externa se eliminan cuando lo pidas — solo avísanos.",
+    "contactTitle": "Preguntas",
+    "contactBody": "Contacta directamente con el propietario en la dirección desde la que te invitaron."
+  },
   "cover": {
     "change": "Cambiar portada",
     "title": "Elegir portada",
@@ -85,7 +100,8 @@
     "downloadPhotos": "Descargar fotos",
     "signedIn": "Sesión iniciada",
     "signOut": "Cerrar sesión",
-    "ownerMetrics": "Métricas del propietario"
+    "ownerMetrics": "Métricas del propietario",
+    "privacyNote": "Aviso de privacidad"
   },
   "taskTypes": {
     "watering": "Regar",

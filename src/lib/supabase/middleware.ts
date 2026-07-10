@@ -5,7 +5,7 @@ import { env } from "@/lib/env";
 
 /** Paths reachable without a session (the sign-in screen and auth callbacks). */
 function isPublicPath(pathname: string): boolean {
-  return pathname === "/login" || pathname.startsWith("/auth/");
+  return pathname === "/login" || pathname === "/privacy" || pathname.startsWith("/auth/");
 }
 
 /**

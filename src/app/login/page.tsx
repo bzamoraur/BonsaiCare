@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 
 import { LoginForm } from "./login-form";
 
@@ -15,6 +16,7 @@ export default async function LoginPage({
 }) {
   const { deleted, error } = await searchParams;
   const t = await getTranslations("auth");
+  const tp = await getTranslations("privacy");
   const authError = error ? (error === "auth" ? t("linkProblem") : t("signInProblem")) : null;
 
   return (
@@ -38,6 +40,13 @@ export default async function LoginPage({
       ) : null}
 
       <LoginForm />
+
+      <Link
+        href="/privacy"
+        className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+      >
+        {tp("title")}
+      </Link>
     </main>
   );
 }
