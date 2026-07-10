@@ -1,19 +1,32 @@
+import { getTranslations } from "next-intl/server";
+
 import { LoginForm } from "./login-form";
 
 /**
- * Sign-in screen. A Server Component so it can read `searchParams` (the
- * `deleted=1` closure flag set after account deletion) and render a confirmation
- * above the client-side magic-link form.
+ * Sign-in screen. A Server Component so it can read `searchParams` — the
+ * `deleted=1` closure flag set after account deletion, and an `error` code from a
+ * failed auth callback (e.g. an expired or already-used magic link) — and show a
+ * message above the client-side magic-link form instead of a silent blank form.
  */
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ deleted?: string }>;
+  searchParams: Promise<{ deleted?: string; error?: string }>;
 }) {
-  const { deleted } = await searchParams;
+  const { deleted, error } = await searchParams;
+  const t = await getTranslations("auth");
+  const authError = error ? (error === "auth" ? t("linkProblem") : t("signInProblem")) : null;
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-6 px-6">
+      {authError ? (
+        <p
+          role="alert"
+          className="border-destructive/30 bg-destructive/10 text-destructive-strong max-w-sm rounded-md border px-4 py-3 text-center text-sm"
+        >
+          {authError}
+        </p>
+      ) : null}
       {deleted === "1" ? (
         <p
           role="status"

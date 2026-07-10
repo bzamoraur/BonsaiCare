@@ -3,6 +3,10 @@
     "collectionTask": "Collection task",
     "taskUpdateError": "We couldn't update that task. Please try again."
   },
+  "auth": {
+    "linkProblem": "That sign-in link didn't work — it may have expired or already been used. Enter your email below for a fresh one.",
+    "signInProblem": "We couldn't sign you in. Please try again."
+  },
   "cover": {
     "change": "Change cover",
     "title": "Choose cover",
@@ -45,7 +49,10 @@
     "summaryDueToday": "{count, plural, one {# due today} other {# due today}}",
     "summaryTrees": "{count, plural, one {# tree} other {# trees}}",
     "summaryAllClear": "All caught up",
-    "recentPhotos": "Recent moments"
+    "recentPhotos": "Recent moments",
+    "firstRunTitle": "Add your first tree to start tracking its care.",
+    "firstRunAddTree": "Add a tree",
+    "firstRunPlan": "Plan care"
   },
   "collection": {
     "title": "Collection",

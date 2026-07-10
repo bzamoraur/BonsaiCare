@@ -3,6 +3,10 @@
     "collectionTask": "Tarea de la colección",
     "taskUpdateError": "No pudimos actualizar esa tarea. Inténtalo de nuevo."
   },
+  "auth": {
+    "linkProblem": "Ese enlace de acceso no funcionó — puede haber caducado o ya haberse usado. Escribe tu correo abajo para recibir uno nuevo.",
+    "signInProblem": "No pudimos iniciar tu sesión. Inténtalo de nuevo."
+  },
   "cover": {
     "change": "Cambiar portada",
     "title": "Elegir portada",
@@ -45,7 +49,10 @@
     "summaryDueToday": "{count, plural, one {# para hoy} other {# para hoy}}",
     "summaryTrees": "{count, plural, one {# árbol} other {# árboles}}",
     "summaryAllClear": "Todo al día",
-    "recentPhotos": "Momentos recientes"
+    "recentPhotos": "Momentos recientes",
+    "firstRunTitle": "Añade tu primer árbol para empezar a registrar sus cuidados.",
+    "firstRunAddTree": "Añadir árbol",
+    "firstRunPlan": "Planificar cuidados"
   },
   "collection": {
     "title": "Colección",

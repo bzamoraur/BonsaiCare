@@ -4,8 +4,10 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { TaskActions } from "@/components/task-actions";
+import { buttonVariants } from "@/components/ui/button";
 import { addLocalDaysIso, useLocalToday } from "@/lib/local-day";
 import { TASK_TYPE_ICONS } from "@/lib/task-labels";
+import { cn } from "@/lib/utils";
 import type { DashboardTask } from "@/server/dashboard";
 
 export type DashboardItem = {
@@ -50,6 +52,25 @@ export function TodayDashboard({
   if (treeCount > 0) parts.push(t("summaryTrees", { count: treeCount }));
   const summary = <p className="text-muted-foreground text-sm">{parts.join(" · ")}</p>;
 
+  // Brand-new (or all-archived) user: nothing to do AND no active trees — give a
+  // clear path forward instead of a dead-end "all caught up".
+  if (items.length === 0 && treeCount === 0) {
+    return (
+      <section className="border-border bg-card flex flex-col items-center gap-4 rounded-2xl border p-8 text-center">
+        <p className="text-muted-foreground text-balance">{t("firstRunTitle")}</p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Link href="/collection/new" className={cn(buttonVariants())}>
+            {t("firstRunAddTree")}
+          </Link>
+          <Link href="/plan/schedule" className={cn(buttonVariants({ variant: "outline" }))}>
+            {t("firstRunPlan")}
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  // Has trees, nothing due — keep the calm all-clear.
   if (items.length === 0) {
     return (
       <div className="flex flex-col gap-4">
