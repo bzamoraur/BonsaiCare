@@ -16,6 +16,7 @@ export function Photo({
   alt,
   className,
   loading = "lazy",
+  priority = false,
   width,
   height,
 }: {
@@ -24,6 +25,9 @@ export function Photo({
   alt: string;
   className?: string;
   loading?: "lazy" | "eager";
+  // Above-the-fold hero: load eagerly and hint the browser to fetch it first (it's
+  // the LCP image). Overrides `loading`.
+  priority?: boolean;
   // The full image's intrinsic size — the thumb shares its aspect ratio, so these
   // reserve space and prevent layout shift regardless of which rendition loads.
   width?: number | null;
@@ -49,7 +53,9 @@ export function Photo({
     <img
       src={src}
       alt={alt}
-      loading={loading}
+      loading={priority ? "eager" : loading}
+      fetchPriority={priority ? "high" : undefined}
+      decoding="async"
       width={width ?? undefined}
       height={height ?? undefined}
       onError={() => {

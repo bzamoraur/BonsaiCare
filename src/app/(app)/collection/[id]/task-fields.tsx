@@ -5,8 +5,11 @@ import { useState } from "react";
 import { TASK_TYPE_LABELS } from "@/lib/task-labels";
 import { Constants, type Enums } from "@/types/database.types";
 
+// `:user-invalid` turns a required field's border red once the user has tried to
+// submit (or edited then emptied it) — a clear "this is missing" cue on top of the
+// browser's native validation, no JS. Arbitrary variant so it compiles on any Tailwind.
 const fieldBase =
-  "border-input bg-background focus-visible:ring-ring rounded-md border px-3 text-base outline-none focus-visible:ring-2";
+  "border-input bg-background focus-visible:ring-ring rounded-md border px-3 text-base outline-none focus-visible:ring-2 [&:user-invalid]:border-destructive [&:user-invalid]:ring-destructive";
 const inputClass = `${fieldBase} h-10`;
 
 const MONTHS = [

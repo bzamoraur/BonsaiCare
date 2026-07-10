@@ -18,6 +18,8 @@ export function PhotoZoom({
   fullSrc,
   alt,
   className,
+  triggerClassName,
+  priority = false,
   width,
   height,
 }: {
@@ -25,6 +27,10 @@ export function PhotoZoom({
   fullSrc: string | null;
   alt: string;
   className?: string;
+  /** Extra classes for the trigger button (e.g. `h-full w-full` to fill a hero box). */
+  triggerClassName?: string;
+  /** Eager, high-priority load for an above-the-fold hero. */
+  priority?: boolean;
   width?: number | null;
   height?: number | null;
 }) {
@@ -57,7 +63,10 @@ export function PhotoZoom({
         aria-label={alt ? `View ${alt} full screen` : "View photo full screen"}
         // ring-inset so the focus indicator isn't clipped by an `overflow-hidden`
         // ancestor (the button fills its container flush).
-        className="focus-visible:ring-ring block w-full cursor-zoom-in rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-inset"
+        className={cn(
+          "focus-visible:ring-ring block w-full cursor-zoom-in rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-inset",
+          triggerClassName,
+        )}
       >
         <Photo
           thumbSrc={thumbSrc}
@@ -65,6 +74,7 @@ export function PhotoZoom({
           alt={alt}
           width={width}
           height={height}
+          priority={priority}
           className={className}
         />
       </button>
