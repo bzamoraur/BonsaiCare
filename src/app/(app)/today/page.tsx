@@ -64,7 +64,7 @@ export default async function TodayPage({
       {triage.length > 0 ? (
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-medium">{t("needsAttention")}</h2>
-          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <ul className="grid auto-rows-fr grid-cols-2 gap-4 sm:grid-cols-3">
             {triage.map((tree) => (
               <li key={tree.id}>
                 <TreeCard tree={tree} serverToday={serverToday} />
