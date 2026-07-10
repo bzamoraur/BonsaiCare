@@ -48,4 +48,16 @@ test("add a tree, then attach a photo to it", async ({ page }, testInfo) => {
   //    path ends in `.thumb.webp` — proving the thumb was generated at upload,
   //    stored at the derived path, signed, and used in place of the full image.
   await expect(page.locator('img[src*=".thumb.webp"]').first()).toBeVisible({ timeout: 15_000 });
+
+  // 6. S10.3: tapping the timeline photo opens it full-screen in a dialog (the
+  //    full image loads only then), and it closes again.
+  await page
+    .getByRole("button", { name: /view .* full screen/i })
+    .first()
+    .click();
+  const lightbox = page.getByRole("dialog");
+  await expect(lightbox).toBeVisible();
+  await expect(lightbox.getByRole("img")).toBeVisible();
+  await lightbox.getByRole("button", { name: "Close" }).click();
+  await expect(lightbox).not.toBeVisible();
 });
