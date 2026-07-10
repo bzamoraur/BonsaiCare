@@ -3,6 +3,21 @@
     "collectionTask": "Tarea de la colección",
     "taskUpdateError": "No pudimos actualizar esa tarea. Inténtalo de nuevo."
   },
+  "calendar": {
+    "title": "Calendario",
+    "today": "Hoy",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "nothingScheduled": "Nada programado este mes.",
+    "done": "Hecho",
+    "dueCount": "{count, plural, one {# pendiente} other {# pendientes}}",
+    "doneCount": "{count, plural, one {# hecha} other {# hechas}}",
+    "addTask": "Añadir tarea",
+    "newTask": "Nueva tarea",
+    "whichTree": "¿Qué árbol?",
+    "wholeCollection": "Toda la colección",
+    "adding": "Añadiendo…"
+  },
   "nav": {
     "today": "Hoy",
     "collection": "Colección",

@@ -1,48 +1,20 @@
 "use client";
 
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Check, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
+import { useState } from "react";
 
 import { TaskActions } from "@/components/task-actions";
+import { buttonVariants } from "@/components/ui/button";
 import { useLocalToday } from "@/lib/local-day";
 import { TASK_TYPE_ICONS } from "@/lib/task-labels";
 import { cn } from "@/lib/utils";
 import type { DashboardTask } from "@/server/dashboard";
 
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]; // Monday-first
+import { AddTaskSheet } from "./add-task-sheet";
 
 const pad = (n: number) => String(n).padStart(2, "0");
-
-const agendaFormatter = new Intl.DateTimeFormat("en-GB", {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-});
-// Format a bare "YYYY-MM-DD" at local midnight so the day survives any timezone.
-const formatDayHeader = (iso: string) => agendaFormatter.format(new Date(`${iso}T00:00:00`));
-
-// Grid dot count, read out for assistive tech: e.g. "2 due, 1 done".
-function dotsLabel(pending: number, done: number): string {
-  const parts: string[] = [];
-  if (pending > 0) parts.push(`${pending} due`);
-  if (done > 0) parts.push(`${done} done`);
-  return parts.join(", ");
-}
 
 /** One agenda entry: the task plus its complete/skip server actions, pre-bound to
  * the task id on the server. Only pending rows render the actions. */
@@ -87,23 +59,65 @@ export function CalendarView({
   const localMonthParam = today.slice(0, 7); // "YYYY-MM" of the viewer's local day
   const isCurrentMonth = monthPrefix === localMonthParam;
 
+  const t = useTranslations("calendar");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const [addDate, setAddDate] = useState<string | null>(null);
+
+  // These format Date.UTC(...) instants, so they MUST read back in UTC — otherwise a
+  // viewer west of UTC sees the previous month / a shifted weekday row (and an SSR
+  // hydration mismatch). dayHeaderFmt below is correctly local (it formats a
+  // local-midnight `${iso}T00:00:00`).
+  const monthLabel = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(
+    new Date(Date.UTC(year, month - 1, 1)),
+  );
+  const weekdayFmt = new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" });
+  // 2024-01-01 is a Monday → indices 0..6 give Mon..Sun (Monday-first).
+  const weekdays = Array.from({ length: 7 }, (_, i) =>
+    weekdayFmt.format(new Date(Date.UTC(2024, 0, 1 + i))),
+  );
+  const dayHeaderFmt = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  // Format a bare "YYYY-MM-DD" at local midnight so the day survives any timezone.
+  const formatDayHeader = (iso: string) => dayHeaderFmt.format(new Date(`${iso}T00:00:00`));
+  const dotsLabel = (pending: number, done: number) =>
+    [
+      pending > 0 ? t("dueCount", { count: pending }) : null,
+      done > 0 ? t("doneCount", { count: done }) : null,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Calendar</h1>
-        {!isCurrentMonth ? (
-          <Link
-            href={`/calendar?m=${localMonthParam}`}
-            className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <div className="flex items-center gap-3">
+          {!isCurrentMonth ? (
+            <Link
+              href={`/calendar?m=${localMonthParam}`}
+              className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
+            >
+              {t("today")}
+            </Link>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setAddDate(isCurrentMonth ? today : `${monthPrefix}-01`)}
+            className={cn(buttonVariants({ size: "sm" }))}
           >
-            Today
-          </Link>
-        ) : null}
+            <Plus aria-hidden />
+            {t("addTask")}
+          </button>
+        </div>
       </div>
 
       {hasError ? (
         <p role="alert" className="text-destructive text-sm">
-          We couldn&apos;t update that task. Please try again.
+          {tc("taskUpdateError")}
         </p>
       ) : null}
 
@@ -111,17 +125,17 @@ export function CalendarView({
       <div className="flex items-center justify-between gap-4">
         <Link
           href={`/calendar?m=${prevParam}`}
-          aria-label="Previous month"
+          aria-label={t("previousMonth")}
           className="text-muted-foreground hover:text-foreground rounded-md p-1"
         >
           <ChevronLeft className="size-5" aria-hidden />
         </Link>
         <span className="text-sm font-medium">
-          {MONTH_NAMES[month - 1]} {year}
+          {monthLabel} {year}
         </span>
         <Link
           href={`/calendar?m=${nextParam}`}
-          aria-label="Next month"
+          aria-label={t("nextMonth")}
           className="text-muted-foreground hover:text-foreground rounded-md p-1"
         >
           <ChevronRight className="size-5" aria-hidden />
@@ -131,7 +145,7 @@ export function CalendarView({
       {/* Month grid */}
       <div className="flex flex-col gap-1">
         <div className="grid grid-cols-7 gap-1 text-center">
-          {WEEKDAYS.map((w) => (
+          {weekdays.map((w) => (
             <div key={w} className="text-muted-foreground text-xs font-medium">
               {w}
             </div>
@@ -198,9 +212,7 @@ export function CalendarView({
       {/* Agenda for the month */}
       <section className="flex flex-col gap-4">
         {agenda.length === 0 ? (
-          <p className="text-muted-foreground text-sm text-balance">
-            Nothing scheduled this month.
-          </p>
+          <p className="text-muted-foreground text-sm text-balance">{t("nothingScheduled")}</p>
         ) : (
           agenda.map(({ iso, tasks }) => (
             // scroll-mt gives the day a little breathing room when a grid cell
@@ -213,7 +225,7 @@ export function CalendarView({
                 )}
               >
                 {formatDayHeader(iso)}
-                {iso === today ? " · Today" : ""}
+                {iso === today ? ` · ${t("today")}` : ""}
               </h2>
               <ol className="flex flex-col gap-2">
                 {tasks.map((item) => (
@@ -224,6 +236,12 @@ export function CalendarView({
           ))
         )}
       </section>
+
+      <AddTaskSheet
+        open={addDate !== null}
+        prefillDate={addDate ?? today}
+        onClose={() => setAddDate(null)}
+      />
     </main>
   );
 }
@@ -231,6 +249,8 @@ export function CalendarView({
 function AgendaRow({ item, serverToday }: { item: AgendaTask; serverToday: string }) {
   const { task, complete, skip } = item;
   const t = useTranslations("taskTypes");
+  const tc = useTranslations("common");
+  const tCal = useTranslations("calendar");
   const done = task.status === "done";
   // A completed action reads as settled: a check in a primary-tint circle plus a
   // "Done" tag. Pending rows carry inline Done/Skip actions; the title links to the
@@ -260,8 +280,8 @@ function AgendaRow({ item, serverToday }: { item: AgendaTask; serverToday: strin
           )}
           <span className="text-muted-foreground text-xs">
             {t(task.type)}
-            {task.tree ? ` · ${task.tree.name}` : " · Collection task"}
-            {done ? " · Done" : ""}
+            {task.tree ? ` · ${task.tree.name}` : ` · ${tc("collectionTask")}`}
+            {done ? ` · ${tCal("done")}` : ""}
           </span>
         </div>
       </div>
