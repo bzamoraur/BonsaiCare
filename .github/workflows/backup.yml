@@ -2,6 +2,11 @@ name: Weekly database backup
 
 # Free-tier Supabase has NO managed backups (Risk R9). This dumps the hosted
 # DATABASE (schema + data) every week and keeps it as a downloadable artifact.
+# The repo is PUBLIC and the dump contains auth.users (emails, password hashes,
+# session tokens), so the artifact is ENCRYPTED (AES-256 via openssl) before upload.
+# It requires the BACKUP_ENCRYPTION_KEY secret and FAILS LOUD (never uploads
+# plaintext) if that secret is missing. Decrypt with the passphrase — the exact
+# command is echoed into the run log and documented in the runbook.
 # NOTE: photos (Storage bucket bytes) are NOT included — see the runbook's
 # backups section for the monthly photo-archive cadence.
 # Requires the SUPABASE_DB_URL repository Action secret: the SESSION-POOLER URI
@@ -75,13 +80,31 @@ jobs:
             echo "::warning::backup-data.sql has no COPY/INSERT blocks — fine only if the database is genuinely empty."
           fi
 
-      - name: Upload backup artifact
-        if: hashFiles('backup-*.sql') != ''
+      # The repo is PUBLIC, so an artifact is world-downloadable. The dump contains
+      # auth.users (emails, password hashes, session tokens) — it must be encrypted.
+      # Fail loud if the key is missing rather than ever upload plaintext.
+      - name: Encrypt the dump
+        env:
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          if [ -z "$BACKUP_ENCRYPTION_KEY" ]; then
+            echo "::error::Secret BACKUP_ENCRYPTION_KEY is not set — refusing to upload an UNENCRYPTED database dump (auth.users: emails, password hashes, session tokens) to a PUBLIC-repo artifact. Add a strong passphrase secret and re-run. See docs/operations/runbook.md#backups."
+            exit 1
+          fi
+          tar -czf backup.tar.gz backup-schema.sql backup-data.sql
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt \
+            -in backup.tar.gz -out backup.tar.gz.enc -pass env:BACKUP_ENCRYPTION_KEY
+          rm -f backup-schema.sql backup-data.sql backup.tar.gz
+          echo "Encrypted → backup.tar.gz.enc ($(wc -c < backup.tar.gz.enc) bytes)."
+          echo "Restore: openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in backup.tar.gz.enc -pass env:BACKUP_ENCRYPTION_KEY | tar -xz"
+
+      - name: Upload encrypted backup artifact
+        if: hashFiles('backup.tar.gz.enc') != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: db-backup-${{ github.run_id }}
-          path: backup-*.sql
-          retention-days: 90
+          path: backup.tar.gz.enc
+          retention-days: 35
 
       - name: Open an ops-alert issue on failure
         if: ${{ failure() }}
