@@ -6,6 +6,17 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Faster, lighter photos + tap-to-zoom (M6 / Sprint 10, 2026-07-10)
+
+- **Grids and timelines load small thumbnails, not full images.** Every photo now
+  gets a ~320px rendition at upload, and the collection grid, Today's needs-attention
+  strip, the log picker, and the tree timeline show that — instead of downloading the
+  full ~1600px image to display it at a fraction of the size. Much less data, much
+  quicker; older photos fall back to the full image with no re-upload needed.
+- **Tap a timeline photo to view it full-screen.** A lightbox opens the full image on
+  tap (Esc, the close button, or a tap outside dismisses it). The full-size bytes load
+  only when you open it, so the thumbnail saving isn't lost. **No schema change.**
+
 ### Added — Care forms remember your routine (M6 / Sprint 09, 2026-07-10)
 
 - **Logging routine care starts pre-filled.** When you log care on a tree, the
