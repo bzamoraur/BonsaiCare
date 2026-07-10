@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import type { CareLastByType } from "@/components/care-entry-fields";
 import { CareRecencyChips } from "@/components/care-recency-chips";
+import { Photo } from "@/components/photo";
 import { careDetailsToStrings } from "@/lib/care-details";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { CareEventType, CareRecency } from "@/domain/care";
@@ -425,12 +426,11 @@ function CareItem({
         <div className="mt-1 grid grid-cols-3 gap-2">
           {photos.map((photo) =>
             photo.url ? (
-              // eslint-disable-next-line @next/next/no-img-element -- private signed URL
-              <img
+              <Photo
                 key={photo.id}
-                src={photo.url}
+                thumbSrc={photo.thumbUrl}
+                fullSrc={photo.url}
                 alt={`${treeName} — ${CARE_EVENT_LABELS[entry.type]}`}
-                loading="lazy"
                 className="bg-muted aspect-square w-full rounded-lg object-cover"
               />
             ) : null,
@@ -475,13 +475,12 @@ function PhotoItem({
       </div>
       <div className="bg-muted max-w-xs overflow-hidden rounded-xl">
         {photo.url ? (
-          // eslint-disable-next-line @next/next/no-img-element -- private signed URL
-          <img
-            src={photo.url}
+          <Photo
+            thumbSrc={photo.thumbUrl}
+            fullSrc={photo.url}
             alt=""
-            loading="lazy"
-            width={photo.width ?? undefined}
-            height={photo.height ?? undefined}
+            width={photo.width}
+            height={photo.height}
             className="h-auto w-full"
           />
         ) : null}

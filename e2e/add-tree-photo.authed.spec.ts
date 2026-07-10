@@ -43,4 +43,9 @@ test("add a tree, then attach a photo to it", async ({ page }, testInfo) => {
   //    proving the upload + DB record landed. The polling assertion also waits
   //    out the upload's round-trip, so we never end the test mid-action.
   await expect(page.getByRole("img", { name: treeName })).toBeVisible({ timeout: 15_000 });
+
+  // 5. S10.1: the timeline shows the small thumbnail rendition — its signed URL
+  //    path ends in `.thumb.webp` — proving the thumb was generated at upload,
+  //    stored at the derived path, signed, and used in place of the full image.
+  await expect(page.locator('img[src*=".thumb.webp"]').first()).toBeVisible({ timeout: 15_000 });
 });

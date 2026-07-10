@@ -2,6 +2,7 @@ import { cache } from "react";
 
 import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
+import { thumbPath } from "@/lib/thumb-path";
 import type { Tables } from "@/types/database.types";
 
 /**
@@ -11,10 +12,31 @@ import type { Tables } from "@/types/database.types";
  */
 
 export type Photo = Tables<"photos">;
-export type PhotoWithUrl = Photo & { url: string | null };
+// `thumbUrl` is the small rendition (S10.1); null when a photo predates thumbnails.
+export type PhotoWithUrl = Photo & { url: string | null; thumbUrl: string | null };
 
 const BUCKET = "tree-photos";
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour
+
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+/** Signs a batch of storage paths → Map<path, signedUrl> (only successful ones).
+ * Empty in, empty out; a batch failure logs under `label` and yields an empty map
+ * so callers degrade to placeholders / a fallback URL rather than throwing. */
+async function signPaths(
+  supabase: ServerClient,
+  paths: string[],
+  label: string,
+): Promise<Map<string, string>> {
+  if (paths.length === 0) return new Map();
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
+  if (error) logActionError(label, error);
+  return new Map(
+    (data ?? []).flatMap((s) => (s.path && s.signedUrl ? [[s.path, s.signedUrl] as const] : [])),
+  );
+}
 
 /** A tree's photos (newest first) with fresh signed URLs. */
 export const listTreePhotos = cache(async (treeId: string): Promise<PhotoWithUrl[]> => {
@@ -29,16 +51,29 @@ export const listTreePhotos = cache(async (treeId: string): Promise<PhotoWithUrl
   const photos = data ?? [];
   if (photos.length === 0) return [];
 
-  // Signing failures degrade to url: null (the gallery renders placeholders),
-  // but never silently — a Storage outage must leave a trace.
-  const { data: signed, error: signError } = await supabase.storage.from(BUCKET).createSignedUrls(
-    photos.map((p) => p.storage_path),
-    SIGNED_URL_TTL_SECONDS,
-  );
-  if (signError) logActionError("listTreePhotos.sign", signError);
-  const urlByPath = new Map((signed ?? []).map((s) => [s.path, s.signedUrl]));
+  // Full-image URLs are authoritative — sign them on their own so a thumbnail
+  // hiccup can never blank the gallery. Signing failures degrade to null (the
+  // gallery renders placeholders) but never silently — a Storage outage leaves a
+  // trace. Thumbs (S10.1) are a separate best-effort batch: a missing thumb (older
+  // photo) or an error just yields null, and readers fall back to the full URL.
+  const [full, thumbs] = await Promise.all([
+    signPaths(
+      supabase,
+      photos.map((p) => p.storage_path),
+      "listTreePhotos.sign",
+    ),
+    signPaths(
+      supabase,
+      photos.map((p) => thumbPath(p.storage_path)),
+      "listTreePhotos.signThumb",
+    ),
+  ]);
 
-  return photos.map((p) => ({ ...p, url: urlByPath.get(p.storage_path) ?? null }));
+  return photos.map((p) => ({
+    ...p,
+    url: full.get(p.storage_path) ?? null,
+    thumbUrl: thumbs.get(thumbPath(p.storage_path)) ?? null,
+  }));
 });
 
 /**
@@ -134,7 +169,11 @@ export async function deletePhoto(photoId: string): Promise<void> {
   if (selectError) throw new Error(`Failed to delete photo: ${selectError.message}`);
   if (!photo) return; // already gone (or not the caller's)
 
-  const { error: storageError } = await supabase.storage.from(BUCKET).remove([photo.storage_path]);
+  // Remove the full image and its thumbnail together; a missing thumb (older
+  // photo) is simply absent from the result, not an error.
+  const { error: storageError } = await supabase.storage
+    .from(BUCKET)
+    .remove([photo.storage_path, thumbPath(photo.storage_path)]);
   if (storageError) throw new Error(`Failed to delete photo file: ${storageError.message}`);
 
   const { error } = await supabase.from("photos").delete().eq("id", photoId);

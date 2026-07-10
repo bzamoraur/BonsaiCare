@@ -95,6 +95,20 @@ describe("collectOrphans", () => {
     const known = new Set(["a/1/known.webp"]);
     expect(collectOrphans(objects, known, cutoff)).toEqual(["a/1/orphan.webp"]);
   });
+
+  it("protects a thumbnail whose full-size sibling is known, but sweeps a parentless thumb", () => {
+    const objects = [
+      { path: "a/1/known.webp", createdAt: old },
+      { path: "a/1/known.thumb.webp", createdAt: old }, // kept — parent is a known photo
+      { path: "a/1/orphan.webp", createdAt: old },
+      { path: "a/1/orphan.thumb.webp", createdAt: old }, // swept — parent isn't known
+    ];
+    const known = new Set(["a/1/known.webp"]);
+    expect(collectOrphans(objects, known, cutoff)).toEqual([
+      "a/1/orphan.webp",
+      "a/1/orphan.thumb.webp",
+    ]);
+  });
 });
 
 describe("sweepGuard", () => {

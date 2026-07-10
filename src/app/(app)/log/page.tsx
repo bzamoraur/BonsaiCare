@@ -2,6 +2,7 @@ import { Leaf } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { Photo } from "@/components/photo";
 import { buttonVariants } from "@/components/ui/button";
 import { logActionError } from "@/lib/log-action-error";
 import { cn } from "@/lib/utils";
@@ -64,11 +65,10 @@ export default async function LogPage() {
                   <article className="border-border bg-card hover:border-foreground/20 overflow-hidden rounded-2xl border transition-colors">
                     <div className="bg-muted flex aspect-square items-center justify-center overflow-hidden">
                       {tree.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- private signed URL, next/image caching doesn't fit
-                        <img
-                          src={tree.coverUrl}
+                        <Photo
+                          thumbSrc={tree.coverThumbUrl}
+                          fullSrc={tree.coverUrl}
                           alt=""
-                          loading="lazy"
                           className="h-full w-full object-cover"
                         />
                       ) : (

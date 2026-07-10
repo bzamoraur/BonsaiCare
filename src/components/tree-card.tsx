@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { CareRecencyChips } from "@/components/care-recency-chips";
+import { Photo } from "@/components/photo";
 import type { CareRecency } from "@/domain/care";
 import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS } from "@/lib/tree-labels";
 import type { TreeCard as TreeCardData } from "@/server/trees";
@@ -31,8 +32,12 @@ export function TreeCard({
       <article className="border-border bg-card hover:border-foreground/20 overflow-hidden rounded-2xl border transition-colors">
         <div className="bg-muted flex aspect-square items-center justify-center overflow-hidden">
           {tree.coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- private signed URL, next/image caching doesn't fit
-            <img src={tree.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+            <Photo
+              thumbSrc={tree.coverThumbUrl}
+              fullSrc={tree.coverUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
           ) : (
             <Leaf className="text-muted-foreground/40 size-10" aria-hidden />
           )}
