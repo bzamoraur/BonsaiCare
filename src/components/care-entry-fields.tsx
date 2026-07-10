@@ -19,6 +19,11 @@ export type CareDefaults = {
   details: Record<string, string>;
 };
 
+/** Per-type last-used detail values (field name → value), used to pre-fill the
+ * detail fields when logging — so re-logging a routine (e.g. the same watering
+ * amount) starts filled in. */
+export type CareLastByType = Partial<Record<CareEventType, Record<string, string>>>;
+
 /**
  * The shared field set for logging/editing a care entry (single or batch).
  * Controlled `type` drives which per-type detail fields render; everything else
@@ -35,12 +40,20 @@ export type CareDefaults = {
 export function CareEntryFields({
   defaults,
   idPrefix = "care",
+  lastByType,
 }: {
   defaults: CareDefaults;
   idPrefix?: string;
+  lastByType?: CareLastByType;
 }) {
   const [type, setType] = useState<CareEventType>(defaults.type);
   const fields = CARE_FIELDS[type];
+
+  // Prefer the explicit default (e.g. when editing an entry), then the last-used
+  // value for the current type, then empty. Keyed by type below so switching type
+  // re-applies the right pre-fill.
+  const detailDefault = (name: string) =>
+    defaults.details[name] ?? lastByType?.[type]?.[name] ?? "";
 
   return (
     <>
@@ -66,7 +79,9 @@ export function CareEntryFields({
       {fields.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {fields.map((field) => (
-            <div key={field.name} className="flex flex-col gap-1.5">
+            // Key by type so switching care type remounts the detail fields and
+            // re-applies that type's pre-fill (some names, e.g. "amount", recur).
+            <div key={`${type}-${field.name}`} className="flex flex-col gap-1.5">
               <label htmlFor={`${idPrefix}-${field.name}`} className="text-sm font-medium">
                 {field.label}
               </label>
@@ -77,14 +92,14 @@ export function CareEntryFields({
                   type="text"
                   maxLength={field.maxLength}
                   placeholder={field.placeholder}
-                  defaultValue={defaults.details[field.name] ?? ""}
+                  defaultValue={detailDefault(field.name)}
                   className={inputClass}
                 />
               ) : (
                 <select
                   id={`${idPrefix}-${field.name}`}
                   name={field.name}
-                  defaultValue={defaults.details[field.name] ?? ""}
+                  defaultValue={detailDefault(field.name)}
                   className={inputClass}
                 >
                   <option value="">—</option>
