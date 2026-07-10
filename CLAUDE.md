@@ -4,18 +4,29 @@ Guidance for Claude Code (and humans) working in Bonsai Companion. Keep this lea
 and high-signal; detailed reasoning lives in `docs/`.
 
 ## What this is
-A personal, production-grade **bonsai care & tracking PWA**. **Phase 1 (MVP) is
-feature-complete**: M1–M5 all shipped and live (PRs #2–#57; auth/shell/schema →
-trees & photos → timeline & care logging → tasks/recurrence/dashboard → export,
-real deletion, dark mode, a11y, e2e harness, hardening). Execution order now
-comes from `docs/roadmap/improvement-plan.md` (2026-07-06 milestone audit:
-Sprint 08 fix-first hardening → M6 daily-driver → M7 friends release → M8
-intelligence → M9 offline/sharing); current audit snapshot:
-`PROJECT_EXPORT.md`; what's armed in prod: `docs/operations/production-state.md`.
-Keep this status line current — update it in the same PR that changes it (this
-is a Definition-of-Done item for every milestone-closing PR). Read
-`docs/product/product-brief.md` and `docs/architecture/overview.md` before
-non-trivial work.
+A personal, production-grade **bonsai care & tracking PWA**. Phase 1 (MVP) is
+feature-complete and **Sprint 08 hardening + most of M6 (daily-driver) have now
+shipped** (PRs #2–#113, through 2026-07-10): auth/shell/schema → trees & photos →
+timeline & care logging → tasks/recurrence/dashboard → export, real deletion,
+dark mode, a11y, e2e harness → S08 hardening (security headers, DB hardening
+migration, no-silent-catches logging, fail-loud crons, orphan-sweep fix, honest
+offline page, B2 photo mirror) → M6 daily-driver (batch care, repeat-last,
+recency chips, quick-add sheet, archived view + unarchive, calendar inline
+actions, thumbnails + lightbox + SW photo cache) → an **i18n ES/EN foundation
+pulled forward from M7** (next-intl cookie locale; nav/Today/Collection/Settings
++ enum labels translated, the rest still English). **We are NOT yet in the M7
+"safe to hand to a friend" gate** — per the plan's own rule the URL is not shared
+until M7's exit criteria pass, and none of them are fully met yet (see
+`ROADMAP.md`). Remaining M6 tail: S10.4 loading skeletons, S10.6 export
+robustness, S10.7 `listTreeOptions`.
+
+Execution order comes from `docs/roadmap/improvement-plan.md` (M6 tail → M7
+friends release → M8 intelligence → M9 offline/sharing); the three-tier beta
+plan is `ROADMAP.md`; the current audit snapshot is `PROJECT_EXPORT.md`; what's
+armed in prod is `docs/operations/production-state.md`. Keep this status line
+current — update it in the same PR that changes it (this is a Definition-of-Done
+item for every milestone-closing PR). Read `docs/product/product-brief.md` and
+`docs/architecture/overview.md` before non-trivial work.
 
 ## Golden rules (don't violate without an ADR)
 1. **Scope discipline.** Build only what's in `docs/product/mvp-scope.md`. New
@@ -51,6 +62,8 @@ src/components/ shared UI (shadcn-based; components/ui/ = primitives)
 src/domain/     PURE logic + validators + tests (no React/Supabase)
 src/server/     RLS-aware data access (server-only)
 src/lib/        supabase clients, env, labels, utils
+src/i18n/       next-intl request config + locale actions (cookie locale, EN/ES)
+messages/       en.json / es.json translation catalogs (key parity unit-tested)
 src/types/      generated DB types (`pnpm gen:types`; CI fails on drift)
 src/proxy.ts    Next 16 proxy (session refresh + route gating)
 supabase/       migrations/ + tests/ (pgTAP RLS suites)
@@ -62,7 +75,12 @@ scripts/        ops/utility scripts (icon generation, storage reconcile)
 ## Core domain concepts (use this language)
 - **Tree** (central aggregate), organized by `development_stage`, `location`, tags.
 - **Species *category*** (conifer/deciduous/tropical/broadleaf-evergreen) is the
-  master variable that drives scheduling — not a big species DB.
+  *intended* master variable for scheduling — not a big species DB. **Honest
+  status: still dormant.** The `species` table + `default_care` jsonb seam exist
+  and are seeded, but no runtime code reads them; today `species_id` is never
+  written and trees store a free-text `species_label` for display only.
+  Activating this (species picker → category care rules → Today suggestions) is
+  M8 — the app's #1 unbuilt differentiator.
 - **care_log_entry** = unified *past* timeline event (typed core + validated JSONB
   `details`), ADR-0005. **task** = *future* intention with simple editable
   recurrence (interval + season window), ADR-0006. Keep past/future separate.

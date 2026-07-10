@@ -1,225 +1,253 @@
 # Project Export — Bonsai Companion (BonsaiCare)
 
-> **Status:** Living — regenerated at each milestone audit · **This edition:** 2026-07-06, pinned to `main` @ `10e991d` (M5 close / "Phase 1 feature-complete")
+> **Status:** Living — regenerated at each audit · **This edition:** 2026-07-11
+> beta-readiness review, pinned to `origin/main` @ `4eb8cf3` ("Today summary +
+> recent-photos", PR #113)
 >
-> Produced by a full multi-perspective repo audit: **10 parallel audit lenses**
-> (architecture, security, data model, product, UX flows, design/a11y,
-> testing/CI, performance, PWA/offline, ops/docs) + a **toolchain executor**
-> that ran the whole verification suite, with every critical/high finding
-> **adversarially verified** by an independent agent (24 agents total, 0
-> findings refuted), plus **hosted-project checks** via the Supabase advisors
-> API. The previous edition is archived at
-> [docs/archive/2026-07-05-project-export.md](docs/archive/2026-07-05-project-export.md).
+> Produced by a **10-lens multi-agent review** (core value, onboarding/i18n,
+> content correctness, security/RLS, reliability/ops, data & code health, docs
+> truth, toolchain execution, ambitious features) with **every critical/high
+> finding adversarially re-verified at HEAD by an independent agent**, plus
+> **first-party live-database checks** (RLS simulated as a stranger, FK
+> constraints, function ACLs, storage policies, advisors) and **live GitHub
+> checks** (branch protection, workflow runs, artifact visibility). The previous
+> edition (2026-07-06, pinned to `10e991d`) is superseded by this one.
 >
-> Legend: **VERIFIED** = executed or traced in code/git/hosted project by the
-> auditor. **CLAIMED** = stated in docs/config, not independently confirmed.
+> Legend: **VERIFIED** = executed or traced in code/git/live-project by the
+> reviewer. **CLAIMED** = stated in docs/config, not independently confirmed.
+
+---
+
+## 0. The five questions the control center needs (read this first)
+
+**1. Which features work end-to-end vs are stubs?**
+The core loop is **real, end-to-end, and tested** (VERIFIED): add a tree → log
+care (4 ways: per-tree form, one-tap repeat-last, global quick-add sheet, batch
+across many trees) → recurring tasks with hemisphere-correct season windows →
+Today dashboard (overdue / due / next-7) → atomic RPC completion that spawns the
+next occurrence. Also real: photos with thumbnails + lightbox + SW cache,
+per-tree timeline, calendar (now with inline actions), archive/unarchive, full
+JSON/CSV/photo export, true account deletion, dark mode, owner `/admin` metrics.
+**The one advertised capability that is a stub: "species drives the care
+schedule."** The `species` table and `default_care` seam exist and are seeded,
+but **no runtime code reads them** — `species_id` is never written; trees carry a
+free-text label for display only. **i18n is half-built:** nav/Today/Collection/
+Settings + enum labels are translated ES/EN; login, calendar, plan, forms, tree
+detail, and all error copy are still English-only.
+
+**2. Where does species/care content come from, how much, accuracy control?**
+Almost none ships, which is the safety story: the app is a **tracker, not an
+advisor**. Content at HEAD = 15 seeded species rows carrying only a name + a
+(horticulturally correct) category; **`default_care` is null by design**; one
+fertilize preset ("every 14 days, Mar–Oct, skip winter" — mainstream-correct and
+editable); a few factual example placeholders (Biogold, NPK 5-5-5, akadama). No
+sources cited, no disclaimer, no review process — acceptable *only because so
+little advice ships*. Dominant risk today is **no advice, not wrong advice**. The
+one real wrong-behavior vector is the southern-hemisphere month-picker inversion
+(below). The Spanish enum translations are human-quality and horticulturally
+accurate.
+
+**3. Shortest path to "a friend logs a real watering on their own phone"?**
+Friend opens the URL → enters email → clicks magic link → lands on Today → taps
+"+" (quick-add) or a tree → logs a watering. **This works today on desktop and
+Android.** Blockers before it's safe/reliable for a real friend: (a) the public
+backup leak must be fixed [Tier 1 #1]; (b) custom SMTP so invite-day emails
+aren't rate-limited [#2]; (c) an installed iOS PWA hits a magic-link dead end
+[#9]; (d) the first-run screen needs a CTA so they know where to go [#6].
+
+**4. What must be true before friends' data goes in?**
+The owner's bar: HTTPS-only · no plaintext creds · a delete path · a privacy
+note. Status: HTTPS ✅ (Vercel; add HSTS). **No plaintext creds ❌ — currently
+violated:** the weekly DB backup (with `auth.users` — emails, bcrypt hashes,
+sessions) is an unencrypted, world-downloadable artifact on a **public** repo.
+Delete path ✅ in-app, but the B2 mirror never purges (disclose + manual step).
+Privacy note ❌ — none exists. **Two of four bar items fail today.** Full gate:
+[ROADMAP.md Tier 1](ROADMAP.md).
+
+**5. The single highest-leverage improvement now?**
+**Fix the backup leak (Tier 1 #1) — one hour, non-negotiable.** For *value* (not
+safety), the highest-leverage build is **species care sheets + "suggest a care
+plan"**: the one change that turns a good logbook into the "it knows bonsai"
+product the pitch promises.
 
 ---
 
 ## 1. Snapshot
 
-- **Name:** Bonsai Companion (repo folder: BonsaiCare, `github.com/bzamoraur/BonsaiCare`, private)
-- **Date:** 2026-07-06 (repo age: 10 days; **59 commits**, 211 tracked files, ~11.6k LOC — src/ 9,770 + supabase/ 1,847; 8 migrations; 14 runtime deps)
-- **One-liner:** A calm, photo-first bonsai care & tracking PWA (Next.js 16 + Supabase) — collection, photos, unified care timeline, recurring tasks with season-aware scheduling, a Today dashboard, full data export, and real account deletion.
-- **Stage:** **Working — Phase 1 MVP feature-complete.** All five milestones (M1–M5) shipped through PRs #2–#57 with green CI; deployed on Vercel against a live Supabase project (`Bonsai_App`, eu-west-3, ACTIVE_HEALTHY, Postgres 17 — VERIFIED via API); the owner is a live daily user and has live-tested account deletion. Two honest caveats: **(a)** the friends-release gates (registration control, onboarding, ES/EN) are designed but unbuilt, and **(b)** this audit confirmed **1 critical + 4 high** findings — all scheduled in the [improvement plan](docs/roadmap/improvement-plan.md).
+- **Name:** Bonsai Companion (folder `BonsaiCare`, `github.com/bzamoraur/BonsaiCare`, **public**, proprietary licence)
+- **Date:** 2026-07-11 · **113 PRs** merged; 10 migrations; live on Vercel against Supabase `Bonsai_App` (eu-west-3, ACTIVE_HEALTHY, Postgres 17 — VERIFIED via API)
+- **One-liner:** a calm, photo-first bonsai care & tracking PWA — collection, photos, unified care timeline, recurring season-aware tasks, a Today dashboard, full export, real deletion.
+- **Stage:** **Phase-1 MVP feature-complete + Sprint 08 hardening + most of M6 daily-driver shipped, i18n foundation pulled forward.** **Not yet in the M7 "safe for friends" gate** — 1 critical + several high beta-blockers stand between HEAD and the first invite (§5). Real-world usage so far: **1 user, 1 tree, 1 photo, 11 care logs, 10 tasks** (VERIFIED live) — the owner; no multi-user production load has ever occurred.
 
 ## 2. What this repo contains
 
-**Plain language:** A private web app where users sign in with an email magic
-link and run a real bonsai collection: add trees (structured profile, tags,
-locations), photograph them (client-compressed WebP into a private bucket,
-signed URLs), log every kind of care into one merged per-tree timeline
-(waterings, fertilizing, pruning, wiring, repotting… each with typed, validated
-details), plan one-off and recurring tasks with hemisphere-aware season windows,
-and start each day from a Today dashboard (overdue / due / upcoming + health
-triage). Cross-tree schedules ("fertilize these 12 every 14 days, Mar–Oct") are
-one form. Settings offers dark mode, full JSON/CSV/photo-zip export, and true
-account deletion (every row and photo). An owner-only `/admin` page shows
-aggregate usage metrics. Around the code: an unusually complete doc set (ADRs,
-roadmap, sprints, runbook, setup guides) and three dormant-until-secret GitHub
-Actions (keep-warm, weekly DB backup, storage-orphan sweep).
+A private web app where a user signs in with an email magic link and runs a real
+bonsai collection: add trees (structured profile, tags, locations), photograph
+them (client-compressed WebP + a ~320px thumbnail into a private bucket, signed
+URLs), log every kind of care into one merged per-tree timeline, plan one-off and
+recurring tasks with hemisphere-aware season windows, and start each day from a
+Today dashboard. Batch care logs many trees at once; a global "+" quick-adds care
+or a photo from anywhere. Settings offers dark mode, EN/ES, full JSON/CSV/photo
+export, and true account deletion. An owner-only `/admin` shows aggregate usage.
+Around the code: an unusually complete doc set (12 ADRs, roadmap, sprints,
+runbook) and four scheduled GitHub Actions (keep-warm, weekly DB backup, monthly
+B2 photo mirror, storage-orphan sweep).
 
-**Tech stack (VERIFIED):** Next.js 16.2.9 (App Router, RSC + Server Actions,
-`proxy.ts` middleware, Turbopack), React 19.2.4, TypeScript strict, Tailwind 4,
-minimal shadcn/base-ui, Supabase (Postgres 17 + Auth + Storage, RLS on every
-table), Zod 4 (JSONB payloads), fflate (server-side zips), pnpm 11, Vitest 4,
-Playwright (authed e2e in CI), pgTAP (7 suites), GitHub Actions, Vercel Hobby.
+**Tech stack (VERIFIED):** Next.js 16.2.10 (App Router, RSC + Server Actions,
+`proxy.ts` middleware, Turbopack), React 19, TypeScript strict, Tailwind 4,
+minimal shadcn/base-ui, **next-intl 4** (cookie locale, EN/ES), Supabase
+(Postgres 17 + Auth + Storage, RLS on every table), Zod 4 (JSONB payloads),
+fflate (zips), pnpm, Vitest, Playwright (authed e2e in CI), pgTAP (9 suites),
+GitHub Actions, Vercel Hobby.
 
 ## 3. What works today
 
-**VERIFIED by execution (2026-07-06, this machine, tree byte-clean throughout):**
+**VERIFIED by execution at HEAD (this machine, clean tree):**
 
-- `pnpm typecheck` — 0 errors · `pnpm lint` — 0 errors/warnings
-- `pnpm test` — 9 files, **128/128 unit tests pass** (17s)
-- `pnpm build` — production build, **20 routes** + middleware, 0 warnings
+- `pnpm typecheck` — 0 errors · `pnpm lint` — 0 errors (1 warning, in an
+  uncommitted WIP file) · `pnpm format:check` — clean
+- `pnpm test` — **14 files, 174/174 unit tests pass**, none skipped (~14s)
+- `pnpm build` — production build succeeds, **21 routes** + middleware
 
-**VERIFIED by code trace + hosted checks:**
+**VERIFIED by code trace + live-DB/GitHub checks:**
 
-- **The full feature surface is real** — every MVP-scoped feature exists end to
-  end (collection, photos, timeline, tasks/recurrence/RPC-atomic completion,
-  Today, calendar, cross-tree scheduler, export trio, deletion, dark mode).
-  The product lens's verdict: "a rare case where the feature-complete claim
-  survives code-level inspection."
-- **Security spine:** per-command owner RLS on all 9 user tables with
-  *behavioral* pgTAP (~100 assertions, cross-user denial per command, RPC
-  denial, full deletion cascade); both SECURITY DEFINER RPCs hardened
-  (auth.uid()-only targeting, empty search_path); secrets history forensically
-  clean; service-role key confined to Actions.
-- **e2e harness:** cookie-capture auth against a real CI Supabase stack; 4
-  specs including the M3 log→timeline and M4 daily-loop journeys.
-- **Hosted project:** ACTIVE_HEALTHY; all 8 migrations pushed (owner-verified
-  2026-07-06); `OWNER_USER_ID` set in Vercel → `/admin` live; account deletion
-  live-tested by the owner with a throwaway account.
+- **The core loop is real end-to-end**, backed by genuinely correct domain logic
+  (`src/domain/scheduling.ts`: overdue boundaries, hemisphere-inverted season
+  windows with year-wrap, next-due computation; 307 lines of tests). Completion
+  is an atomic, RLS-respecting RPC (`FOR UPDATE`, status guard, next-occurrence
+  spawn in one transaction).
+- **Security spine — verified on the live database, not just the repo:** RLS
+  enabled with per-command owner policies on all 9 user tables (a simulated
+  stranger sees 0 rows); the hardening migration's **composite `(id, owner_id)`
+  FKs really close the cross-owner attach vector** for photos/care/tasks/tags
+  (behaviorally pgTAP-tested); `anon` EXECUTE revoked on every function; all
+  functions run `search_path=''`; `owner_metrics` gated in-DB and fails closed;
+  storage bucket private + 4 path-scoped policies; security headers live (CSP,
+  `frame-ancestors 'none'`, nosniff, Referrer-Policy, Permissions-Policy).
+- **Deletion & export are the real thing:** deletion cascades every table +
+  removes storage objects (thumbnails included), gated behind typing DELETE;
+  export covers all 9 tables with a compile-time exhaustiveness guard.
+- **Ops is much improved:** 3 of 4 crons fail loud (red run + auto-filed GitHub
+  issue); every server catch logs; the orphan-sweep pagination bug is fixed +
+  unit-tested; a restore drill was performed. **Branch protection is enforced**
+  on `main` (required checks, no force-push, linear history — VERIFIED via API).
+- **DB types are current** (all 9 tables, 3 RPCs, every enum, the `occurred_on`
+  rename) and a CI gate boots Supabase, regenerates, and fails on drift — the old
+  "stale types block care-logging" note is **closed**.
 
-**CLAIMED / unverified:** Vercel production env parity; keep-warm/backup/sweep
-Actions are **dormant until secrets** — arming is in progress (owner runbook v3);
-no restore drill has ever been performed.
+**CLAIMED / not independently confirmed:** hosted custom-SMTP setting (dashboard
+config, not in repo — repo evidence says built-in sender still); the B2 mirror's
+first *scheduled* run (armed 07-06, first cron 07-15, no run recorded yet);
+individual green cron runs cited in `production-state.md`.
 
-## 4. In progress / half-built
+## 4. In progress / half-built (VERIFIED status)
 
-| Item | State (VERIFIED) | What finishing takes |
+| Item | State at HEAD | What finishing takes |
 |---|---|---|
-| **Friends release** | Signup is open to anyone with the URL; no onboarding; UI English-only; no usage analytics | The M7 gate set: allowlist + CAPTCHA, first-run tour, ES/EN i18n, `usage_events` + admin v2 (~2 sprints) |
-| **Species intelligence** | Schema fully built & seeded (species table, category enum, `default_care` seam) but **zero UI/scheduling code reads it** — the product's #1 differentiator is dormant | Species combobox on tree forms, then category-level care rules → Today suggestions (M8) |
-| **Batch care logging** | Absent — logging is strictly per-tree; the backlog's own P1 ("logging 40 waterings one-by-one kills the habit") | Multi-select log + repeat-last + recency chips (M6, first slice) |
-| **Offline** | SW's offline fallback is provably dead code (caches a 307 redirect, which browsers reject); no write queue | Static offline page (S, Sprint 08); care-log outbox + real shell caching (M9) |
-| **Archived trees** | One-way door: no archived view, no unarchive (URL-only access) | Archived filter + restore action (M6) |
-| **Calendar** | Read-only agenda/grid; docs promise create/complete/skip | Reuse TaskActions in agenda rows (M6) |
-| **Sentry** | Deferred — `@sentry/nextjs` uninstallable on Next 16 (broken transitive dep); error boundaries + Vercel logs interim | Revisit when installable; the S08 logging helper is the seam |
+| **Species intelligence** | **Still fully dormant.** Schema + seed exist; zero runtime reads; `species_id` never written. The pitch's #1 differentiator. | Species picker → category care rules → Today suggestions (M8 / ROADMAP Tier 2 Wave B) |
+| **i18n ES/EN** | **~half done.** Nav/Today/Collection/Settings + enum labels translated; login, calendar, plan, quick-log, forms, tree detail, and **all error copy** English-only; dates pinned `en-GB`; no `Accept-Language` default | Surface-by-surface rollout of the week-1 screens + locale-aware formatting (ROADMAP Tier 2 Wave A) |
+| **Proactive reminders** | **None** — pull-only by design (ADR-0007). No push/email/notification code | Email digest (M8); web push later |
+| **M6 tail** | S10.4 loading skeletons, S10.6 export robustness, S10.7 `listTreeOptions` — **not built** | Small; ROADMAP Tier 2 Wave A |
+| **M7 friends-release gate** | **0 of 8 items fully done** — only i18n partially built; OTP login, allowlist+CAPTCHA (signup still open), hemisphere onboarding, species combobox, first-run tour, usage analytics/admin v2, install promotion all remain | Sprints 11–12 (ROADMAP Tier 1 + Tier 2 M7 gate) |
+| **Sentry** | Deferred — uninstallable on Next 16; boundaries + Vercel logs interim | Revisit when installable; or the `app_errors` table (ROADMAP Tier 1 #7) |
 
-## 5. Top risks & debt (worst first)
+*Since the 2026-07-06 edition, these previously-half-built rows **shipped**: batch
+logging, archived view + unarchive, calendar inline actions, honest offline page,
+thumbnails + lightbox + SW photo cache, quick-add sheet.*
 
-1. **The orphan sweep will delete real photos once `photos` exceeds 1,000 rows**
-   (CONFIRMED critical). `scripts/reconcile-storage.mjs` reads the photos table
-   unpaginated; PostgREST caps responses at 1,000 rows silently. Storage listing
-   IS paginated — the asymmetry means rows beyond the cap look like orphans and
-   the monthly scheduled run deletes their objects (DRY_RUN=false on schedule).
-   The project's own budget (~1,500 photos, R4) makes this when-not-if. Fix is
-   small and first in Sprint 08; **don't arm the sweep secret until it lands.**
-2. **Photo bytes have exactly one copy.** The weekly backup dumps Postgres only;
-   the bucket holding the irreplaceable progression photos is never backed up,
-   and no restore has ever been drilled. (Backup workflow comment also pointed
-   at a moved dashboard page and an IPv6-only connection string GitHub can't
-   reach — corrected this edition.)
-3. **Production write failures are undiagnosable.** All 18 Server Action catch
-   blocks discard the error (against the repo's own "no silent catches" rule);
-   Vercel logging cannot see caught exceptions, so the documented interim
-   monitoring doesn't cover the entire write surface.
-4. **The first iPhone friend can get stranded at login.** Magic-link-only auth
-   cannot complete inside an installed iOS PWA (isolated storage; links open in
-   Safari; PKCE makes even that first attempt fail). Paired with **open
-   registration + an unthrottled OTP sender**, auth is the biggest friends-release
-   blocker. Fix: 6-digit OTP entry + allowlist + CAPTCHA (M7).
-5. **Green ≠ armed, and CI is advisory.** Keep-warm is structurally incapable of
-   failing; all three ops workflows no-op silently without secrets; nothing
-   records what's armed. Branch protection is unavailable (private GitHub Free)
-   and Vercel deploys `main` regardless of CI. Discipline is currently the only
-   gate.
-6. **Hosted RPC grants are wider than the migrations intended** (VERIFIED via
-   Supabase advisors): `anon` can EXECUTE all three SECURITY DEFINER functions —
-   Supabase's default privileges grant EXECUTE to anon/authenticated explicitly,
-   and the migrations only revoked `PUBLIC`. Consequence: anyone with the
-   (public) publishable key can call `owner_metrics()` unauthenticated
-   (aggregate, non-PII counts — embarrassing, not catastrophic). One revoke
-   migration fixes it (Sprint 08).
+## 5. Top risks & debt (worst first, VERIFIED at HEAD)
 
-## 6. Open product questions (owner decisions)
+1. **[CRITICAL] The weekly DB backup is a publicly downloadable artifact.**
+   `backup.yml` uploads the unencrypted dump (schema + data, **including
+   `auth.users` — emails, bcrypt hashes, session/refresh tokens**, proven by the
+   owner's own restore drill) as a 90-day GitHub artifact. The repo is **public**,
+   so any logged-in GitHub user can download it. One artifact
+   (`db-backup-28816036702`, 2026-07-06) **is live right now**; the Sunday
+   05:00 UTC cron adds a fresh one weekly. **Fix before friend #1:** encrypt the
+   dump or push to the private B2 bucket; delete existing `db-backup-*` artifacts.
+   *(Adversarially confirmed critical.)*
+2. **[HIGH] Invite-day email lockout.** Magic-link on Supabase's built-in sender
+   (~2 emails/hour, project-wide). A 5-friend cohort signing up the same day gets
+   "email rate limit exceeded". Fix: custom SMTP (Resend) — no code change.
+3. **[HIGH] iOS installed-PWA magic-link dead end.** Link opens in Safari; PKCE
+   verifier is in the PWA's isolated storage → exchange fails → `/login?error=auth`
+   → and the login page **ignores that param**, so the friend sees a blank form.
+   Two fixes: OTP code entry (best) and reading the `error` param (cheap).
+4. **[HIGH→MEDIUM] The owner is nearly blind to failures.** Server catches log
+   only to Vercel Hobby (~1h retention, no alerting); **client-side crashes report
+   nothing**; two `DYNAMIC_SERVER_USAGE` false-alarm error lines pollute the very
+   channel the owner watches. Fix: `app_errors` table + boundary beacon; strip the
+   false alarms.
+5. **[MEDIUM] No privacy note; B2 mirror never purges on deletion.** Friends get
+   zero disclosure of what's stored/where; a deleted friend's photos persist in
+   the owner's off-site bucket forever. Fix: one privacy page + a runbook purge
+   step.
+6. **[MEDIUM] First-run false reassurance.** Today says "All caught up · Enjoy
+   your trees 🌱" to a user with zero trees *or* zero schedules, with no CTA to
+   add a tree or plan care. Every friend hits this.
+7. **[MEDIUM] Southern-hemisphere month-picker inversion.** Custom season windows
+   are stored/displayed literally but the engine shifts them 6 months, so a
+   southern friend's pick lands in the wrong season (the Mar–Oct default is fine).
+   *Promote to blocker if any invited friend is southern-hemisphere.*
+8. **[MEDIUM] Storage RLS tested existence-only.** The policies are correct and
+   live, but no behavioral pgTAP proves cross-user photo access is denied — a
+   predicate regression would pass CI green.
+9. **[LOW] Residual:** 5 secondary FKs still single-column (uuid-existence oracle,
+   no leakage); SW photo cache not purged on sign-out (shared-device residue); no
+   HSTS header (Vercel likely adds it); signup fully open (fine while URL is
+   unlisted); tree-detail page is 611 lines.
 
-1. **Registration mode** before inviting: allowlist (recommended) vs open.
-2. **Make the repo public?** Unlocks free branch protection + unlimited Actions
-   minutes; the license stays proprietary. Alternative: gate Vercel deploys on
-   CI via a deploy hook.
-3. **Photo-backup destination:** Cloudflare R2 (10 GB free) vs Backblaze B2 —
-   one new free account either way.
-4. **`occurred_at` semantics:** migrate to `date` (matches the UI) vs true
-   timestamps — decide once, in an ADR (S08 adds the ordering tiebreaker either way).
-5. **i18n approach** (next-intl vs typed dictionary; locale on profile vs
-   cookie) — ADR before M7.
-6. **Offline scope ADR:** commit to "shell + queued care-log capture, nothing
-   more" so Phase 2 never accidentally promises local-first.
-7. (Phase 3, unchanged: monetization, native shell, share links — gated on evidence.)
+## 6. What's genuinely excellent
 
-## 7. Human tasks discovered
+Hemisphere-correct scheduling that beats most competitors; a real dated photo
+archive with thumbnails + lightbox + offline cache; textbook multi-tenant
+security verified on the live DB; an atomic completion RPC; 174 unit tests + 16
+e2e journeys + 9 pgTAP suites that are real coverage, not theatre; zero `any`/
+`ts-ignore` in `src`; an unusually honest and complete doc set.
 
-```markdown
-### BonsaiCare (Bonsai Companion)
-- [ ] Finish owner runbook v3 (https://claude.ai/code/artifact/e3612628-95ed-4811-8cc7-719447410f59):
-      task 3 keep-warm test run · task 4 SUPABASE_DB_URL (Session-pooler URI —
-      NOT the direct connection) · task 5 sweep secret — WAIT for the S08
-      pagination fix to merge first — 10 min
-- [ ] Vercel → Project → Settings → Functions: set the function region to match
-      Supabase (eu-west-3 → Paris/cdg1 or closest) — one dropdown, biggest free
-      latency win — 2 min
-- [ ] Decide: repo public (branch protection + minutes) vs stay private — 0 min, a call
-- [ ] Before first invite: enable Turnstile CAPTCHA on Supabase Auth (free) — 5 min
-- [ ] When S08 lands: one restore drill into a scratch Supabase project following
-      the new runbook section (guided, click-by-click, ~30 min)
-```
+## 7. Security check
+
+- **Secrets committed: NO** (only `.env.example`; service-role key confined to
+  ops scripts + CI). VERIFIED.
+- **RLS: exemplary and live-verified** — per-command owner policies on all 9
+  tables; a simulated stranger and `anon` both see 0 rows; composite FKs close
+  cross-owner writes; functions locked down; `anon` EXECUTE revoked (live).
+- **Live advisors:** only the two intentional `authenticated`-EXECUTE WARNs on
+  `owner_metrics`/`delete_my_account` (both gated/safe by design) + leaked-password
+  protection off (moot — passwordless). No anon findings.
+- **The real exposure is operational, not RLS:** the public backup artifact
+  (§5.1) is the one genuine data-exposure bug, and it's an ops/config mistake, not
+  an app attack surface.
 
 ## 8. Costs & services
 
-| Service | Tier | Used for | Monthly cost |
-|---|---|---|---|
-| Supabase | Free | Postgres 17 + Auth + Storage + RLS (eu-west-3) | €0 |
-| Vercel | Hobby | Hosting (non-commercial) | €0 |
-| GitHub | Free (private) | Repo, CI, 3 ops crons | €0 |
+Supabase Free · Vercel Hobby · GitHub Free (public) · Backblaze B2 (free tier,
+photo mirror). **€0/month, no paid dependency.** Adding **custom SMTP (Resend
+free tier)** is the one new free service the beta needs. Watch-items: Supabase
+auth-email cap (fixed by SMTP), egress (mitigated by the SW photo cache),
+Actions minutes (unbounded now that the repo is public).
 
-**Total: €0/month (VERIFIED — no paid dependency).** Watch-items: **GitHub
-Actions minutes** (2,000/mo on private Free; ~57 PRs in 10 days at ~8–10 min of
-CI each makes minutes the most plausible first breach — S08 adds caching/stack
-dedup; going public removes the cap entirely) and **Supabase egress** (5 GB/mo;
-signed-URL churn currently defeats all image caching — M6 fixes).
+## 9. Recommended next work
 
-## 9. Security check
+Execute **[ROADMAP.md](ROADMAP.md) Tier 1** in order (backup leak → SMTP →
+privacy note → delete-path → auth dead-end → first-run CTA → error visibility →
+feedback → iOS decision → arm/verify ops), then invite one friend, then the rest.
+Then Tier 2 (finish M6 tail + photo-progression wave → species care sheets →
+weather/digest/wiring). Sprint-level detail:
+[docs/roadmap/improvement-plan.md](docs/roadmap/improvement-plan.md).
 
-- **Secrets committed: NO** — re-verified by git-history forensics this audit.
-- **RLS: exemplary** — per-command owner policies on all 9 tables, behaviorally
-  pgTAP-tested in CI; both definer RPCs textbook-hardened *in the migrations*.
-- **Hosted advisor findings (new this edition):** anon EXECUTE on the 3 definer
-  functions (default-privileges gap — revoke migration in S08); leaked-password
-  protection off (moot — passwordless app); 7 unused indexes (expected at this
-  scale, deliberately kept for the query patterns they serve).
-- **Gaps, all scheduled S08:** zero security headers (no CSP/frame-ancestors/
-  nosniff), storage policies tested existence-only, cross-owner FK references
-  possible via direct PostgREST (pollution, not leakage), Actions pinned by tag
-  not SHA while holding total-compromise secrets, auth-callback `next` param
-  unvalidated (not currently exploitable).
-- **Alarming: nothing.** The one data-loss-class item is the sweep bug (risk #1),
-  an automation bug rather than an attack surface.
+## 10. Health scores (1–5)
 
-## 10. Recommended next work
-
-The full sequenced plan lives in
-[docs/roadmap/improvement-plan.md](docs/roadmap/improvement-plan.md). Shape:
-
-1. **Sprint 08 — "Nothing silent, nothing lost"** (fix-first hardening): the
-   sweep bug, action-error logging, RPC grant revokes + DB hardening migration,
-   security headers, native-control theming, offline page, types-freshness CI
-   gate, fail-loud crons + alerting, restore drill + runbook. ~9 small PRs, 1
-   owner push.
-2. **M6 — "A daily driver at 40 trees"**: batch logging, repeat-last, recency
-   chips, quick-log fix, unarchive, thumbnails + SW photo cache + stable signed
-   URLs, lightbox/compare, UI primitives + touch targets.
-3. **M7 — "Safe to hand to a friend"**: OTP code login, allowlist + CAPTCHA,
-   onboarding tour, hemisphere prompt, ES/EN i18n, usage analytics + admin v2 →
-   **invite**.
-4. **M8 — "It knows bonsai"**: species-category care intelligence, wiring
-   tracker, weather prompts, email digest.
-5. **M9 — "Anywhere, beautifully"**: offline outbox, photo-bucket backup,
-   share links, desktop layout, year-in-review.
-
-## 11. Health scores (1–5)
-
-- **Clarity: 4** — vision, scope and 11 ADRs remain exceptionally sharp; docked
-  because the always-loaded status files (CLAUDE.md/README) went two milestones
-  stale *again* — the same defect the last audit flagged (fixed this edition,
-  plus a DoD checkbox to keep it fixed).
-- **Code quality: 4** — high-craft, strictly layered, compile-time-guarded;
-  docked for the systemic silent catches, the sweep bug, and small duplication
-  drift (form-field classes, CARE_FIELDS mirror).
-- **Docs: 4** — enormous, honest, CHANGELOG↔git verifiably consistent; docked
-  for the stale-status cluster and a runbook that didn't know two of the three
-  shipped automations existed (fixed this edition).
-- **Momentum: 5** — M1→M5 in 10 days / 59 commits with CI green throughout, the
-  two long-deferred e2e DoDs actually closed rather than quietly dropped, and a
-  live production user. The cadence question now is sustaining, not starting.
+- **Clarity: 4** — vision and 12 ADRs remain sharp; docked because the
+  always-loaded status docs (CLAUDE.md/README/roadmap) went ~3 sprints stale
+  *again* — the repeat defect prior audits flagged (corrected this edition).
+- **Code quality: 4.5** — high-craft, strictly layered, strict-typed, real tests;
+  docked only for the one 611-line page and the half-done i18n surface.
+- **Security: 4** — the RLS/deletion/export core is a 5; dragged down to a 4 by
+  the critical backup-artifact leak, which is exactly the kind of ops mistake that
+  ends a friends beta badly. Fix it and this is a 5.
+- **Docs: 4** — enormous and honest, but the status cluster and CHANGELOG (missing
+  PRs #105–#113) drifted; corrected here.
+- **Momentum: 5** — 113 PRs, CI green throughout, hardening + a full daily-driver
+  milestone + an i18n retrofit since 07-06. The question is sustaining, not
+  starting.
