@@ -1,4 +1,4 @@
-import { Camera, ChevronLeft, Leaf, Pencil } from "lucide-react";
+import { Camera, ChevronDown, ChevronLeft, Leaf, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -10,6 +10,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import type { CareEventType, CareRecency } from "@/domain/care";
 import { CARE_EVENT_ICONS, CARE_EVENT_LABELS, careDetailSummary } from "@/lib/care-labels";
 import { TASK_TYPE_ICONS, TASK_TYPE_LABELS, describeRecurrence } from "@/lib/task-labels";
+import { groupTimelineByMonth, isMonthDefaultOpen } from "@/lib/timeline-groups";
 import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@/lib/tree-labels";
 import { cn } from "@/lib/utils";
 import { getLocationName } from "@/server/locations";
@@ -94,6 +95,7 @@ export default async function TreeDetailPage({
   // The server's UTC day — SSR fallback for the client-local "today" the care plan
   // resolves (TaskDueLabel / TaskActions), and the add-task default due date.
   const serverToday = new Date().toISOString().slice(0, 10);
+  const currentMonthKey = serverToday.slice(0, 7); // opens today's timeline "folder"
   const pendingTasks = tasks.filter((t) => t.status === "pending");
 
   const locationName = tree.location_id ? await getLocationName(tree.location_id) : null;
@@ -291,30 +293,37 @@ export default async function TreeDetailPage({
         ) : visibleItems.length === 0 ? (
           <p className="text-muted-foreground text-sm">No entries match this filter.</p>
         ) : (
-          <ol className="flex flex-col">
-            {visibleItems.map((item) => (
-              <li key={`${item.kind}-${item.id}`} className="flex gap-3">
-                <TimelineIcon item={item} />
-                <div className="border-border flex flex-1 flex-col gap-1.5 border-b pb-4 last:border-b-0">
-                  {item.kind === "care" ? (
-                    <CareItem
-                      item={item}
-                      treeId={tree.id}
-                      ownerId={tree.owner_id}
-                      treeName={tree.name}
+          // "Folders" by month so years of logs stay scannable. Native <details>
+          // gives keyboard/AT expand-collapse for free (no client JS). The newest and
+          // current months open by default; a filter opens every match's month.
+          <div className="flex flex-col">
+            {groupTimelineByMonth(visibleItems).map((group, index) => (
+              <details
+                // Fold the filter into the key so React remounts (re-applying the
+                // computed open state) when a filter is toggled — a bare `open` prop is
+                // uncontrolled and won't re-open a month the user had manually collapsed.
+                key={`${group.key}-${activeFilter ?? "all"}`}
+                open={isMonthDefaultOpen(index, group.key, currentMonthKey, Boolean(activeFilter))}
+                className="group border-border border-b last:border-b-0"
+              >
+                <summary className="focus-visible:ring-ring flex cursor-pointer list-none items-center justify-between gap-3 rounded-md py-3 outline-none select-none focus-visible:ring-2 [&::-webkit-details-marker]:hidden">
+                  <span className="text-sm font-medium">{group.label}</span>
+                  <span className="text-muted-foreground flex shrink-0 items-center gap-1.5 text-xs">
+                    {group.items.length} {group.items.length === 1 ? "entry" : "entries"}
+                    <ChevronDown
+                      className="size-4 transition-transform group-open:rotate-180"
+                      aria-hidden
                     />
-                  ) : (
-                    <PhotoItem
-                      item={item}
-                      treeId={tree.id}
-                      treeName={tree.name}
-                      coverPhotoId={tree.cover_photo_id}
-                    />
-                  )}
-                </div>
-              </li>
+                  </span>
+                </summary>
+                <ol className="flex flex-col pb-2">
+                  {group.items.map((item) => (
+                    <TimelineRow key={`${item.kind}-${item.id}`} item={item} tree={tree} />
+                  ))}
+                </ol>
+              </details>
             ))}
-          </ol>
+          </div>
         )}
       </section>
 
@@ -398,6 +407,33 @@ function TimelineIcon({ item }: { item: TimelineItem }) {
     <div className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
       <Icon className="size-4" aria-hidden />
     </div>
+  );
+}
+
+/** One timeline entry (icon + card), shared by every month group. */
+function TimelineRow({
+  item,
+  tree,
+}: {
+  item: TimelineItem;
+  tree: { id: string; owner_id: string; name: string; cover_photo_id: string | null };
+}) {
+  return (
+    <li className="flex gap-3">
+      <TimelineIcon item={item} />
+      <div className="border-border flex flex-1 flex-col gap-1.5 border-b pb-4 last:border-b-0">
+        {item.kind === "care" ? (
+          <CareItem item={item} treeId={tree.id} ownerId={tree.owner_id} treeName={tree.name} />
+        ) : (
+          <PhotoItem
+            item={item}
+            treeId={tree.id}
+            treeName={tree.name}
+            coverPhotoId={tree.cover_photo_id}
+          />
+        )}
+      </div>
+    </li>
   );
 }
 
