@@ -1,4 +1,8 @@
 {
+  "common": {
+    "collectionTask": "Collection task",
+    "taskUpdateError": "We couldn't update that task. Please try again."
+  },
   "nav": {
     "today": "Today",
     "collection": "Collection",
@@ -6,6 +10,34 @@
     "settings": "Settings",
     "quickLog": "Quick log",
     "log": "Log"
+  },
+  "today": {
+    "title": "Today",
+    "logSeveral": "Log several",
+    "empty": "Nothing needs attention right now. Enjoy your trees. 🌱",
+    "overdue": "Overdue",
+    "dueToday": "Today",
+    "nothingDueToday": "Nothing due today.",
+    "next7Days": "Next 7 days",
+    "needsAttention": "Needs attention",
+    "recentlyDone": "Recently done"
+  },
+  "collection": {
+    "title": "Collection",
+    "planCare": "Plan care",
+    "addTree": "Add tree",
+    "loadError": "We couldn't load your collection right now. Please refresh to try again.",
+    "emptyArchived": "No active trees right now. Add one, or view your archived trees below.",
+    "emptyNoTrees": "No trees yet. Add your first bonsai to start tracking its journey.",
+    "addATree": "Add a tree",
+    "addFirstTree": "Add your first tree",
+    "noMatch": "No trees match your filters.",
+    "viewArchived": "View archived ({count})",
+    "archivedTitle": "Archived",
+    "backToCollection": "← Collection",
+    "archivedLoadError": "We couldn't load your archived trees right now. Please refresh to try again.",
+    "archivedEmpty": "No archived trees. Archiving a tree hides it from your collection without losing its history.",
+    "archivedIntro": "Hidden from your collection, history intact. Open a tree to unarchive it."
   },
   "settings": {
     "title": "Settings",

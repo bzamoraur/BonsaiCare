@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { TaskActions } from "@/components/task-actions";
@@ -32,13 +33,12 @@ export function TodayDashboard({
   // serverToday on the server + first hydration render (matches SSR); the viewer's
   // real local today on the client thereafter — no effect, no hydration mismatch.
   const today = useLocalToday(serverToday);
+  const t = useTranslations("today");
 
   if (items.length === 0) {
     return (
       <section className="border-border bg-card rounded-2xl border p-8 text-center">
-        <p className="text-muted-foreground text-balance">
-          Nothing needs attention right now. Enjoy your trees. 🌱
-        </p>
+        <p className="text-muted-foreground text-balance">{t("empty")}</p>
       </section>
     );
   }
@@ -50,14 +50,14 @@ export function TodayDashboard({
 
   return (
     <div className="flex flex-col gap-8">
-      <Bucket title="Overdue" items={overdue} serverToday={serverToday} />
+      <Bucket title={t("overdue")} items={overdue} serverToday={serverToday} />
       <Bucket
-        title="Today"
+        title={t("dueToday")}
         items={dueToday}
         serverToday={serverToday}
-        emptyHint="Nothing due today."
+        emptyHint={t("nothingDueToday")}
       />
-      <Bucket title="Next 7 days" items={upcoming} serverToday={serverToday} />
+      <Bucket title={t("next7Days")} items={upcoming} serverToday={serverToday} />
     </div>
   );
 }
@@ -95,6 +95,7 @@ function Bucket({
 
 function TaskRow({ item, serverToday }: { item: DashboardItem; serverToday: string }) {
   const { task } = item;
+  const t = useTranslations("common");
   const Icon = TASK_TYPE_ICONS[task.type];
   return (
     <li className="border-border bg-card flex items-start gap-3 rounded-xl border p-3">
@@ -114,7 +115,7 @@ function TaskRow({ item, serverToday }: { item: DashboardItem; serverToday: stri
             {task.tree.name}
           </Link>
         ) : (
-          <span className="text-muted-foreground text-xs">Collection task</span>
+          <span className="text-muted-foreground text-xs">{t("collectionTask")}</span>
         )}
         <div className="mt-1">
           <TaskActions

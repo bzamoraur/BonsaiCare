@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 import { TreeCard } from "@/components/tree-card";
@@ -65,6 +66,7 @@ export default async function CollectionPage({
   const sp = await searchParams;
   if (first(sp.archived) === "1") return <ArchivedCollection />;
 
+  const t = await getTranslations("collection");
   const filters = parseFilters(sp);
   // Fetch the archived count in parallel — independent, so its failure (caught →
   // 0) never blanks the active grid; it just hides the "View archived" link.
@@ -115,18 +117,18 @@ export default async function CollectionPage({
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Collection</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         {showToolbar ? (
           <div className="flex items-center gap-2">
             <Link
               href="/plan/schedule"
               className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
             >
-              Plan care
+              {t("planCare")}
             </Link>
             <Link href="/collection/new" className={cn(buttonVariants({ size: "sm" }))}>
               <Plus aria-hidden />
-              Add tree
+              {t("addTree")}
             </Link>
           </div>
         ) : null}
@@ -134,20 +136,18 @@ export default async function CollectionPage({
 
       {loadError ? (
         <p role="alert" className="text-destructive text-sm">
-          We couldn&apos;t load your collection right now. Please refresh to try again.
+          {t("loadError")}
         </p>
       ) : !showToolbar ? (
         <section className="border-border bg-card flex flex-col items-center gap-4 rounded-2xl border p-8 text-center">
           {/* With archived trees present, "No trees yet" would be a lie — the whole
               collection is just archived. Point there instead of implying a blank slate. */}
           <p className="text-muted-foreground text-balance">
-            {archivedCount > 0
-              ? "No active trees right now. Add one, or view your archived trees below."
-              : "No trees yet. Add your first bonsai to start tracking its journey."}
+            {archivedCount > 0 ? t("emptyArchived") : t("emptyNoTrees")}
           </p>
           <Link href="/collection/new" className={cn(buttonVariants())}>
             <Plus aria-hidden />
-            {archivedCount > 0 ? "Add a tree" : "Add your first tree"}
+            {archivedCount > 0 ? t("addATree") : t("addFirstTree")}
           </Link>
         </section>
       ) : (
@@ -162,9 +162,7 @@ export default async function CollectionPage({
               ))}
             </ul>
           ) : (
-            <p className="text-muted-foreground text-sm text-balance">
-              No trees match your filters.
-            </p>
+            <p className="text-muted-foreground text-sm text-balance">{t("noMatch")}</p>
           )}
         </>
       )}
@@ -176,7 +174,7 @@ export default async function CollectionPage({
           href="/collection?archived=1"
           className="text-muted-foreground hover:text-foreground self-start text-sm underline-offset-4 hover:underline"
         >
-          View archived ({archivedCount})
+          {t("viewArchived", { count: archivedCount })}
         </Link>
       ) : null}
     </main>
@@ -187,6 +185,7 @@ export default async function CollectionPage({
  * trees, each linking to its detail page where it can be unarchived. No toolbar or
  * add/plan actions — this is a holding area, not the working collection. */
 async function ArchivedCollection() {
+  const t = await getTranslations("collection");
   const serverToday = new Date().toISOString().slice(0, 10);
 
   let trees: TreeCardData[] = [];
@@ -201,29 +200,24 @@ async function ArchivedCollection() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Archived</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("archivedTitle")}</h1>
         <Link
           href="/collection"
           className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
         >
-          ← Collection
+          {t("backToCollection")}
         </Link>
       </div>
 
       {loadError ? (
         <p role="alert" className="text-destructive text-sm">
-          We couldn&apos;t load your archived trees right now. Please refresh to try again.
+          {t("archivedLoadError")}
         </p>
       ) : trees.length === 0 ? (
-        <p className="text-muted-foreground text-sm text-balance">
-          No archived trees. Archiving a tree hides it from your collection without losing its
-          history.
-        </p>
+        <p className="text-muted-foreground text-sm text-balance">{t("archivedEmpty")}</p>
       ) : (
         <>
-          <p className="text-muted-foreground text-sm text-balance">
-            Hidden from your collection, history intact. Open a tree to unarchive it.
-          </p>
+          <p className="text-muted-foreground text-sm text-balance">{t("archivedIntro")}</p>
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {trees.map((tree) => (
               <li key={tree.id}>

@@ -1,4 +1,5 @@
 import { Check, ListChecks } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 import { TreeCard } from "@/components/tree-card";
@@ -23,6 +24,7 @@ export default async function TodayPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
+  const [t, tc] = await Promise.all([getTranslations("today"), getTranslations("common")]);
   const [tasks, triage, past] = await Promise.all([
     listDashboardTasks(),
     listTriageTrees(),
@@ -39,17 +41,17 @@ export default async function TodayPage({
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-10">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Today</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         {/* Batch care, discoverable where the day lives (not buried in Collection). */}
         <Link href="/log/batch" className={cn(buttonVariants({ size: "sm", variant: "outline" }))}>
           <ListChecks aria-hidden />
-          Log several
+          {t("logSeveral")}
         </Link>
       </div>
 
       {error ? (
         <p role="alert" className="text-destructive text-sm">
-          We couldn&apos;t update that task. Please try again.
+          {tc("taskUpdateError")}
         </p>
       ) : null}
 
@@ -57,7 +59,7 @@ export default async function TodayPage({
 
       {triage.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-medium">Needs attention</h2>
+          <h2 className="text-sm font-medium">{t("needsAttention")}</h2>
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {triage.map((tree) => (
               <li key={tree.id}>
@@ -71,7 +73,7 @@ export default async function TodayPage({
       {past.length > 0 ? (
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-medium">
-            Recently done <span className="text-muted-foreground">({past.length})</span>
+            {t("recentlyDone")} <span className="text-muted-foreground">({past.length})</span>
           </h2>
           <ol className="flex flex-col gap-2">
             {past.map((task) => (
@@ -85,7 +87,7 @@ export default async function TodayPage({
                 <div className="flex flex-1 flex-col">
                   <span className="text-sm font-medium">{task.title}</span>
                   <span className="text-muted-foreground text-xs">
-                    {task.tree ? task.tree.name : "Collection task"}
+                    {task.tree ? task.tree.name : tc("collectionTask")}
                     {task.completed_at
                       ? ` · ${doneFormatter.format(new Date(task.completed_at))}`
                       : ""}
