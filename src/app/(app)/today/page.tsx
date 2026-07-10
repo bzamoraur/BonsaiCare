@@ -2,11 +2,13 @@ import { Check, ListChecks } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
+import { Photo } from "@/components/photo";
 import { TreeCard } from "@/components/tree-card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { listDashboardTasks, listPastTasks } from "@/server/dashboard";
-import { listTriageTrees } from "@/server/trees";
+import { listRecentPhotos } from "@/server/photos";
+import { countActiveTrees, listTriageTrees } from "@/server/trees";
 
 import { completeFromTodayAction, skipFromTodayAction } from "./actions";
 import { TodayDashboard, type DashboardItem } from "./today-dashboard";
@@ -25,10 +27,12 @@ export default async function TodayPage({
 }) {
   const { error } = await searchParams;
   const [t, tc] = await Promise.all([getTranslations("today"), getTranslations("common")]);
-  const [tasks, triage, past] = await Promise.all([
+  const [tasks, triage, past, treeCount, recentPhotos] = await Promise.all([
     listDashboardTasks(),
     listTriageTrees(),
     listPastTasks(),
+    countActiveTrees(),
+    listRecentPhotos(),
   ]);
 
   const serverToday = new Date().toISOString().slice(0, 10);
@@ -55,7 +59,7 @@ export default async function TodayPage({
         </p>
       ) : null}
 
-      <TodayDashboard items={items} serverToday={serverToday} />
+      <TodayDashboard items={items} serverToday={serverToday} treeCount={treeCount} />
 
       {triage.length > 0 ? (
         <section className="flex flex-col gap-3">
@@ -64,6 +68,31 @@ export default async function TodayPage({
             {triage.map((tree) => (
               <li key={tree.id}>
                 <TreeCard tree={tree} serverToday={serverToday} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {recentPhotos.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium">{t("recentPhotos")}</h2>
+          {/* A photo-first moment on an otherwise text-heavy dashboard: the newest
+              images across the collection, each a shortcut to its tree. */}
+          <ul className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+            {recentPhotos.map((photo) => (
+              <li key={photo.id} className="shrink-0">
+                <Link
+                  href={`/collection/${photo.treeId}`}
+                  className="focus-visible:ring-ring bg-muted block size-24 overflow-hidden rounded-xl outline-none focus-visible:ring-2"
+                >
+                  <Photo
+                    thumbSrc={photo.thumbUrl}
+                    fullSrc={photo.url}
+                    alt={photo.treeName}
+                    className="h-full w-full object-cover"
+                  />
+                </Link>
               </li>
             ))}
           </ul>

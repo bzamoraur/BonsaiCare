@@ -20,7 +20,12 @@
     "nothingDueToday": "Nada para hoy.",
     "next7Days": "Próximos 7 días",
     "needsAttention": "Necesita atención",
-    "recentlyDone": "Hecho recientemente"
+    "recentlyDone": "Hecho recientemente",
+    "summaryOverdue": "{count, plural, one {# atrasada} other {# atrasadas}}",
+    "summaryDueToday": "{count, plural, one {# para hoy} other {# para hoy}}",
+    "summaryTrees": "{count, plural, one {# árbol} other {# árboles}}",
+    "summaryAllClear": "Todo al día",
+    "recentPhotos": "Momentos recientes"
   },
   "collection": {
     "title": "Colección",

@@ -20,7 +20,12 @@
     "nothingDueToday": "Nothing due today.",
     "next7Days": "Next 7 days",
     "needsAttention": "Needs attention",
-    "recentlyDone": "Recently done"
+    "recentlyDone": "Recently done",
+    "summaryOverdue": "{count, plural, one {# overdue} other {# overdue}}",
+    "summaryDueToday": "{count, plural, one {# due today} other {# due today}}",
+    "summaryTrees": "{count, plural, one {# tree} other {# trees}}",
+    "summaryAllClear": "All caught up",
+    "recentPhotos": "Recent moments"
   },
   "collection": {
     "title": "Collection",
