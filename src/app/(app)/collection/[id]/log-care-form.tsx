@@ -5,7 +5,11 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { type CareDefaults, CareEntryFields } from "@/components/care-entry-fields";
+import {
+  type CareDefaults,
+  CareEntryFields,
+  type CareLastByType,
+} from "@/components/care-entry-fields";
 import type { LogCareState } from "./care-types";
 
 const initialState: LogCareState = { status: "idle" };
@@ -22,9 +26,11 @@ type Props = {
   action: (prev: LogCareState, formData: FormData) => Promise<LogCareState>;
   /** Start expanded — used when arriving from the global "+" (`?log=1`). */
   defaultOpen?: boolean;
+  /** Per-type last-used detail values, to pre-fill the form (S09.5b). */
+  lastByType?: CareLastByType;
 };
 
-export function LogCareForm({ action, defaultOpen = false }: Props) {
+export function LogCareForm({ action, defaultOpen = false, lastByType }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const [open, setOpen] = useState(defaultOpen);
   const formRef = useRef<HTMLFormElement>(null);
@@ -71,7 +77,7 @@ export function LogCareForm({ action, defaultOpen = false }: Props) {
       action={formAction}
       className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-4"
     >
-      <CareEntryFields defaults={CREATE_DEFAULTS} />
+      <CareEntryFields defaults={CREATE_DEFAULTS} lastByType={lastByType} />
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending}>

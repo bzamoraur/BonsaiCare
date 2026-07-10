@@ -2,7 +2,9 @@ import { Camera, ChevronLeft, Leaf, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import type { CareLastByType } from "@/components/care-entry-fields";
 import { CareRecencyChips } from "@/components/care-recency-chips";
+import { careDetailsToStrings } from "@/lib/care-details";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { CareEventType, CareRecency } from "@/domain/care";
 import { CARE_EVENT_ICONS, CARE_EVENT_LABELS, careDetailSummary } from "@/lib/care-labels";
@@ -153,12 +155,16 @@ export default async function TreeDetailPage({
   // The timeline is newest-first, so the first care item is the latest, and the
   // first date seen per type is that type's latest.
   const careRecency: CareRecency = {};
+  const lastCareByType: CareLastByType = {};
   let latestCareType: CareEventType | null = null;
   for (const item of timeline) {
     if (item.kind !== "care") continue;
     if (latestCareType === null) latestCareType = item.entry.type;
     if (careRecency[item.entry.type] === undefined) {
       careRecency[item.entry.type] = item.entry.occurred_on;
+    }
+    if (lastCareByType[item.entry.type] === undefined) {
+      lastCareByType[item.entry.type] = careDetailsToStrings(item.entry.details);
     }
   }
 
@@ -269,7 +275,11 @@ export default async function TreeDetailPage({
           </div>
         </div>
 
-        <LogCareForm action={logCareAction.bind(null, tree.id)} defaultOpen={log === "1"} />
+        <LogCareForm
+          action={logCareAction.bind(null, tree.id)}
+          defaultOpen={log === "1"}
+          lastByType={lastCareByType}
+        />
 
         {filterOptions.length > 1 ? <TimelineFilters options={filterOptions} /> : null}
 

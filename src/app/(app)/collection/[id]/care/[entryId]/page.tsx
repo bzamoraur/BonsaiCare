@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { type CareDefaults } from "@/components/care-entry-fields";
+import { careDetailsToStrings } from "@/lib/care-details";
 import { getCareEntry } from "@/server/care";
 import { getTree } from "@/server/trees";
 
@@ -15,16 +16,6 @@ export const metadata = {
 
 type Params = { id: string; entryId: string };
 
-/** care entry details are all string values, but the column is Json. */
-function detailsToStrings(details: unknown): Record<string, string> {
-  if (!details || typeof details !== "object") return {};
-  const out: Record<string, string> = {};
-  for (const [key, value] of Object.entries(details as Record<string, unknown>)) {
-    if (typeof value === "string") out[key] = value;
-  }
-  return out;
-}
-
 export default async function EditCarePage({ params }: { params: Promise<Params> }) {
   const { id, entryId } = await params;
   const [tree, entry] = await Promise.all([getTree(id), getCareEntry(entryId)]);
@@ -35,7 +26,7 @@ export default async function EditCarePage({ params }: { params: Promise<Params>
     occurredAtDate: entry.occurred_on,
     title: entry.title ?? "",
     notes: entry.notes ?? "",
-    details: detailsToStrings(entry.details),
+    details: careDetailsToStrings(entry.details),
   };
 
   return (
