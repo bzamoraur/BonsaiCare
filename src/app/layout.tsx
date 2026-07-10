@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Fraunces, Geist } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+// The "craft pass" display face — a warm, organic serif for page titles and tree
+// names (via --font-heading in globals.css). Self-hosted by next/font at build.
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-serif", display: "swap" });
 
 // Runs before first paint so the correct theme (and browser-UI theme-color) is
 // applied with no flash. Mirrors src/lib/theme.ts (class + THEME_COLORS); kept
@@ -38,7 +41,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={cn("font-sans", geist.variable, fraunces.variable)}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
