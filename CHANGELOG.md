@@ -6,6 +6,19 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Care forms remember your routine (M6 / Sprint 09, 2026-07-10)
+
+- **Logging routine care starts pre-filled.** When you log care on a tree, the
+  detail fields (a watering "amount", a fertilizer's product/NPK, …) pre-fill from
+  the most recent entry of that type on that tree — so re-logging a routine is a
+  glance and a tap. Derived from the timeline already on the page (no extra query);
+  the edit/batch/quick-add forms are unaffected. **No schema change.**
+
+### Fixed — Honest empty state when every tree is archived (2026-07-10)
+
+- The collection no longer says "No trees yet" when your trees are simply all
+  archived — it points you to the archived view instead.
+
 ### Added — Act on the calendar; jump to any day (M6 / Sprint 09, 2026-07-09)
 
 - **Complete or skip a task without leaving the calendar.** Pending agenda rows now
