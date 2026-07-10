@@ -23,6 +23,7 @@ import { Constants } from "@/types/database.types";
 import { archiveTreeAction, unarchiveTreeAction } from "./actions";
 import { AddTaskForm } from "./add-task-form";
 import { ArchiveTreeForm } from "./archive-tree-form";
+import { ChangeCover } from "./change-cover";
 import { deleteCareAction, logCareAction, repeatLastCareAction } from "./care-actions";
 import { ConfirmDeleteButton } from "./confirm-delete-button";
 import { DeletePhotoButton } from "./delete-photo-button";
@@ -219,18 +220,28 @@ export default async function TreeDetailPage({
       {/* Hero — the cover photo (or newest), else a placeholder. Tap to view it full
           screen. Loads the full rendition (not the small thumb) so the star photo stays
           sharp, but eagerly + high-priority since it's the page's LCP image. */}
-      <div className="bg-muted flex aspect-video items-center justify-center overflow-hidden rounded-2xl">
+      <div className="bg-muted relative flex aspect-video items-center justify-center overflow-hidden rounded-2xl">
         {heroPhoto?.url ? (
-          <PhotoZoom
-            thumbSrc={null}
-            fullSrc={heroPhoto.url}
-            alt={tree.name}
-            width={heroPhoto.width}
-            height={heroPhoto.height}
-            priority
-            triggerClassName="h-full w-full"
-            className="h-full w-full object-cover"
-          />
+          <>
+            <PhotoZoom
+              thumbSrc={null}
+              fullSrc={heroPhoto.url}
+              alt={tree.name}
+              width={heroPhoto.width}
+              height={heroPhoto.height}
+              priority
+              triggerClassName="h-full w-full"
+              className="h-full w-full object-cover"
+            />
+            {!isArchived && allPhotos.length > 1 ? (
+              <ChangeCover
+                treeId={tree.id}
+                coverPhotoId={tree.cover_photo_id}
+                photos={allPhotos.map((p) => ({ id: p.id, url: p.url, thumbUrl: p.thumbUrl }))}
+                className="absolute top-2 right-2"
+              />
+            ) : null}
+          </>
         ) : (
           <Leaf className="text-muted-foreground/40 size-16" aria-hidden />
         )}

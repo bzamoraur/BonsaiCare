@@ -3,6 +3,11 @@
     "collectionTask": "Tarea de la colección",
     "taskUpdateError": "No pudimos actualizar esa tarea. Inténtalo de nuevo."
   },
+  "cover": {
+    "change": "Cambiar portada",
+    "title": "Elegir portada",
+    "current": "Actual"
+  },
   "calendar": {
     "title": "Calendario",
     "today": "Hoy",
