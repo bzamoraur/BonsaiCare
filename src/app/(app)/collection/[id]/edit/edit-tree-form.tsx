@@ -1,10 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@/lib/tree-labels";
 import { Constants, type Tables } from "@/types/database.types";
 
 import type { TreeFormState } from "../types";
@@ -33,6 +33,9 @@ export function EditTreeForm({
   tagsValue,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
+  const tStage = useTranslations("stages");
+  const tHealth = useTranslations("health");
+  const tOrigin = useTranslations("origins");
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -89,7 +92,7 @@ export function EditTreeForm({
             <option value="">Not set</option>
             {Constants.public.Enums.development_stage.map((value) => (
               <option key={value} value={value}>
-                {DEVELOPMENT_STAGE_LABELS[value]}
+                {tStage(value)}
               </option>
             ))}
           </select>
@@ -105,7 +108,7 @@ export function EditTreeForm({
             <option value="">Not set</option>
             {Constants.public.Enums.health_status.map((value) => (
               <option key={value} value={value}>
-                {HEALTH_STATUS_LABELS[value]}
+                {tHealth(value)}
               </option>
             ))}
           </select>
@@ -116,7 +119,7 @@ export function EditTreeForm({
             <option value="">Not set</option>
             {Constants.public.Enums.tree_origin.map((value) => (
               <option key={value} value={value}>
-                {ORIGIN_LABELS[value]}
+                {tOrigin(value)}
               </option>
             ))}
           </select>

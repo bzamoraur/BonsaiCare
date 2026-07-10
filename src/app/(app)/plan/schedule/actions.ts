@@ -1,10 +1,10 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 
 import { parseTaskForm } from "@/domain/task-form";
 import { logActionError } from "@/lib/log-action-error";
-import { TASK_TYPE_LABELS } from "@/lib/task-labels";
 import { createTasksForTrees } from "@/server/tasks";
 import { Constants, type Enums } from "@/types/database.types";
 
@@ -37,10 +37,10 @@ export async function createSchedulePlanAction(
     return { status: "error", message: "Choose a valid type of care." };
   }
   const type = typeRaw as Enums<"task_type">;
+  const tType = await getTranslations("taskTypes");
 
   const titleRaw = formData.get("title");
-  const title =
-    typeof titleRaw === "string" && titleRaw.trim() ? titleRaw.trim() : TASK_TYPE_LABELS[type];
+  const title = typeof titleRaw === "string" && titleRaw.trim() ? titleRaw.trim() : tType(type);
 
   const parsed = parseTaskForm({
     title,
@@ -67,7 +67,7 @@ export async function createSchedulePlanAction(
     });
     revalidatePath("/today");
     revalidatePath("/calendar");
-    return { status: "success", count, label: TASK_TYPE_LABELS[type] };
+    return { status: "success", count, label: tType(type) };
   } catch (error) {
     logActionError("createSchedulePlan", error);
     return { status: "error", message: "We couldn't create that plan. Please try again." };

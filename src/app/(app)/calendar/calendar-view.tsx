@@ -1,11 +1,12 @@
 "use client";
 
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { TaskActions } from "@/components/task-actions";
 import { useLocalToday } from "@/lib/local-day";
-import { TASK_TYPE_ICONS, TASK_TYPE_LABELS } from "@/lib/task-labels";
+import { TASK_TYPE_ICONS } from "@/lib/task-labels";
 import { cn } from "@/lib/utils";
 import type { DashboardTask } from "@/server/dashboard";
 
@@ -229,6 +230,7 @@ export function CalendarView({
 
 function AgendaRow({ item, serverToday }: { item: AgendaTask; serverToday: string }) {
   const { task, complete, skip } = item;
+  const t = useTranslations("taskTypes");
   const done = task.status === "done";
   // A completed action reads as settled: a check in a primary-tint circle plus a
   // "Done" tag. Pending rows carry inline Done/Skip actions; the title links to the
@@ -257,7 +259,7 @@ function AgendaRow({ item, serverToday }: { item: AgendaTask; serverToday: strin
             <span className="text-sm font-medium">{task.title}</span>
           )}
           <span className="text-muted-foreground text-xs">
-            {TASK_TYPE_LABELS[task.type]}
+            {t(task.type)}
             {task.tree ? ` · ${task.tree.name}` : " · Collection task"}
             {done ? " · Done" : ""}
           </span>

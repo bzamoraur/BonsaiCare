@@ -54,5 +54,55 @@
     "signedIn": "Signed in",
     "signOut": "Sign out",
     "ownerMetrics": "Owner metrics"
+  },
+  "taskTypes": {
+    "watering": "Water",
+    "fertilizing": "Fertilize",
+    "pruning": "Prune",
+    "repotting": "Repot",
+    "wiring": "Wire",
+    "inspection": "Inspect",
+    "photo": "Photo",
+    "custom": "Task"
+  },
+  "careTypes": {
+    "watering": "Watered",
+    "fertilizing": "Fertilized",
+    "pruning": "Pruned",
+    "wiring": "Wired",
+    "repotting": "Repotted",
+    "pest_treatment": "Pest treatment",
+    "styling": "Styled",
+    "defoliation": "Defoliated",
+    "observation": "Observation",
+    "note": "Note"
+  },
+  "stages": {
+    "raw_material": "Raw material",
+    "development": "In development",
+    "refinement": "Refinement",
+    "maintenance": "Maintenance"
+  },
+  "health": {
+    "thriving": "Thriving",
+    "healthy": "Healthy",
+    "struggling": "Struggling",
+    "critical": "Critical",
+    "dormant": "Dormant"
+  },
+  "origins": {
+    "nursery_stock": "Nursery stock",
+    "pre_bonsai": "Pre-bonsai",
+    "yamadori": "Yamadori (collected)",
+    "seed": "From seed",
+    "cutting": "From cutting",
+    "gift": "Gift",
+    "other": "Other"
+  },
+  "recurrence": {
+    "oneOff": "One-off",
+    "everyDay": "Every day",
+    "everyNDays": "Every {days} days",
+    "seasonal": "{base} · {start}–{end}"
   }
 }

@@ -1,11 +1,13 @@
+"use client";
+
 import { Leaf } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { CareRecencyChips } from "@/components/care-recency-chips";
 import { Photo } from "@/components/photo";
 import type { CareRecency } from "@/domain/care";
-import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS } from "@/lib/tree-labels";
 import type { TreeCard as TreeCardData } from "@/server/trees";
 
 /**
@@ -21,8 +23,10 @@ export function TreeCard({
   recency?: CareRecency;
   serverToday: string;
 }) {
-  const stage = tree.development_stage ? DEVELOPMENT_STAGE_LABELS[tree.development_stage] : null;
-  const health = tree.health_status ? HEALTH_STATUS_LABELS[tree.health_status] : null;
+  const tStage = useTranslations("stages");
+  const tHealth = useTranslations("health");
+  const stage = tree.development_stage ? tStage(tree.development_stage) : null;
+  const health = tree.health_status ? tHealth(tree.health_status) : null;
 
   return (
     <Link

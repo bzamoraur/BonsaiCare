@@ -1,11 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { TreeMultiSelect } from "@/components/tree-multi-select";
 import { Button } from "@/components/ui/button";
-import { TASK_TYPE_LABELS } from "@/lib/task-labels";
 import { Constants, type Enums } from "@/types/database.types";
 
 import type { SchedulePlanState } from "./actions";
@@ -54,6 +54,7 @@ export function ScheduleForm({
   const [recurring, setRecurring] = useState(true);
   const [seasonal, setSeasonal] = useState(false);
   const successRef = useRef<HTMLDivElement>(null);
+  const tType = useTranslations("taskTypes");
 
   // Move focus to the confirmation on success so it's announced and the user
   // isn't stranded on <body> after the submit button unmounts.
@@ -107,7 +108,7 @@ export function ScheduleForm({
           >
             {Constants.public.Enums.task_type.map((t) => (
               <option key={t} value={t}>
-                {TASK_TYPE_LABELS[t]}
+                {tType(t)}
               </option>
             ))}
           </select>
@@ -121,7 +122,7 @@ export function ScheduleForm({
             name="title"
             type="text"
             maxLength={120}
-            placeholder={TASK_TYPE_LABELS[type]}
+            placeholder={tType(type)}
             className={inputClass}
           />
         </div>

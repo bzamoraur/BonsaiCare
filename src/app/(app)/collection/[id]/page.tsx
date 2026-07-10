@@ -1,4 +1,5 @@
 import { Camera, ChevronDown, ChevronLeft, Leaf, Pencil } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -8,10 +9,9 @@ import { PhotoZoom } from "@/components/photo-zoom";
 import { careDetailsToStrings } from "@/lib/care-details";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { CareEventType, CareRecency } from "@/domain/care";
-import { CARE_EVENT_ICONS, CARE_EVENT_LABELS, careDetailSummary } from "@/lib/care-labels";
-import { TASK_TYPE_ICONS, TASK_TYPE_LABELS, describeRecurrence } from "@/lib/task-labels";
+import { CARE_EVENT_ICONS, careDetailSummary } from "@/lib/care-labels";
+import { recurrenceInfo, TASK_TYPE_ICONS } from "@/lib/task-labels";
 import { groupTimelineByMonth, isMonthDefaultOpen } from "@/lib/timeline-groups";
-import { DEVELOPMENT_STAGE_LABELS, HEALTH_STATUS_LABELS, ORIGIN_LABELS } from "@/lib/tree-labels";
 import { cn } from "@/lib/utils";
 import { getLocationName } from "@/server/locations";
 import { getTreeTags } from "@/server/tags";
@@ -98,19 +98,50 @@ export default async function TreeDetailPage({
   const currentMonthKey = serverToday.slice(0, 7); // opens today's timeline "folder"
   const pendingTasks = tasks.filter((t) => t.status === "pending");
 
+  // Enum labels + the recurrence phrase live in message namespaces. The sync
+  // sub-components below can't await, so they receive pre-resolved strings (task
+  // type + schedule) or a small resolver (careLabel). Month names come from Intl
+  // in the active locale (no month catalog to maintain).
+  const [tCare, tType, tStage, tHealth, tOrigin, tRec, locale] = await Promise.all([
+    getTranslations("careTypes"),
+    getTranslations("taskTypes"),
+    getTranslations("stages"),
+    getTranslations("health"),
+    getTranslations("origins"),
+    getTranslations("recurrence"),
+    getLocale(),
+  ]);
+  const careLabel = (t: CareEventType) => tCare(t);
+  const shortMonth = (m: number) =>
+    new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" }).format(
+      new Date(Date.UTC(2020, m - 1, 1)),
+    );
+  const describeRec = (raw: unknown): string => {
+    const info = recurrenceInfo(raw);
+    if (info.kind === "oneOff") return tRec("oneOff");
+    if (info.kind === "everyDay") return tRec("everyDay");
+    if (info.kind === "interval") return tRec("everyNDays", { days: info.days });
+    const base = info.days === 1 ? tRec("everyDay") : tRec("everyNDays", { days: info.days });
+    return tRec("seasonal", {
+      base,
+      start: shortMonth(info.startMonth),
+      end: shortMonth(info.endMonth),
+    });
+  };
+
   const locationName = tree.location_id ? await getLocationName(tree.location_id) : null;
 
   const facts = [
     {
       label: "Development stage",
-      value: tree.development_stage ? DEVELOPMENT_STAGE_LABELS[tree.development_stage] : null,
+      value: tree.development_stage ? tStage(tree.development_stage) : null,
     },
     {
       label: "Health",
-      value: tree.health_status ? HEALTH_STATUS_LABELS[tree.health_status] : null,
+      value: tree.health_status ? tHealth(tree.health_status) : null,
     },
     { label: "Location", value: locationName },
-    { label: "Origin", value: tree.origin ? ORIGIN_LABELS[tree.origin] : null },
+    { label: "Origin", value: tree.origin ? tOrigin(tree.origin) : null },
     { label: "Style", value: tree.style },
     { label: "Pot", value: tree.current_pot },
     { label: "Substrate", value: tree.current_substrate },
@@ -138,9 +169,7 @@ export default async function TreeDetailPage({
     timeline.flatMap((item) => (item.kind === "care" ? [item.entry.type] : [])),
   );
   const filterOptions: FilterOption[] = [
-    ...careTypes
-      .filter((t) => presentTypes.has(t))
-      .map((t) => ({ value: t, label: CARE_EVENT_LABELS[t] })),
+    ...careTypes.filter((t) => presentTypes.has(t)).map((t) => ({ value: t, label: tCare(t) })),
     ...(timeline.some((item) => item.kind === "photo")
       ? [{ value: "photos", label: "Photos" }]
       : []),
@@ -265,7 +294,14 @@ export default async function TreeDetailPage({
           ) : (
             <ol className="flex flex-col">
               {pendingTasks.map((task) => (
-                <TaskItem key={task.id} task={task} treeId={tree.id} serverToday={serverToday} />
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  treeId={tree.id}
+                  serverToday={serverToday}
+                  typeLabel={tType(task.type)}
+                  schedule={describeRec(task.recurrence)}
+                />
               ))}
             </ol>
           )}
@@ -280,7 +316,7 @@ export default async function TreeDetailPage({
             {latestCareType && !isArchived ? (
               <form action={repeatLastCareAction.bind(null, tree.id)}>
                 <Button type="submit" variant="outline" size="sm">
-                  Repeat: {CARE_EVENT_LABELS[latestCareType]}
+                  Repeat: {careLabel(latestCareType)}
                 </Button>
               </form>
             ) : null}
@@ -328,7 +364,12 @@ export default async function TreeDetailPage({
                 </summary>
                 <ol className="flex flex-col pb-2">
                   {group.items.map((item) => (
-                    <TimelineRow key={`${item.kind}-${item.id}`} item={item} tree={tree} />
+                    <TimelineRow
+                      key={`${item.kind}-${item.id}`}
+                      item={item}
+                      tree={tree}
+                      careLabel={careLabel}
+                    />
                   ))}
                 </ol>
               </details>
@@ -366,10 +407,14 @@ function TaskItem({
   task,
   treeId,
   serverToday,
+  typeLabel,
+  schedule,
 }: {
   task: Task;
   treeId: string;
   serverToday: string;
+  typeLabel: string;
+  schedule: string;
 }) {
   const Icon = TASK_TYPE_ICONS[task.type];
   return (
@@ -383,7 +428,7 @@ function TaskItem({
           <TaskDueLabel status={task.status} dueOn={task.due_on} serverToday={serverToday} />
         </div>
         <p className="text-muted-foreground text-xs">
-          {TASK_TYPE_LABELS[task.type]} · {describeRecurrence(task.recurrence)}
+          {typeLabel} · {schedule}
         </p>
         {task.notes ? (
           <p className="text-muted-foreground text-sm whitespace-pre-wrap">{task.notes}</p>
@@ -424,16 +469,24 @@ function TimelineIcon({ item }: { item: TimelineItem }) {
 function TimelineRow({
   item,
   tree,
+  careLabel,
 }: {
   item: TimelineItem;
   tree: { id: string; owner_id: string; name: string; cover_photo_id: string | null };
+  careLabel: (type: CareEventType) => string;
 }) {
   return (
     <li className="flex gap-3">
       <TimelineIcon item={item} />
       <div className="border-border flex flex-1 flex-col gap-1.5 border-b pb-4 last:border-b-0">
         {item.kind === "care" ? (
-          <CareItem item={item} treeId={tree.id} ownerId={tree.owner_id} treeName={tree.name} />
+          <CareItem
+            item={item}
+            treeId={tree.id}
+            ownerId={tree.owner_id}
+            treeName={tree.name}
+            careLabel={careLabel}
+          />
         ) : (
           <PhotoItem
             item={item}
@@ -452,18 +505,20 @@ function CareItem({
   treeId,
   ownerId,
   treeName,
+  careLabel,
 }: {
   item: Extract<TimelineItem, { kind: "care" }>;
   treeId: string;
   ownerId: string;
   treeName: string;
+  careLabel: (type: CareEventType) => string;
 }) {
   const { entry, photos } = item;
   const summary = careDetailSummary(entry.details);
   return (
     <>
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm font-medium">{CARE_EVENT_LABELS[entry.type]}</span>
+        <span className="text-sm font-medium">{careLabel(entry.type)}</span>
         <span className="text-muted-foreground shrink-0 text-xs">
           {formatTimelineDate(entry.occurred_on)}
         </span>
@@ -481,7 +536,7 @@ function CareItem({
                 key={photo.id}
                 thumbSrc={photo.thumbUrl}
                 fullSrc={photo.url}
-                alt={`${treeName} — ${CARE_EVENT_LABELS[entry.type]}`}
+                alt={`${treeName} — ${careLabel(entry.type)}`}
                 className="bg-muted aspect-square w-full rounded-lg object-cover"
               />
             ) : null,
