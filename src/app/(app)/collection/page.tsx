@@ -116,10 +116,12 @@ export default async function CollectionPage({
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
-      <div className="flex items-center justify-between gap-4">
+      {/* Stack on mobile so the (longer, esp. in Spanish) action buttons never
+          overflow next to the title on a narrow phone. */}
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         {showToolbar ? (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/plan/schedule"
               className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
@@ -154,7 +156,7 @@ export default async function CollectionPage({
         <>
           <CollectionToolbar locations={locations} tags={tags} />
           {trees.length > 0 ? (
-            <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <ul className="grid auto-rows-fr grid-cols-2 gap-4 sm:grid-cols-3">
               {trees.map((tree) => (
                 <li key={tree.id}>
                   <TreeCard tree={tree} recency={recency.get(tree.id)} serverToday={serverToday} />
@@ -218,7 +220,7 @@ async function ArchivedCollection() {
       ) : (
         <>
           <p className="text-muted-foreground text-sm text-balance">{t("archivedIntro")}</p>
-          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <ul className="grid auto-rows-fr grid-cols-2 gap-4 sm:grid-cols-3">
             {trees.map((tree) => (
               <li key={tree.id}>
                 <TreeCard tree={tree} serverToday={serverToday} />
