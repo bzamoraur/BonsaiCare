@@ -55,7 +55,9 @@ export function PhotoZoom({
         type="button"
         onClick={() => setOpen(true)}
         aria-label={alt ? `View ${alt} full screen` : "View photo full screen"}
-        className="focus-visible:ring-ring block w-full cursor-zoom-in rounded-[inherit] outline-none focus-visible:ring-2"
+        // ring-inset so the focus indicator isn't clipped by an `overflow-hidden`
+        // ancestor (the button fills its container flush).
+        className="focus-visible:ring-ring block w-full cursor-zoom-in rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-inset"
       >
         <Photo
           thumbSrc={thumbSrc}
@@ -84,6 +86,8 @@ export function PhotoZoom({
               <img
                 src={fullSrc}
                 alt={alt}
+                width={width ?? undefined}
+                height={height ?? undefined}
                 className="max-h-[92vh] max-w-[96vw] rounded-lg object-contain"
               />
             ) : null}
