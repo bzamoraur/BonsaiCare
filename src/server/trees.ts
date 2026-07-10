@@ -3,6 +3,7 @@ import { cache } from "react";
 import type { TreeFormInput } from "@/domain/tree-form";
 import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
+import { thumbPath } from "@/lib/thumb-path";
 import type { Enums, Tables } from "@/types/database.types";
 
 /**
@@ -19,7 +20,7 @@ export type Tree = Tables<"trees">;
 export type TreeCard = Pick<
   Tree,
   "id" | "name" | "species_label" | "development_stage" | "health_status"
-> & { coverUrl: string | null };
+> & { coverUrl: string | null; coverThumbUrl: string | null };
 
 const TREE_CARD_COLUMNS =
   "id, name, species_label, development_stage, health_status, cover_photo_id";
@@ -37,7 +38,7 @@ type ServerClient = Awaited<ReturnType<typeof createClient>>;
 async function coverUrlMap(
   supabase: ServerClient,
   coverIds: (string | null)[],
-): Promise<Map<string, string>> {
+): Promise<Map<string, { full: string; thumb: string | null }>> {
   const ids = coverIds.filter((v): v is string => Boolean(v));
   if (ids.length === 0) return new Map();
 
@@ -52,18 +53,26 @@ async function coverUrlMap(
   const paths = [...pathById.values()];
   if (paths.length === 0) return new Map();
 
-  const { data: signed, error: signError } = await supabase.storage
-    .from("tree-photos")
-    .createSignedUrls(paths, COVER_URL_TTL_SECONDS);
-  if (signError) logActionError("coverUrlMap.sign", signError);
-  const urlByPath = new Map(
-    (signed ?? []).flatMap((s) => (s.path && s.signedUrl ? [[s.path, s.signedUrl] as const] : [])),
-  );
+  const signUrls = async (list: string[], label: string) => {
+    const { data, error } = await supabase.storage
+      .from("tree-photos")
+      .createSignedUrls(list, COVER_URL_TTL_SECONDS);
+    if (error) logActionError(label, error);
+    return new Map(
+      (data ?? []).flatMap((s) => (s.path && s.signedUrl ? [[s.path, s.signedUrl] as const] : [])),
+    );
+  };
+  // Full covers are authoritative; thumbs (S10.1) are a separate best-effort batch
+  // so a missing/failed thumb never blanks the grid — cards fall back to the full.
+  const [fullUrls, thumbUrls] = await Promise.all([
+    signUrls(paths, "coverUrlMap.sign"),
+    signUrls(paths.map(thumbPath), "coverUrlMap.signThumb"),
+  ]);
 
-  const result = new Map<string, string>();
+  const result = new Map<string, { full: string; thumb: string | null }>();
   for (const [id, path] of pathById) {
-    const url = urlByPath.get(path);
-    if (url) result.set(id, url);
+    const full = fullUrls.get(path);
+    if (full) result.set(id, { full, thumb: thumbUrls.get(thumbPath(path)) ?? null });
   }
   return result;
 }
@@ -134,10 +143,10 @@ export async function listTrees(filters: TreeFilters = {}): Promise<TreeCard[]> 
     supabase,
     rows.map((r) => r.cover_photo_id),
   );
-  return rows.map(({ cover_photo_id, ...card }) => ({
-    ...card,
-    coverUrl: cover_photo_id ? (urlByCoverId.get(cover_photo_id) ?? null) : null,
-  }));
+  return rows.map(({ cover_photo_id, ...card }) => {
+    const cover = cover_photo_id ? urlByCoverId.get(cover_photo_id) : undefined;
+    return { ...card, coverUrl: cover?.full ?? null, coverThumbUrl: cover?.thumb ?? null };
+  });
 }
 
 /**
@@ -161,10 +170,10 @@ export async function listTriageTrees(): Promise<TreeCard[]> {
     supabase,
     rows.map((r) => r.cover_photo_id),
   );
-  return rows.map(({ cover_photo_id, ...card }) => ({
-    ...card,
-    coverUrl: cover_photo_id ? (urlByCoverId.get(cover_photo_id) ?? null) : null,
-  }));
+  return rows.map(({ cover_photo_id, ...card }) => {
+    const cover = cover_photo_id ? urlByCoverId.get(cover_photo_id) : undefined;
+    return { ...card, coverUrl: cover?.full ?? null, coverThumbUrl: cover?.thumb ?? null };
+  });
 }
 
 export type QuickAddTree = Pick<Tree, "id" | "name">;

@@ -91,11 +91,26 @@ export function planUploads(sourceObjects, existingSizesByName) {
     .map((o) => o.path);
 }
 
-// Orphan = no photos row AND created before the grace cutoff. A missing
-// created_at is treated as too-risky-to-delete (kept), never swept.
+// The full-size sibling of a `<uuid>.thumb.webp` thumbnail object (S10.1), or
+// null for a non-thumb path. Mirrors src/lib/thumb-path.ts in reverse.
+function fullSiblingOf(path) {
+  return path.endsWith(".thumb.webp") ? path.replace(/\.thumb\.webp$/, ".webp") : null;
+}
+
+// Orphan = no photos row AND created before the grace cutoff. A thumbnail is NOT
+// an orphan while its full-size sibling is a known photo — it's a derived
+// rendition with no photos row of its own (deletePhoto removes the thumb alongside
+// the full image, so a thumb only outlives its parent on an interrupted delete, at
+// which point sweeping it is correct). A missing created_at is treated as
+// too-risky-to-delete (kept), never swept.
 export function collectOrphans(objects, known, cutoffMs) {
   return objects
-    .filter((o) => !known.has(o.path) && o.createdAt && new Date(o.createdAt).getTime() < cutoffMs)
+    .filter((o) => {
+      if (known.has(o.path)) return false;
+      const full = fullSiblingOf(o.path);
+      if (full && known.has(full)) return false;
+      return o.createdAt && new Date(o.createdAt).getTime() < cutoffMs;
+    })
     .map((o) => o.path);
 }
 

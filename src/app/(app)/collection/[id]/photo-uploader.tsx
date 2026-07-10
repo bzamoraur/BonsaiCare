@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { compressImage } from "@/lib/image";
 import { createClient } from "@/lib/supabase/client";
+import { thumbPath } from "@/lib/thumb-path";
 
 import { recordPhotoAction } from "./photo-actions";
 
@@ -45,6 +46,18 @@ export function PhotoUploader({
         .from("tree-photos")
         .upload(path, blob, { contentType: "image/webp", upsert: false });
       if (uploadError) throw new Error(uploadError.message);
+
+      // Best-effort ~320px thumbnail (S10.1) so grids/timeline don't download the
+      // full image. A failure here never blocks the photo — readers fall back to
+      // the full-size URL when a thumb is absent.
+      try {
+        const thumb = await compressImage(file, 320, 0.7);
+        await supabase.storage
+          .from("tree-photos")
+          .upload(thumbPath(path), thumb.blob, { contentType: "image/webp", upsert: false });
+      } catch {
+        // ignore — the full image is already stored
+      }
 
       const result = await recordPhotoAction({
         treeId,
