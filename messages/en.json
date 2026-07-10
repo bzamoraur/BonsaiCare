@@ -3,6 +3,21 @@
     "collectionTask": "Collection task",
     "taskUpdateError": "We couldn't update that task. Please try again."
   },
+  "calendar": {
+    "title": "Calendar",
+    "today": "Today",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "nothingScheduled": "Nothing scheduled this month.",
+    "done": "Done",
+    "dueCount": "{count, plural, one {# due} other {# due}}",
+    "doneCount": "{count, plural, one {# done} other {# done}}",
+    "addTask": "Add task",
+    "newTask": "New task",
+    "whichTree": "Which tree?",
+    "wholeCollection": "Whole collection",
+    "adding": "Adding…"
+  },
   "nav": {
     "today": "Today",
     "collection": "Collection",
