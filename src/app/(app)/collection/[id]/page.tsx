@@ -187,11 +187,21 @@ export default async function TreeDetailPage({
         </p>
       ) : null}
 
-      {/* Hero — the cover photo (or newest), else a placeholder. */}
+      {/* Hero — the cover photo (or newest), else a placeholder. Tap to view it full
+          screen. Loads the full rendition (not the small thumb) so the star photo stays
+          sharp, but eagerly + high-priority since it's the page's LCP image. */}
       <div className="bg-muted flex aspect-video items-center justify-center overflow-hidden rounded-2xl">
         {heroPhoto?.url ? (
-          // eslint-disable-next-line @next/next/no-img-element -- private signed URL, next/image caching doesn't fit
-          <img src={heroPhoto.url} alt={tree.name} className="h-full w-full object-cover" />
+          <PhotoZoom
+            thumbSrc={null}
+            fullSrc={heroPhoto.url}
+            alt={tree.name}
+            width={heroPhoto.width}
+            height={heroPhoto.height}
+            priority
+            triggerClassName="h-full w-full"
+            className="h-full w-full object-cover"
+          />
         ) : (
           <Leaf className="text-muted-foreground/40 size-16" aria-hidden />
         )}
