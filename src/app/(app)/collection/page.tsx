@@ -138,12 +138,16 @@ export default async function CollectionPage({
         </p>
       ) : !showToolbar ? (
         <section className="border-border bg-card flex flex-col items-center gap-4 rounded-2xl border p-8 text-center">
+          {/* With archived trees present, "No trees yet" would be a lie — the whole
+              collection is just archived. Point there instead of implying a blank slate. */}
           <p className="text-muted-foreground text-balance">
-            No trees yet. Add your first bonsai to start tracking its journey.
+            {archivedCount > 0
+              ? "No active trees right now. Add one, or view your archived trees below."
+              : "No trees yet. Add your first bonsai to start tracking its journey."}
           </p>
           <Link href="/collection/new" className={cn(buttonVariants())}>
             <Plus aria-hidden />
-            Add your first tree
+            {archivedCount > 0 ? "Add a tree" : "Add your first tree"}
           </Link>
         </section>
       ) : (
