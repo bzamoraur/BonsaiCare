@@ -8,6 +8,11 @@ allowBuilds:
   unrs-resolver: false
   # The supabase CLI npm package downloads its platform binary on install.
   supabase: true
+  # Pulled in transitively (via next-intl's tree). Both ship prebuilt platform
+  # binaries via optionalDependencies, so their build scripts are unnecessary —
+  # declined for the same deterministic-install reason as sharp/unrs-resolver.
+  "@parcel/watcher": false
+  "@swc/core": false
 
 # next@16.2.9 pins postcss@8.4.31, which carries GHSA advisory "XSS via
 # unescaped </style> in stringify output" (fixed in 8.5.10). Build-time-only

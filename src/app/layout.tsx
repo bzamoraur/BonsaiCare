@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import { Fraunces, Geist } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { cn } from "@/lib/utils";
@@ -35,14 +37,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The active locale (from the NEXT_LOCALE cookie) drives <html lang> and the
+  // messages made available to client components via NextIntlClientProvider.
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={cn("font-sans", geist.variable, fraunces.variable)}
       suppressHydrationWarning
     >
@@ -50,7 +56,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
-        {children}
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

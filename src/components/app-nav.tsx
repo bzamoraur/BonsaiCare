@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar, Home, LayoutGrid, Plus, Settings } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -13,13 +14,6 @@ type Tab = {
   label: string;
   icon: typeof Home;
 };
-
-const tabs: Tab[] = [
-  { href: "/today", label: "Today", icon: Home },
-  { href: "/collection", label: "Collection", icon: LayoutGrid },
-  { href: "/calendar", label: "Calendar", icon: Calendar },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -61,6 +55,13 @@ function TabLink({ tab, active }: { tab: Tab; active: boolean }) {
  */
 export function AppNav() {
   const pathname = usePathname();
+  const t = useTranslations("nav");
+  const tabs: Tab[] = [
+    { href: "/today", label: t("today"), icon: Home },
+    { href: "/collection", label: t("collection"), icon: LayoutGrid },
+    { href: "/calendar", label: t("calendar"), icon: Calendar },
+    { href: "/settings", label: t("settings"), icon: Settings },
+  ];
   const [today, collection, calendar, settings] = tabs;
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -86,7 +87,7 @@ export function AppNav() {
           <div className="flex flex-1 flex-col items-center gap-0.5">
             <a
               href="/log"
-              aria-label="Quick log"
+              aria-label={t("quickLog")}
               aria-haspopup="dialog"
               aria-expanded={sheetOpen}
               onClick={(e) => {
@@ -97,7 +98,9 @@ export function AppNav() {
             >
               <Plus className="size-6" aria-hidden />
             </a>
-            <span className="text-muted-foreground pb-1 text-[0.65rem] font-medium">Log</span>
+            <span className="text-muted-foreground pb-1 text-[0.65rem] font-medium">
+              {t("log")}
+            </span>
           </div>
 
           <TabLink tab={calendar} active={isActive(pathname, calendar.href)} />

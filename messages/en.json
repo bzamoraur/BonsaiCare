@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "today": "Today",
+    "collection": "Collection",
+    "calendar": "Calendar",
+    "settings": "Settings",
+    "quickLog": "Quick log",
+    "log": "Log"
+  },
+  "settings": {
+    "title": "Settings",
+    "loadError": "We could not load your settings right now. Please refresh the page to try again.",
+    "appearance": "Appearance",
+    "appearanceDescription": "Choose a light or dark theme, or follow your device.",
+    "language": "Language",
+    "languageDescription": "Choose the language for the app.",
+    "yourData": "Your data",
+    "yourDataDescription": "Export a complete, portable copy of your collection — trees, care history, tasks, and photo details. Your record is always yours to keep. JSON is the lossless format for backup; CSV opens in any spreadsheet.",
+    "exportJson": "Export as JSON",
+    "exportCsv": "Export as CSV",
+    "downloadPhotos": "Download photos",
+    "signedIn": "Signed in",
+    "signOut": "Sign out",
+    "ownerMetrics": "Owner metrics"
+  }
+}
