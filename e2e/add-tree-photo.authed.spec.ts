@@ -62,6 +62,9 @@ test("add a tree, then attach a photo to it", async ({ page }, testInfo) => {
   const lightbox = page.getByRole("dialog");
   await expect(lightbox).toBeVisible();
   await expect(lightbox.getByRole("img")).toBeVisible();
-  await lightbox.getByRole("button", { name: "Close" }).click();
+  await expect(lightbox.getByRole("button", { name: "Close" })).toBeVisible();
+  // Close via Esc (native <dialog>) — robust regardless of the image's size (the
+  // 2×2 test fixture renders a tiny lightbox where a click would be finicky).
+  await page.keyboard.press("Escape");
   await expect(lightbox).not.toBeVisible();
 });
