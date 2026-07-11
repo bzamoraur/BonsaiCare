@@ -28,6 +28,63 @@ export type Database = {
   };
   public: {
     Tables: {
+      app_errors: {
+        Row: {
+          context: string | null;
+          digest: string | null;
+          id: number;
+          message: string | null;
+          occurred_at: string;
+          owner_id: string | null;
+          path: string | null;
+          release: string | null;
+          source: string;
+          user_agent: string | null;
+        };
+        Insert: {
+          context?: string | null;
+          digest?: string | null;
+          id?: never;
+          message?: string | null;
+          occurred_at?: string;
+          owner_id?: string | null;
+          path?: string | null;
+          release?: string | null;
+          source: string;
+          user_agent?: string | null;
+        };
+        Update: {
+          context?: string | null;
+          digest?: string | null;
+          id?: never;
+          message?: string | null;
+          occurred_at?: string;
+          owner_id?: string | null;
+          path?: string | null;
+          release?: string | null;
+          source?: string;
+          user_agent?: string | null;
+        };
+        Relationships: [];
+      };
+      b2_purge_queue: {
+        Row: {
+          purged_at: string | null;
+          requested_at: string;
+          uid: string;
+        };
+        Insert: {
+          purged_at?: string | null;
+          requested_at?: string;
+          uid: string;
+        };
+        Update: {
+          purged_at?: string | null;
+          requested_at?: string;
+          uid?: string;
+        };
+        Relationships: [];
+      };
       care_log_entries: {
         Row: {
           created_at: string;
@@ -440,6 +497,19 @@ export type Database = {
       };
       delete_my_account: { Args: never; Returns: undefined };
       owner_metrics: { Args: never; Returns: Json };
+      recent_app_errors: { Args: { p_limit?: number }; Returns: Json };
+      record_client_error: {
+        Args: {
+          p_context?: string;
+          p_digest?: string;
+          p_message?: string;
+          p_path?: string;
+          p_release?: string;
+          p_source: string;
+          p_user_agent?: string;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       care_event_type:
