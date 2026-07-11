@@ -259,5 +259,28 @@
     "whichTrees": "Which trees?",
     "clear": "Clear",
     "selectAll": "Select all"
+  },
+  "quickAdd": {
+    "title": "Quick log",
+    "loading": "Loading your trees…",
+    "loadError": "We couldn't load your trees. Close this and try again.",
+    "noTrees": "Add a tree first — then you can log care or a photo from anywhere.",
+    "addTree": "Add a tree →",
+    "whichTree": "Which tree?",
+    "selectTree": "Select a tree…",
+    "whatToAdd": "What to add",
+    "logCare": "Log care",
+    "logging": "Logging…",
+    "logIt": "Log it",
+    "logged": "Logged ✓",
+    "photoNote": "The photo is added to this tree's timeline.",
+    "pickTreeForPhoto": "Pick a tree to add a photo.",
+    "errPickTree": "Pick a tree first.",
+    "errLogFailed": "We couldn't log that. Please try again."
+  },
+  "photo": {
+    "addPhoto": "Add photo",
+    "uploading": "Uploading…",
+    "uploadError": "Upload failed. Please try again."
   }
 }

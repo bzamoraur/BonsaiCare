@@ -259,5 +259,28 @@
     "whichTrees": "¿Qué árboles?",
     "clear": "Quitar todo",
     "selectAll": "Seleccionar todo"
+  },
+  "quickAdd": {
+    "title": "Registro rápido",
+    "loading": "Cargando tus árboles…",
+    "loadError": "No pudimos cargar tus árboles. Cierra esto e inténtalo de nuevo.",
+    "noTrees": "Añade un árbol primero — así podrás registrar cuidados o una foto desde cualquier lugar.",
+    "addTree": "Añadir un árbol →",
+    "whichTree": "¿Qué árbol?",
+    "selectTree": "Elige un árbol…",
+    "whatToAdd": "Qué añadir",
+    "logCare": "Registrar cuidado",
+    "logging": "Registrando…",
+    "logIt": "Registrar",
+    "logged": "Registrado ✓",
+    "photoNote": "La foto se añade a la línea de tiempo de este árbol.",
+    "pickTreeForPhoto": "Elige un árbol para añadir una foto.",
+    "errPickTree": "Elige un árbol primero.",
+    "errLogFailed": "No pudimos registrarlo. Inténtalo de nuevo."
+  },
+  "photo": {
+    "addPhoto": "Añadir foto",
+    "uploading": "Subiendo…",
+    "uploadError": "No se pudo subir. Inténtalo de nuevo."
   }
 }

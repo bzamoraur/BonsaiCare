@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -29,6 +30,7 @@ export function PhotoUploader({
   /** A lighter, left-aligned trigger — for attaching to a timeline entry. */
   compact?: boolean;
 }) {
+  const t = useTranslations("photo");
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -74,7 +76,7 @@ export function PhotoUploader({
 
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed. Please try again.");
+      setError(e instanceof Error ? e.message : t("uploadError"));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -100,7 +102,7 @@ export function PhotoUploader({
         onClick={() => inputRef.current?.click()}
         disabled={busy}
       >
-        {busy ? "Uploading…" : "Add photo"}
+        {busy ? t("uploading") : t("addPhoto")}
       </Button>
       {error ? (
         <span role="alert" className="text-destructive text-sm">
