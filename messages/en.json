@@ -20,12 +20,18 @@
   },
   "login": {
     "checkEmailTitle": "Check your email",
-    "sentBody": "We sent a sign-in link to <b>{email}</b>. Open it on this device to continue.",
+    "sentBody": "We emailed a sign-in link and a 6-digit code to <b>{email}</b>.",
+    "sentHint": "Tap the link on this device, or enter the code below — handy if the link opens in a different browser (common on iPhone).",
+    "codePrompt": "Enter the 6-digit code",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "codeError": "That code didn't work. Check it, request a new one, or use the link instead.",
     "useDifferentEmail": "Use a different email",
     "subtitle": "Sign in with your email — no password needed.",
     "emailLabel": "Email address",
     "sending": "Sending…",
-    "sendLink": "Send magic link"
+    "sendError": "Couldn't send the email. Wait a moment and try again.",
+    "sendLink": "Send sign-in email"
   },
   "privacy": {
     "title": "Privacy",
