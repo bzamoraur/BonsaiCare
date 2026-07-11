@@ -20,12 +20,18 @@
   },
   "login": {
     "checkEmailTitle": "Revisa tu correo",
-    "sentBody": "Te hemos enviado un enlace de acceso a <b>{email}</b>. Ábrelo en este dispositivo para continuar.",
+    "sentBody": "Te hemos enviado un enlace de acceso y un código de 6 dígitos a <b>{email}</b>.",
+    "sentHint": "Toca el enlace en este dispositivo, o introduce el código abajo — útil si el enlace se abre en otro navegador (habitual en iPhone).",
+    "codePrompt": "Introduce el código de 6 dígitos",
+    "verify": "Verificar",
+    "verifying": "Verificando…",
+    "codeError": "Ese código no funcionó. Revísalo, pide uno nuevo o usa el enlace.",
     "useDifferentEmail": "Usar otro correo",
     "subtitle": "Inicia sesión con tu correo — sin contraseña.",
     "emailLabel": "Correo electrónico",
     "sending": "Enviando…",
-    "sendLink": "Enviar enlace de acceso"
+    "sendError": "No se pudo enviar el correo. Espera un momento e inténtalo de nuevo.",
+    "sendLink": "Enviar correo de acceso"
   },
   "privacy": {
     "title": "Privacidad",
