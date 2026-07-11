@@ -9,7 +9,9 @@
     "optional": "(opcional)",
     "notes": "Notas",
     "saving": "Guardando…",
-    "saveChanges": "Guardar cambios"
+    "saveChanges": "Guardar cambios",
+    "edit": "Editar",
+    "delete": "Eliminar"
   },
   "auth": {
     "linkProblem": "Ese enlace de acceso no funcionó — puede haber caducado o ya haberse usado. Escribe tu correo abajo para recibir uno nuevo.",
@@ -43,7 +45,8 @@
   "cover": {
     "change": "Cambiar portada",
     "title": "Elegir portada",
-    "current": "Actual"
+    "current": "Actual",
+    "set": "Establecer portada"
   },
   "calendar": {
     "title": "Calendario",
@@ -376,6 +379,38 @@
     "editTitle": "Editar cuidado",
     "errLog": "No pudimos registrarlo. Inténtalo de nuevo.",
     "errUpdate": "No pudimos guardar tus cambios. Inténtalo de nuevo."
+  },
+  "treeDetail": {
+    "metaTitleFallback": "Árbol",
+    "acquired": "Adquirido",
+    "archivedBadge": "Archivado",
+    "carePlan": "Plan de cuidados",
+    "noTasks": "No hay tareas planificadas. Añade un plan de riego o abonado para no perder el ritmo.",
+    "timeline": "Línea de tiempo",
+    "repeatLast": "Repetir: {label}",
+    "noHistory": "Aún no hay historial. Registra un cuidado o añade una foto para empezar la historia de este árbol.",
+    "noFilterMatch": "Ninguna entrada coincide con este filtro.",
+    "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+    "filterPhotos": "Fotos",
+    "filterAll": "Todas",
+    "filterAria": "Filtrar la línea de tiempo",
+    "unarchive": "Desarchivar",
+    "deleteEntrySr": "Eliminar entrada",
+    "cover": "Portada",
+    "photoAlt": "Foto de {name}",
+    "archiveTree": "Archivar árbol",
+    "archiveConfirm": "¿Archivar este árbol? Sale de tu colección pero conserva su historial — puedes desarchivarlo cuando quieras.",
+    "archiving": "Archivando…",
+    "archiveYes": "Sí, archivar",
+    "deletePhotoSr": "Eliminar foto",
+    "notFoundTitle": "Árbol no encontrado",
+    "notFoundBody": "Este árbol no existe, o no está en tu colección.",
+    "backToCollection": "Volver a la colección",
+    "errArchive": "No pudimos archivar este árbol. Inténtalo de nuevo.",
+    "errUnarchive": "No pudimos desarchivar este árbol. Inténtalo de nuevo.",
+    "errCover": "No pudimos establecer esa foto de portada. Inténtalo de nuevo.",
+    "errPhoto": "No pudimos eliminar esa foto. Inténtalo de nuevo.",
+    "errCare": "No pudimos actualizar el registro de cuidados. Inténtalo de nuevo."
   },
   "log": {
     "title": "Registrar cuidados",

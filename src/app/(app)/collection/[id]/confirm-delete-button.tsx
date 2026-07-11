@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ export function ConfirmDeleteButton({
   action: (formData: FormData) => void;
   srLabel: string;
 }) {
+  const t = useTranslations("common");
   const [confirming, setConfirming] = useState(false);
   const { triggerRef, revealRef } = useRevealFocus<HTMLButtonElement, HTMLButtonElement>(
     confirming,
@@ -38,7 +40,7 @@ export function ConfirmDeleteButton({
   return (
     <form action={action} className="flex items-center gap-1">
       <Button type="submit" variant="destructive" size="sm">
-        Delete
+        {t("delete")}
       </Button>
       <Button
         ref={revealRef}
@@ -47,7 +49,7 @@ export function ConfirmDeleteButton({
         size="sm"
         onClick={() => setConfirming(false)}
       >
-        Cancel
+        {t("cancel")}
       </Button>
     </form>
   );

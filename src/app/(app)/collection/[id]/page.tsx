@@ -42,37 +42,10 @@ import { TimelineFilters, type FilterOption } from "./timeline-filters";
 
 type Params = { id: string };
 
-const ERROR_MESSAGES: Record<string, string> = {
-  archive: "We couldn't archive this tree. Please try again.",
-  unarchive: "We couldn't unarchive this tree. Please try again.",
-  cover: "We couldn't set that cover photo. Please try again.",
-  photo: "We couldn't delete that photo. Please try again.",
-  care: "We couldn't update the care log. Please try again.",
-  task: "We couldn't update that task. Please try again.",
-};
-
-const dateFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
-
-function formatAcquired(iso: string): string {
-  // Construct at local midnight so the calendar day is preserved across zones.
-  return dateFormatter.format(new Date(`${iso}T00:00:00`));
-}
-
-function formatTimelineDate(value: string): string {
-  // occurred_on is a bare calendar date (YYYY-MM-DD) — pin it to local midnight
-  // so the day survives any timezone (ADR-0012); taken_at is a full instant.
-  const at = value.length === 10 ? new Date(`${value}T00:00:00`) : new Date(value);
-  return dateFormatter.format(at);
-}
-
 export async function generateMetadata({ params }: { params: Promise<Params> }) {
   const { id } = await params;
-  const tree = await getTree(id);
-  return { title: tree?.name ?? "Tree" };
+  const [tree, t] = await Promise.all([getTree(id), getTranslations("treeDetail")]);
+  return { title: tree?.name ?? t("metaTitleFallback") };
 }
 
 export default async function TreeDetailPage({
@@ -103,16 +76,48 @@ export default async function TreeDetailPage({
   // sub-components below can't await, so they receive pre-resolved strings (task
   // type + schedule) or a small resolver (careLabel). Month names come from Intl
   // in the active locale (no month catalog to maintain).
-  const [tCare, tType, tStage, tHealth, tOrigin, tRec, locale] = await Promise.all([
+  const [
+    tCare,
+    tType,
+    tStage,
+    tHealth,
+    tOrigin,
+    tRec,
+    tDetail,
+    tCommon,
+    tNav,
+    tTreeForm,
+    tTask,
+    tCover,
+    locale,
+  ] = await Promise.all([
     getTranslations("careTypes"),
     getTranslations("taskTypes"),
     getTranslations("stages"),
     getTranslations("health"),
     getTranslations("origins"),
     getTranslations("recurrence"),
+    getTranslations("treeDetail"),
+    getTranslations("common"),
+    getTranslations("nav"),
+    getTranslations("treeForm"),
+    getTranslations("taskForm"),
+    getTranslations("cover"),
     getLocale(),
   ]);
   const careLabel = (t: CareEventType) => tCare(t);
+
+  // Localize the month name but keep day-first order (es + en-GB both do), so an
+  // English reader never sees a US month-first date. occurred_on is a bare calendar
+  // date; pin it to local midnight so the day survives any timezone (ADR-0012);
+  // taken_at is a full instant.
+  const dateFmt = new Intl.DateTimeFormat(locale === "es" ? "es" : "en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const formatDate = (value: string) =>
+    dateFmt.format(value.length === 10 ? new Date(`${value}T00:00:00`) : new Date(value));
   const shortMonth = (m: number) =>
     new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" }).format(
       new Date(Date.UTC(2020, m - 1, 1)),
@@ -134,24 +139,32 @@ export default async function TreeDetailPage({
 
   const facts = [
     {
-      label: "Development stage",
+      label: tTreeForm("developmentStage"),
       value: tree.development_stage ? tStage(tree.development_stage) : null,
     },
     {
-      label: "Health",
+      label: tTreeForm("health"),
       value: tree.health_status ? tHealth(tree.health_status) : null,
     },
-    { label: "Location", value: locationName },
-    { label: "Origin", value: tree.origin ? tOrigin(tree.origin) : null },
-    { label: "Style", value: tree.style },
-    { label: "Pot", value: tree.current_pot },
-    { label: "Substrate", value: tree.current_substrate },
-    { label: "Acquired", value: tree.acquired_on ? formatAcquired(tree.acquired_on) : null },
-    { label: "Acquired from", value: tree.acquired_from },
+    { label: tTreeForm("location"), value: locationName },
+    { label: tTreeForm("origin"), value: tree.origin ? tOrigin(tree.origin) : null },
+    { label: tTreeForm("style"), value: tree.style },
+    { label: tTreeForm("pot"), value: tree.current_pot },
+    { label: tTreeForm("substrate"), value: tree.current_substrate },
+    { label: tDetail("acquired"), value: tree.acquired_on ? formatDate(tree.acquired_on) : null },
+    { label: tTreeForm("acquiredFrom"), value: tree.acquired_from },
   ].filter((f): f is { label: string; value: string } => Boolean(f.value));
 
   const isArchived = Boolean(tree.archived_at);
-  const errorMessage = error ? ERROR_MESSAGES[error] : null;
+  const errorMessages: Record<string, string> = {
+    archive: tDetail("errArchive"),
+    unarchive: tDetail("errUnarchive"),
+    cover: tDetail("errCover"),
+    photo: tDetail("errPhoto"),
+    care: tDetail("errCare"),
+    task: tCommon("taskUpdateError"),
+  };
+  const errorMessage = error ? errorMessages[error] : null;
 
   // Every photo (standalone + attached), newest first, to resolve the hero cover.
   const allPhotos = timeline.flatMap((item) =>
@@ -172,9 +185,19 @@ export default async function TreeDetailPage({
   const filterOptions: FilterOption[] = [
     ...careTypes.filter((t) => presentTypes.has(t)).map((t) => ({ value: t, label: tCare(t) })),
     ...(timeline.some((item) => item.kind === "photo")
-      ? [{ value: "photos", label: "Photos" }]
+      ? [{ value: "photos", label: tDetail("filterPhotos") }]
       : []),
   ];
+
+  // Pre-resolved strings for the sync timeline sub-components (they can't await).
+  const timelineText = {
+    edit: tCommon("edit"),
+    deleteEntry: tDetail("deleteEntrySr"),
+    photo: tType("photo"),
+    cover: tDetail("cover"),
+    setCover: tCover("set"),
+    photoAlt: tDetail("photoAlt", { name: tree.name }),
+  };
 
   const visibleItems = activeFilter
     ? timeline.filter((item) =>
@@ -208,7 +231,7 @@ export default async function TreeDetailPage({
         className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-sm"
       >
         <ChevronLeft className="size-4" aria-hidden />
-        Collection
+        {tNav("collection")}
       </Link>
 
       {errorMessage ? (
@@ -252,7 +275,7 @@ export default async function TreeDetailPage({
           <h1 className="text-2xl font-semibold tracking-tight">{tree.name}</h1>
           {isArchived ? (
             <span className="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-xs font-medium">
-              Archived
+              {tDetail("archivedBadge")}
             </span>
           ) : null}
         </div>
@@ -286,7 +309,7 @@ export default async function TreeDetailPage({
 
       {tree.notes ? (
         <section className="flex flex-col gap-1.5">
-          <h2 className="text-sm font-medium">Notes</h2>
+          <h2 className="text-sm font-medium">{tCommon("notes")}</h2>
           <p className="text-muted-foreground text-sm whitespace-pre-wrap">{tree.notes}</p>
         </section>
       ) : null}
@@ -294,14 +317,12 @@ export default async function TreeDetailPage({
       {/* Care plan — upcoming tasks for this tree. */}
       {!isArchived || pendingTasks.length > 0 ? (
         <section className="flex flex-col gap-4">
-          <h2 className="text-sm font-medium">Care plan</h2>
+          <h2 className="text-sm font-medium">{tDetail("carePlan")}</h2>
           {!isArchived ? (
             <AddTaskForm action={createTaskAction.bind(null, tree.id)} defaultDueOn={serverToday} />
           ) : null}
           {pendingTasks.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-balance">
-              No tasks planned. Add a watering or fertilizing schedule to stay on track.
-            </p>
+            <p className="text-muted-foreground text-sm text-balance">{tDetail("noTasks")}</p>
           ) : (
             <ol className="flex flex-col">
               {pendingTasks.map((task) => (
@@ -312,6 +333,8 @@ export default async function TreeDetailPage({
                   serverToday={serverToday}
                   typeLabel={tType(task.type)}
                   schedule={describeRec(task.recurrence)}
+                  editLabel={tCommon("edit")}
+                  deleteLabel={tTask("deleteSr")}
                 />
               ))}
             </ol>
@@ -322,12 +345,12 @@ export default async function TreeDetailPage({
       {/* Timeline — care events + photos, merged, newest first. */}
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-sm font-medium">Timeline</h2>
+          <h2 className="text-sm font-medium">{tDetail("timeline")}</h2>
           <div className="flex items-center gap-2">
             {latestCareType && !isArchived ? (
               <form action={repeatLastCareAction.bind(null, tree.id)}>
                 <Button type="submit" variant="outline" size="sm">
-                  Repeat: {careLabel(latestCareType)}
+                  {tDetail("repeatLast", { label: careLabel(latestCareType) })}
                 </Button>
               </form>
             ) : null}
@@ -344,17 +367,15 @@ export default async function TreeDetailPage({
         {filterOptions.length > 1 ? <TimelineFilters options={filterOptions} /> : null}
 
         {timeline.length === 0 ? (
-          <p className="text-muted-foreground text-sm text-balance">
-            No history yet. Log care or add a photo to start this tree&apos;s story.
-          </p>
+          <p className="text-muted-foreground text-sm text-balance">{tDetail("noHistory")}</p>
         ) : visibleItems.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No entries match this filter.</p>
+          <p className="text-muted-foreground text-sm">{tDetail("noFilterMatch")}</p>
         ) : (
           // "Folders" by month so years of logs stay scannable. Native <details>
           // gives keyboard/AT expand-collapse for free (no client JS). The newest and
           // current months open by default; a filter opens every match's month.
           <div className="flex flex-col">
-            {groupTimelineByMonth(visibleItems).map((group, index) => (
+            {groupTimelineByMonth(visibleItems, locale).map((group, index) => (
               <details
                 // Fold the filter into the key so React remounts (re-applying the
                 // computed open state) when a filter is toggled — a bare `open` prop is
@@ -366,7 +387,7 @@ export default async function TreeDetailPage({
                 <summary className="focus-visible:ring-ring flex cursor-pointer list-none items-center justify-between gap-3 rounded-md py-3 outline-none select-none focus-visible:ring-2 [&::-webkit-details-marker]:hidden">
                   <span className="text-sm font-medium">{group.label}</span>
                   <span className="text-muted-foreground flex shrink-0 items-center gap-1.5 text-xs">
-                    {group.items.length} {group.items.length === 1 ? "entry" : "entries"}
+                    {tDetail("entryCount", { count: group.items.length })}
                     <ChevronDown
                       className="size-4 transition-transform group-open:rotate-180"
                       aria-hidden
@@ -380,6 +401,8 @@ export default async function TreeDetailPage({
                       item={item}
                       tree={tree}
                       careLabel={careLabel}
+                      formatDate={formatDate}
+                      text={timelineText}
                     />
                   ))}
                 </ol>
@@ -397,13 +420,13 @@ export default async function TreeDetailPage({
           className={cn(buttonVariants({ variant: "outline" }))}
         >
           <Pencil aria-hidden />
-          Edit
+          {tCommon("edit")}
         </Link>
         {isArchived ? (
           // Unarchiving is non-destructive, so no confirm step — one tap restores it.
           <form action={unarchiveTreeAction.bind(null, tree.id)}>
             <Button type="submit" variant="outline">
-              Unarchive
+              {tDetail("unarchive")}
             </Button>
           </form>
         ) : (
@@ -414,18 +437,32 @@ export default async function TreeDetailPage({
   );
 }
 
+/** Pre-resolved strings the sync timeline sub-components render (they can't await). */
+type TimelineText = {
+  edit: string;
+  deleteEntry: string;
+  photo: string;
+  cover: string;
+  setCover: string;
+  photoAlt: string;
+};
+
 function TaskItem({
   task,
   treeId,
   serverToday,
   typeLabel,
   schedule,
+  editLabel,
+  deleteLabel,
 }: {
   task: Task;
   treeId: string;
   serverToday: string;
   typeLabel: string;
   schedule: string;
+  editLabel: string;
+  deleteLabel: string;
 }) {
   const Icon = TASK_TYPE_ICONS[task.type];
   return (
@@ -455,11 +492,11 @@ function TaskItem({
             href={`/collection/${treeId}/tasks/${task.id}`}
             className="text-muted-foreground hover:text-foreground px-2 py-1 text-xs font-medium underline-offset-4 hover:underline"
           >
-            Edit
+            {editLabel}
           </Link>
           <ConfirmDeleteButton
             action={deleteTaskAction.bind(null, task.id, treeId)}
-            srLabel="Delete task"
+            srLabel={deleteLabel}
           />
         </div>
       </div>
@@ -481,10 +518,14 @@ function TimelineRow({
   item,
   tree,
   careLabel,
+  formatDate,
+  text,
 }: {
   item: TimelineItem;
   tree: { id: string; owner_id: string; name: string; cover_photo_id: string | null };
   careLabel: (type: CareEventType) => string;
+  formatDate: (value: string) => string;
+  text: TimelineText;
 }) {
   return (
     <li className="flex gap-3">
@@ -497,13 +538,16 @@ function TimelineRow({
             ownerId={tree.owner_id}
             treeName={tree.name}
             careLabel={careLabel}
+            formatDate={formatDate}
+            text={text}
           />
         ) : (
           <PhotoItem
             item={item}
             treeId={tree.id}
-            treeName={tree.name}
             coverPhotoId={tree.cover_photo_id}
+            formatDate={formatDate}
+            text={text}
           />
         )}
       </div>
@@ -517,12 +561,16 @@ function CareItem({
   ownerId,
   treeName,
   careLabel,
+  formatDate,
+  text,
 }: {
   item: Extract<TimelineItem, { kind: "care" }>;
   treeId: string;
   ownerId: string;
   treeName: string;
   careLabel: (type: CareEventType) => string;
+  formatDate: (value: string) => string;
+  text: TimelineText;
 }) {
   const { entry, photos } = item;
   const summary = careDetailSummary(entry.details);
@@ -531,7 +579,7 @@ function CareItem({
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm font-medium">{careLabel(entry.type)}</span>
         <span className="text-muted-foreground shrink-0 text-xs">
-          {formatTimelineDate(entry.occurred_on)}
+          {formatDate(entry.occurred_on)}
         </span>
       </div>
       {entry.title ? <p className="text-sm">{entry.title}</p> : null}
@@ -559,12 +607,12 @@ function CareItem({
           href={`/collection/${treeId}/care/${entry.id}`}
           className="text-muted-foreground hover:text-foreground px-2 py-1 text-xs font-medium underline-offset-4 hover:underline"
         >
-          Edit
+          {text.edit}
         </Link>
         <PhotoUploader treeId={treeId} ownerId={ownerId} careLogEntryId={entry.id} compact />
         <ConfirmDeleteButton
           action={deleteCareAction.bind(null, entry.id, treeId)}
-          srLabel="Delete entry"
+          srLabel={text.deleteEntry}
         />
       </div>
     </>
@@ -574,30 +622,30 @@ function CareItem({
 function PhotoItem({
   item,
   treeId,
-  treeName,
   coverPhotoId,
+  formatDate,
+  text,
 }: {
   item: Extract<TimelineItem, { kind: "photo" }>;
   treeId: string;
-  treeName: string;
   coverPhotoId: string | null;
+  formatDate: (value: string) => string;
+  text: TimelineText;
 }) {
   const { photo } = item;
   const isCover = photo.id === coverPhotoId;
   return (
     <>
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm font-medium">Photo</span>
-        <span className="text-muted-foreground shrink-0 text-xs">
-          {formatTimelineDate(photo.taken_at)}
-        </span>
+        <span className="text-sm font-medium">{text.photo}</span>
+        <span className="text-muted-foreground shrink-0 text-xs">{formatDate(photo.taken_at)}</span>
       </div>
       <div className="bg-muted max-w-xs overflow-hidden rounded-xl">
         {photo.url ? (
           <PhotoZoom
             thumbSrc={photo.thumbUrl}
             fullSrc={photo.url}
-            alt={`${treeName} photo`}
+            alt={text.photoAlt}
             width={photo.width}
             height={photo.height}
             className="h-auto w-full"
@@ -607,11 +655,11 @@ function PhotoItem({
       {photo.caption ? <p className="text-muted-foreground text-sm">{photo.caption}</p> : null}
       <div className="flex items-center gap-1">
         {isCover ? (
-          <span className="text-muted-foreground px-1 text-xs font-medium">Cover</span>
+          <span className="text-muted-foreground px-1 text-xs font-medium">{text.cover}</span>
         ) : (
           <form action={setCoverAction.bind(null, treeId, photo.id)}>
             <Button type="submit" variant="ghost" size="sm">
-              Set cover
+              {text.setCover}
             </Button>
           </form>
         )}

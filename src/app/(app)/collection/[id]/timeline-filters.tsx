@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
@@ -9,6 +10,7 @@ export type FilterOption = { value: string; label: string };
 /** URL-driven type filter for the timeline (shareable, refresh-safe). "All" is
  * the default (no `type` param). */
 export function TimelineFilters({ options }: { options: FilterOption[] }) {
+  const t = useTranslations("treeDetail");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -22,10 +24,10 @@ export function TimelineFilters({ options }: { options: FilterOption[] }) {
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
-  const chips: FilterOption[] = [{ value: "", label: "All" }, ...options];
+  const chips: FilterOption[] = [{ value: "", label: t("filterAll") }, ...options];
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filter timeline">
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t("filterAria")}>
       {chips.map((chip) => {
         const active = chip.value === current;
         return (

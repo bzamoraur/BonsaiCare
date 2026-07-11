@@ -9,7 +9,9 @@
     "optional": "(optional)",
     "notes": "Notes",
     "saving": "Saving…",
-    "saveChanges": "Save changes"
+    "saveChanges": "Save changes",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "auth": {
     "linkProblem": "That sign-in link didn't work — it may have expired or already been used. Enter your email below for a fresh one.",
@@ -43,7 +45,8 @@
   "cover": {
     "change": "Change cover",
     "title": "Choose cover",
-    "current": "Current"
+    "current": "Current",
+    "set": "Set cover"
   },
   "calendar": {
     "title": "Calendar",
@@ -376,6 +379,38 @@
     "editTitle": "Edit care entry",
     "errLog": "We couldn't log that. Please try again.",
     "errUpdate": "We couldn't save your changes. Please try again."
+  },
+  "treeDetail": {
+    "metaTitleFallback": "Tree",
+    "acquired": "Acquired",
+    "archivedBadge": "Archived",
+    "carePlan": "Care plan",
+    "noTasks": "No tasks planned. Add a watering or fertilizing schedule to stay on track.",
+    "timeline": "Timeline",
+    "repeatLast": "Repeat: {label}",
+    "noHistory": "No history yet. Log care or add a photo to start this tree's story.",
+    "noFilterMatch": "No entries match this filter.",
+    "entryCount": "{count, plural, one {# entry} other {# entries}}",
+    "filterPhotos": "Photos",
+    "filterAll": "All",
+    "filterAria": "Filter timeline",
+    "unarchive": "Unarchive",
+    "deleteEntrySr": "Delete entry",
+    "cover": "Cover",
+    "photoAlt": "{name} photo",
+    "archiveTree": "Archive tree",
+    "archiveConfirm": "Archive this tree? It leaves your collection but keeps its history — you can unarchive it anytime.",
+    "archiving": "Archiving…",
+    "archiveYes": "Yes, archive",
+    "deletePhotoSr": "Delete photo",
+    "notFoundTitle": "Tree not found",
+    "notFoundBody": "This tree doesn't exist, or it isn't in your collection.",
+    "backToCollection": "Back to collection",
+    "errArchive": "We couldn't archive this tree. Please try again.",
+    "errUnarchive": "We couldn't unarchive this tree. Please try again.",
+    "errCover": "We couldn't set that cover photo. Please try again.",
+    "errPhoto": "We couldn't delete that photo. Please try again.",
+    "errCare": "We couldn't update the care log. Please try again."
   },
   "log": {
     "title": "Log care",
