@@ -25,18 +25,25 @@ export function addLocalDaysIso(iso: string, days: number): string {
 }
 
 /**
- * A short "how long ago" label for a bare "YYYY-MM-DD" relative to `todayIso`:
- * "today", "yesterday", "5d ago", or "3w ago". Day math on the calendar parts via
- * `Date.UTC` (no DST/timezone drift); a today-or-future date reads as "today".
+ * A structured "how long ago" for a bare "YYYY-MM-DD" relative to `todayIso`, so
+ * the caller can render it in the viewer's language (the label used to be a fixed
+ * English string). Day math on the calendar parts via `Date.UTC` (no DST/timezone
+ * drift); a today-or-future date reads as "today".
  */
-export function relativeDayLabel(fromIso: string, todayIso: string): string {
+export type RelativeDay =
+  | { kind: "today" }
+  | { kind: "yesterday" }
+  | { kind: "days"; value: number }
+  | { kind: "weeks"; value: number };
+
+export function relativeDay(fromIso: string, todayIso: string): RelativeDay {
   const [fy, fm, fd] = fromIso.split("-").map(Number);
   const [ty, tm, td] = todayIso.split("-").map(Number);
   const days = Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86_400_000);
-  if (days <= 0) return "today";
-  if (days === 1) return "yesterday";
-  if (days < 14) return `${days}d ago`;
-  return `${Math.floor(days / 7)}w ago`;
+  if (days <= 0) return { kind: "today" };
+  if (days === 1) return { kind: "yesterday" };
+  if (days < 14) return { kind: "days", value: days };
+  return { kind: "weeks", value: Math.floor(days / 7) };
 }
 
 // The wall clock doesn't push updates, so subscribe is a no-op; the snapshot is

@@ -1,7 +1,8 @@
 {
   "common": {
     "collectionTask": "Collection task",
-    "taskUpdateError": "We couldn't update that task. Please try again."
+    "taskUpdateError": "We couldn't update that task. Please try again.",
+    "close": "Close"
   },
   "auth": {
     "linkProblem": "That sign-in link didn't work — it may have expired or already been used. Enter your email below for a fresh one.",
@@ -94,7 +95,25 @@
     "backToCollection": "← Collection",
     "archivedLoadError": "We couldn't load your archived trees right now. Please refresh to try again.",
     "archivedEmpty": "No archived trees. Archiving a tree hides it from your collection without losing its history.",
-    "archivedIntro": "Hidden from your collection, history intact. Open a tree to unarchive it."
+    "archivedIntro": "Hidden from your collection, history intact. Open a tree to unarchive it.",
+    "searchPlaceholder": "Search by name or species",
+    "searchAria": "Search trees",
+    "filters": "Filters",
+    "filtersActiveAria": "{count, plural, one {# active filter} other {# active filters}}",
+    "filterLocation": "Location",
+    "allLocations": "All locations",
+    "filterTag": "Tag",
+    "allTags": "All tags",
+    "filterStage": "Development stage",
+    "allStages": "All stages",
+    "filterHealth": "Health",
+    "allHealth": "All health",
+    "sort": "Sort",
+    "sortNewest": "Newest first",
+    "sortOldest": "Oldest first",
+    "sortName": "Name (A–Z)",
+    "clearFilters": "Clear filters",
+    "filtersDone": "Done"
   },
   "settings": {
     "title": "Settings",
@@ -186,5 +205,13 @@
     "everyDay": "Every day",
     "everyNDays": "Every {days} days",
     "seasonal": "{base} · {start}–{end}"
+  },
+  "careRecency": {
+    "watered": "watered",
+    "fed": "fed",
+    "today": "today",
+    "yesterday": "yesterday",
+    "daysAgo": "{days}d ago",
+    "weeksAgo": "{weeks}w ago"
   }
 }
