@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 import { parseCareForm } from "@/lib/care-form";
 import { logActionError } from "@/lib/log-action-error";
@@ -37,9 +38,10 @@ export async function quickLogCareAction(
   _prev: LogCareState,
   formData: FormData,
 ): Promise<LogCareState> {
+  const t = await getTranslations("quickAdd");
   const treeId = formData.get("treeId");
   if (typeof treeId !== "string" || treeId === "") {
-    return { status: "error", message: "Pick a tree first." };
+    return { status: "error", message: t("errPickTree") };
   }
 
   const parsed = parseCareForm(treeId, formData);
@@ -49,7 +51,7 @@ export async function quickLogCareAction(
     await createCareEntry(parsed.value);
   } catch (error) {
     logActionError("quickLogCare", error);
-    return { status: "error", message: "We couldn't log that. Please try again." };
+    return { status: "error", message: t("errLogFailed") };
   }
 
   revalidatePath("/today");

@@ -1,6 +1,7 @@
 "use client";
 
 import { Camera, NotebookPen, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -84,6 +85,9 @@ export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () =>
 
 /** The sheet's contents — mounted only while open, so its state resets each time. */
 function QuickAddBody({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("quickAdd");
+  const tCommon = useTranslations("common");
+  const tPhoto = useTranslations("photo");
   const careFormRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
 
@@ -128,12 +132,12 @@ function QuickAddBody({ onClose }: { onClose: () => void }) {
     <div className="flex flex-col gap-5 p-6">
       <div className="flex items-center justify-between gap-4">
         <h2 id="quick-add-title" className="text-lg font-semibold tracking-tight">
-          Quick log
+          {t("title")}
         </h2>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={tCommon("close")}
           className="text-muted-foreground hover:text-foreground focus-visible:ring-ring -mr-1 rounded-md p-1 outline-none focus-visible:ring-2"
         >
           <X className="size-5" aria-hidden />
@@ -141,28 +145,26 @@ function QuickAddBody({ onClose }: { onClose: () => void }) {
       </div>
 
       {load.status === "loading" ? (
-        <p className="text-muted-foreground text-sm">Loading your trees…</p>
+        <p className="text-muted-foreground text-sm">{t("loading")}</p>
       ) : load.status === "error" ? (
         <p role="alert" className="text-destructive text-sm">
-          We couldn&apos;t load your trees. Close this and try again.
+          {t("loadError")}
         </p>
       ) : trees.length === 0 ? (
         <div className="flex flex-col items-start gap-3">
-          <p className="text-muted-foreground text-sm text-balance">
-            Add a tree first — then you can log care or a photo from anywhere.
-          </p>
+          <p className="text-muted-foreground text-sm text-balance">{t("noTrees")}</p>
           <Link
             href="/collection/new"
             className={cn("text-primary text-sm font-medium underline-offset-4 hover:underline")}
           >
-            Add a tree →
+            {t("addTree")}
           </Link>
         </div>
       ) : (
         <>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="quick-tree" className="text-sm font-medium">
-              Which tree?
+              {t("whichTree")}
             </label>
             <select
               id="quick-tree"
@@ -170,7 +172,7 @@ function QuickAddBody({ onClose }: { onClose: () => void }) {
               onChange={(e) => setTreeId(e.target.value)}
               className="border-input bg-background focus-visible:ring-ring h-10 rounded-md border px-3 text-base outline-none focus-visible:ring-2"
             >
-              <option value="">Select a tree…</option>
+              <option value="">{t("selectTree")}</option>
               {trees.map((tree) => (
                 <option key={tree.id} value={tree.id}>
                   {tree.name}
@@ -180,12 +182,16 @@ function QuickAddBody({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Care vs. photo — a segmented control. */}
-          <div className="bg-muted flex gap-1 rounded-lg p-1" role="group" aria-label="What to add">
+          <div
+            className="bg-muted flex gap-1 rounded-lg p-1"
+            role="group"
+            aria-label={t("whatToAdd")}
+          >
             <ModeButton active={mode === "care"} onClick={() => setMode("care")} icon={NotebookPen}>
-              Log care
+              {t("logCare")}
             </ModeButton>
             <ModeButton active={mode === "photo"} onClick={() => setMode("photo")} icon={Camera}>
-              Add photo
+              {tPhoto("addPhoto")}
             </ModeButton>
           </div>
 
@@ -195,10 +201,10 @@ function QuickAddBody({ onClose }: { onClose: () => void }) {
               <CareEntryFields defaults={CARE_DEFAULTS} idPrefix="quick-care" />
               <div className="flex flex-wrap items-center gap-3">
                 <Button type="submit" disabled={!treeChosen || carePending}>
-                  {carePending ? "Logging…" : "Log it"}
+                  {carePending ? t("logging") : t("logIt")}
                 </Button>
                 <span role="status" aria-live="polite" className="text-primary text-sm">
-                  {careState.status === "success" ? "Logged ✓" : ""}
+                  {careState.status === "success" ? t("logged") : ""}
                 </span>
                 {careState.status === "error" ? (
                   <span role="alert" className="text-destructive text-sm">
@@ -210,12 +216,10 @@ function QuickAddBody({ onClose }: { onClose: () => void }) {
           ) : treeChosen && userId ? (
             <div className="flex flex-col items-start gap-2">
               <PhotoUploader treeId={treeId} ownerId={userId} />
-              <p className="text-muted-foreground text-xs">
-                The photo is added to this tree&apos;s timeline.
-              </p>
+              <p className="text-muted-foreground text-xs">{t("photoNote")}</p>
             </div>
           ) : (
-            <p className="text-muted-foreground text-sm">Pick a tree to add a photo.</p>
+            <p className="text-muted-foreground text-sm">{t("pickTreeForPhoto")}</p>
           )}
         </>
       )}
