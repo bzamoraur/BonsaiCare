@@ -1,7 +1,8 @@
 {
   "common": {
     "collectionTask": "Tarea de la colección",
-    "taskUpdateError": "No pudimos actualizar esa tarea. Inténtalo de nuevo."
+    "taskUpdateError": "No pudimos actualizar esa tarea. Inténtalo de nuevo.",
+    "close": "Cerrar"
   },
   "auth": {
     "linkProblem": "Ese enlace de acceso no funcionó — puede haber caducado o ya haberse usado. Escribe tu correo abajo para recibir uno nuevo.",
@@ -94,7 +95,25 @@
     "backToCollection": "← Colección",
     "archivedLoadError": "No pudimos cargar tus árboles archivados en este momento. Actualiza para volver a intentarlo.",
     "archivedEmpty": "No hay árboles archivados. Archivar un árbol lo oculta de tu colección sin perder su historial.",
-    "archivedIntro": "Ocultos de tu colección, con su historial intacto. Abre un árbol para desarchivarlo."
+    "archivedIntro": "Ocultos de tu colección, con su historial intacto. Abre un árbol para desarchivarlo.",
+    "searchPlaceholder": "Buscar por nombre o especie",
+    "searchAria": "Buscar árboles",
+    "filters": "Filtros",
+    "filtersActiveAria": "{count, plural, one {# filtro activo} other {# filtros activos}}",
+    "filterLocation": "Ubicación",
+    "allLocations": "Todas las ubicaciones",
+    "filterTag": "Etiqueta",
+    "allTags": "Todas las etiquetas",
+    "filterStage": "Etapa de desarrollo",
+    "allStages": "Todas las etapas",
+    "filterHealth": "Salud",
+    "allHealth": "Cualquiera",
+    "sort": "Ordenar",
+    "sortNewest": "Más recientes primero",
+    "sortOldest": "Más antiguos primero",
+    "sortName": "Nombre (A–Z)",
+    "clearFilters": "Borrar filtros",
+    "filtersDone": "Listo"
   },
   "settings": {
     "title": "Ajustes",
@@ -186,5 +205,13 @@
     "everyDay": "Cada día",
     "everyNDays": "Cada {days} días",
     "seasonal": "{base} · {start}–{end}"
+  },
+  "careRecency": {
+    "watered": "regado",
+    "fed": "abonado",
+    "today": "hoy",
+    "yesterday": "ayer",
+    "daysAgo": "hace {days} d",
+    "weeksAgo": "hace {weeks} sem"
   }
 }

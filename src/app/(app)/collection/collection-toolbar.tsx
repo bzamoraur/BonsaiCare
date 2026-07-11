@@ -46,6 +46,8 @@ function isActiveFilter(key: string, value: string | null): boolean {
 export function CollectionToolbar({ locations, tags }: { locations: Option[]; tags: Option[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("collection");
+  const tCommon = useTranslations("common");
   const tStage = useTranslations("stages");
   const tHealth = useTranslations("health");
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
@@ -125,8 +127,8 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search by name or species"
-          aria-label="Search trees"
+          placeholder={t("searchPlaceholder")}
+          aria-label={t("searchAria")}
           className={`${fieldClass} min-w-0 flex-1`}
         />
         <button
@@ -141,10 +143,10 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
           )}
         >
           <SlidersHorizontal className="size-4" aria-hidden />
-          Filters
+          {t("filters")}
           {activeFilterCount > 0 ? (
             <span
-              aria-label={`${activeFilterCount} active`}
+              aria-label={t("filtersActiveAria", { count: activeFilterCount })}
               className="bg-primary text-primary-foreground inline-flex size-5 items-center justify-center rounded-full text-xs font-semibold"
             >
               {activeFilterCount}
@@ -166,12 +168,12 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
           <div className="flex flex-col gap-5 p-6">
             <div className="flex items-center justify-between gap-4">
               <h2 id="collection-filters-title" className="text-lg font-semibold tracking-tight">
-                Filters
+                {t("filters")}
               </h2>
               <button
                 type="button"
                 onClick={() => setFiltersOpen(false)}
-                aria-label="Close"
+                aria-label={tCommon("close")}
                 className="text-muted-foreground hover:text-foreground focus-visible:ring-ring -mr-1 rounded-md p-1 outline-none focus-visible:ring-2"
               >
                 <X className="size-5" aria-hidden />
@@ -179,14 +181,14 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
             </div>
 
             <div className="flex flex-col gap-4">
-              <Field id="filter-location" label="Location">
+              <Field id="filter-location" label={t("filterLocation")}>
                 <select
                   id="filter-location"
                   value={searchParams.get("location") ?? ""}
                   onChange={(e) => setParam("location", e.target.value)}
                   className={fieldClass}
                 >
-                  <option value="">All locations</option>
+                  <option value="">{t("allLocations")}</option>
                   {locations.map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.name}
@@ -195,14 +197,14 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
                 </select>
               </Field>
 
-              <Field id="filter-tag" label="Tag">
+              <Field id="filter-tag" label={t("filterTag")}>
                 <select
                   id="filter-tag"
                   value={searchParams.get("tag") ?? ""}
                   onChange={(e) => setParam("tag", e.target.value)}
                   className={fieldClass}
                 >
-                  <option value="">All tags</option>
+                  <option value="">{t("allTags")}</option>
                   {tags.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
@@ -211,14 +213,14 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
                 </select>
               </Field>
 
-              <Field id="filter-stage" label="Development stage">
+              <Field id="filter-stage" label={t("filterStage")}>
                 <select
                   id="filter-stage"
                   value={searchParams.get("stage") ?? ""}
                   onChange={(e) => setParam("stage", e.target.value)}
                   className={fieldClass}
                 >
-                  <option value="">All stages</option>
+                  <option value="">{t("allStages")}</option>
                   {Constants.public.Enums.development_stage.map((v) => (
                     <option key={v} value={v}>
                       {tStage(v)}
@@ -227,14 +229,14 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
                 </select>
               </Field>
 
-              <Field id="filter-health" label="Health">
+              <Field id="filter-health" label={t("filterHealth")}>
                 <select
                   id="filter-health"
                   value={searchParams.get("health") ?? ""}
                   onChange={(e) => setParam("health", e.target.value)}
                   className={fieldClass}
                 >
-                  <option value="">All health</option>
+                  <option value="">{t("allHealth")}</option>
                   {Constants.public.Enums.health_status.map((v) => (
                     <option key={v} value={v}>
                       {tHealth(v)}
@@ -243,16 +245,16 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
                 </select>
               </Field>
 
-              <Field id="filter-sort" label="Sort">
+              <Field id="filter-sort" label={t("sort")}>
                 <select
                   id="filter-sort"
                   value={searchParams.get("sort") ?? ""}
                   onChange={(e) => setParam("sort", e.target.value)}
                   className={fieldClass}
                 >
-                  <option value="">Newest first</option>
-                  <option value="oldest">Oldest first</option>
-                  <option value="name">Name (A–Z)</option>
+                  <option value="">{t("sortNewest")}</option>
+                  <option value="oldest">{t("sortOldest")}</option>
+                  <option value="name">{t("sortName")}</option>
                 </select>
               </Field>
             </div>
@@ -265,10 +267,10 @@ export function CollectionToolbar({ locations, tags }: { locations: Option[]; ta
                 onClick={clearFilters}
                 className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
               >
-                Clear filters
+                {t("clearFilters")}
               </button>
               <Button type="button" onClick={() => setFiltersOpen(false)}>
-                Done
+                {t("filtersDone")}
               </Button>
             </div>
           </div>

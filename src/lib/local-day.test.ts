@@ -1,28 +1,28 @@
 import { describe, expect, it } from "vitest";
 
-import { addLocalDaysIso, relativeDayLabel } from "./local-day";
+import { addLocalDaysIso, relativeDay, type RelativeDay } from "./local-day";
 
-describe("relativeDayLabel", () => {
+describe("relativeDay", () => {
   const today = "2026-07-08";
 
   it.each([
-    ["2026-07-08", "today"], // same day
-    ["2026-07-07", "yesterday"], // 1 day
-    ["2026-07-06", "2d ago"], // 2 days
-    ["2026-06-25", "13d ago"], // 13 days — still counted in days
-    ["2026-06-24", "2w ago"], // 14 days — rolls to weeks
-    ["2026-06-17", "3w ago"], // 21 days
-  ])("labels %s (relative to 2026-07-08) as %s", (from, expected) => {
-    expect(relativeDayLabel(from, today)).toBe(expected);
+    ["2026-07-08", { kind: "today" }], // same day
+    ["2026-07-07", { kind: "yesterday" }], // 1 day
+    ["2026-07-06", { kind: "days", value: 2 }], // 2 days
+    ["2026-06-25", { kind: "days", value: 13 }], // 13 days — still counted in days
+    ["2026-06-24", { kind: "weeks", value: 2 }], // 14 days — rolls to weeks
+    ["2026-06-17", { kind: "weeks", value: 3 }], // 21 days
+  ] as [string, RelativeDay][])("reads %s (relative to 2026-07-08) as %o", (from, expected) => {
+    expect(relativeDay(from, today)).toEqual(expected);
   });
 
   it("reads a future / clock-skewed date as 'today', never negative", () => {
-    expect(relativeDayLabel("2026-07-10", today)).toBe("today");
+    expect(relativeDay("2026-07-10", today)).toEqual({ kind: "today" });
   });
 
   it("crosses month and year boundaries correctly", () => {
-    expect(relativeDayLabel("2026-06-30", "2026-07-01")).toBe("yesterday");
-    expect(relativeDayLabel("2025-12-31", "2026-01-01")).toBe("yesterday");
+    expect(relativeDay("2026-06-30", "2026-07-01")).toEqual({ kind: "yesterday" });
+    expect(relativeDay("2025-12-31", "2026-01-01")).toEqual({ kind: "yesterday" });
   });
 });
 
