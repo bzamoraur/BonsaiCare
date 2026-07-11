@@ -33,13 +33,15 @@ export function EditTreeForm({
   tagsValue,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
+  const t = useTranslations("treeForm");
+  const tCommon = useTranslations("common");
   const tStage = useTranslations("stages");
   const tHealth = useTranslations("health");
   const tOrigin = useTranslations("origins");
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
-      <Field id="name" label="Name">
+      <Field id="name" label={t("name")}>
         <input
           id="name"
           name="name"
@@ -51,19 +53,19 @@ export function EditTreeForm({
         />
       </Field>
 
-      <Field id="species_label" label="Species" optional>
+      <Field id="species_label" label={t("species")} optional>
         <input
           id="species_label"
           name="species_label"
           type="text"
           maxLength={120}
           defaultValue={tree.species_label ?? ""}
-          placeholder="e.g. Juniperus procumbens"
+          placeholder={t("speciesPlaceholder")}
           className={inputClass}
         />
       </Field>
 
-      <Field id="location" label="Location" optional>
+      <Field id="location" label={t("location")} optional>
         <input
           id="location"
           name="location"
@@ -71,7 +73,7 @@ export function EditTreeForm({
           list="location-options"
           maxLength={60}
           defaultValue={locationValue}
-          placeholder="e.g. South bench"
+          placeholder={t("locationPlaceholder")}
           className={inputClass}
         />
         <datalist id="location-options">
@@ -82,14 +84,14 @@ export function EditTreeForm({
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field id="development_stage" label="Development stage" optional>
+        <Field id="development_stage" label={t("developmentStage")} optional>
           <select
             id="development_stage"
             name="development_stage"
             defaultValue={tree.development_stage ?? ""}
             className={inputClass}
           >
-            <option value="">Not set</option>
+            <option value="">{t("notSet")}</option>
             {Constants.public.Enums.development_stage.map((value) => (
               <option key={value} value={value}>
                 {tStage(value)}
@@ -98,14 +100,14 @@ export function EditTreeForm({
           </select>
         </Field>
 
-        <Field id="health_status" label="Health" optional>
+        <Field id="health_status" label={t("health")} optional>
           <select
             id="health_status"
             name="health_status"
             defaultValue={tree.health_status ?? ""}
             className={inputClass}
           >
-            <option value="">Not set</option>
+            <option value="">{t("notSet")}</option>
             {Constants.public.Enums.health_status.map((value) => (
               <option key={value} value={value}>
                 {tHealth(value)}
@@ -114,9 +116,9 @@ export function EditTreeForm({
           </select>
         </Field>
 
-        <Field id="origin" label="Origin" optional>
+        <Field id="origin" label={t("origin")} optional>
           <select id="origin" name="origin" defaultValue={tree.origin ?? ""} className={inputClass}>
-            <option value="">Not set</option>
+            <option value="">{t("notSet")}</option>
             {Constants.public.Enums.tree_origin.map((value) => (
               <option key={value} value={value}>
                 {tOrigin(value)}
@@ -125,19 +127,19 @@ export function EditTreeForm({
           </select>
         </Field>
 
-        <Field id="style" label="Style" optional>
+        <Field id="style" label={t("style")} optional>
           <input
             id="style"
             name="style"
             type="text"
             maxLength={60}
             defaultValue={tree.style ?? ""}
-            placeholder="e.g. Informal upright"
+            placeholder={t("stylePlaceholder")}
             className={inputClass}
           />
         </Field>
 
-        <Field id="current_pot" label="Pot" optional>
+        <Field id="current_pot" label={t("pot")} optional>
           <input
             id="current_pot"
             name="current_pot"
@@ -148,7 +150,7 @@ export function EditTreeForm({
           />
         </Field>
 
-        <Field id="current_substrate" label="Substrate" optional>
+        <Field id="current_substrate" label={t("substrate")} optional>
           <input
             id="current_substrate"
             name="current_substrate"
@@ -159,7 +161,7 @@ export function EditTreeForm({
           />
         </Field>
 
-        <Field id="acquired_on" label="Acquired on" optional>
+        <Field id="acquired_on" label={t("acquiredOn")} optional>
           <input
             id="acquired_on"
             name="acquired_on"
@@ -169,48 +171,48 @@ export function EditTreeForm({
           />
         </Field>
 
-        <Field id="acquired_from" label="Acquired from" optional>
+        <Field id="acquired_from" label={t("acquiredFrom")} optional>
           <input
             id="acquired_from"
             name="acquired_from"
             type="text"
             maxLength={120}
             defaultValue={tree.acquired_from ?? ""}
-            placeholder="e.g. Local nursery"
+            placeholder={t("acquiredFromPlaceholder")}
             className={inputClass}
           />
         </Field>
       </div>
 
-      <Field id="tags" label="Tags" optional>
+      <Field id="tags" label={t("tags")} optional>
         <input
           id="tags"
           name="tags"
           type="text"
           defaultValue={tagsValue}
-          placeholder="Comma-separated, e.g. shohin, show-candidate"
+          placeholder={t("tagsPlaceholder")}
           className={inputClass}
         />
       </Field>
 
-      <Field id="notes" label="Notes" optional>
+      <Field id="notes" label={tCommon("notes")} optional>
         <textarea
           id="notes"
           name="notes"
           rows={4}
           maxLength={2000}
           defaultValue={tree.notes ?? ""}
-          placeholder="Anything worth remembering about this tree."
+          placeholder={t("notesPlaceholder")}
           className={`${fieldBase} resize-y py-2`}
         />
       </Field>
 
       <div className="flex items-center gap-4">
         <Button type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Save changes"}
+          {pending ? t("saving") : t("saveChanges")}
         </Button>
         <Link href={cancelHref} className="text-muted-foreground hover:text-foreground text-sm">
-          Cancel
+          {tCommon("cancel")}
         </Link>
         {state.status === "error" ? (
           <span role="alert" className="text-destructive text-sm">
@@ -233,11 +235,14 @@ function Field({
   optional?: boolean;
   children: ReactNode;
 }) {
+  const tCommon = useTranslations("common");
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium">
         {label}{" "}
-        {optional ? <span className="text-muted-foreground font-normal">(optional)</span> : null}
+        {optional ? (
+          <span className="text-muted-foreground font-normal">{tCommon("optional")}</span>
+        ) : null}
       </label>
       {children}
     </div>

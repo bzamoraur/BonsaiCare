@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -44,7 +45,8 @@ export async function createTreeAction(
     ({ id: treeId } = await createTree(parsed.value));
   } catch (error) {
     logActionError("createTree", error);
-    return { status: "error", message: "We couldn't save your tree. Please try again." };
+    const t = await getTranslations("treeForm");
+    return { status: "error", message: t("errCreate") };
   }
 
   revalidatePath("/collection");
