@@ -30,6 +30,7 @@ export function ChangeCover({
   className?: string;
 }) {
   const t = useTranslations("cover");
+  const tCommon = useTranslations("common");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
 
@@ -81,7 +82,7 @@ export function ChangeCover({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close"
+                aria-label={tCommon("close")}
                 className="text-muted-foreground hover:text-foreground focus-visible:ring-ring -mr-1 rounded-md p-1 outline-none focus-visible:ring-2"
               >
                 <X className="size-5" aria-hidden />

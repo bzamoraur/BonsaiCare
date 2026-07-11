@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -11,6 +12,8 @@ import { useRevealFocus } from "@/lib/use-reveal-focus";
  * server action is passed in from the detail page so `id` stays server-side.
  */
 export function ArchiveTreeForm({ action }: { action: (formData: FormData) => void }) {
+  const t = useTranslations("treeDetail");
+  const tCommon = useTranslations("common");
   const [confirming, setConfirming] = useState(false);
   const { triggerRef, revealRef } = useRevealFocus<HTMLButtonElement, HTMLButtonElement>(
     confirming,
@@ -24,30 +27,28 @@ export function ArchiveTreeForm({ action }: { action: (formData: FormData) => vo
         variant="destructive"
         onClick={() => setConfirming(true)}
       >
-        Archive tree
+        {t("archiveTree")}
       </Button>
     );
   }
 
   return (
     <form action={action} className="flex flex-wrap items-center gap-3">
-      <span className="text-muted-foreground text-sm text-balance">
-        Archive this tree? It leaves your collection but keeps its history — you can unarchive it
-        anytime.
-      </span>
+      <span className="text-muted-foreground text-sm text-balance">{t("archiveConfirm")}</span>
       <ArchiveSubmit />
       <Button ref={revealRef} type="button" variant="ghost" onClick={() => setConfirming(false)}>
-        Cancel
+        {tCommon("cancel")}
       </Button>
     </form>
   );
 }
 
 function ArchiveSubmit() {
+  const t = useTranslations("treeDetail");
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="destructive" disabled={pending}>
-      {pending ? "Archiving…" : "Yes, archive"}
+      {pending ? t("archiving") : t("archiveYes")}
     </Button>
   );
 }
