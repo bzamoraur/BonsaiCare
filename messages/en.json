@@ -412,6 +412,12 @@
     "errPhoto": "We couldn't delete that photo. Please try again.",
     "errCare": "We couldn't update the care log. Please try again."
   },
+  "errors": {
+    "title": "Something went wrong",
+    "body": "We couldn't load this just now — it's usually a brief hiccup. Your data is safe.",
+    "tryAgain": "Try again",
+    "reportHint": "If you report this, quote: {digest}"
+  },
   "log": {
     "title": "Log care",
     "loadError": "We couldn't load your trees right now. Please refresh to try again.",
