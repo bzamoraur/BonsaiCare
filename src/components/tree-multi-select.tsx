@@ -36,7 +36,7 @@ export function TreeMultiSelect({
         <button
           type="button"
           onClick={() => onToggleAll(!allSelected)}
-          className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-4 hover:underline"
+          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded text-xs font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2"
         >
           {allSelected ? t("clear") : t("selectAll")}
         </button>

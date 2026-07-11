@@ -8,6 +8,7 @@ import { CareRecencyChips } from "@/components/care-recency-chips";
 import { PhotoZoom } from "@/components/photo-zoom";
 import { careDetailsToStrings } from "@/lib/care-details";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Pill } from "@/components/ui/pill";
 import type { CareEventType, CareRecency } from "@/domain/care";
 import { CARE_EVENT_ICONS, careDetailSummary } from "@/lib/care-labels";
 import { recurrenceInfo, TASK_TYPE_ICONS } from "@/lib/task-labels";
@@ -273,11 +274,7 @@ export default async function TreeDetailPage({
       <header className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">{tree.name}</h1>
-          {isArchived ? (
-            <span className="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-xs font-medium">
-              {tDetail("archivedBadge")}
-            </span>
-          ) : null}
+          {isArchived ? <Pill>{tDetail("archivedBadge")}</Pill> : null}
         </div>
         {tree.species_label ? <p className="text-muted-foreground">{tree.species_label}</p> : null}
         <CareRecencyChips recency={careRecency} serverToday={serverToday} className="mt-0.5" />
@@ -286,11 +283,8 @@ export default async function TreeDetailPage({
       {tags.length > 0 ? (
         <ul className="flex flex-wrap gap-1.5">
           {tags.map((tag) => (
-            <li
-              key={tag.id}
-              className="border-border text-muted-foreground rounded-full border px-2.5 py-0.5 text-xs"
-            >
-              {tag.name}
+            <li key={tag.id}>
+              <Pill>{tag.name}</Pill>
             </li>
           ))}
         </ul>
@@ -655,7 +649,7 @@ function PhotoItem({
       {photo.caption ? <p className="text-muted-foreground text-sm">{photo.caption}</p> : null}
       <div className="flex items-center gap-1">
         {isCover ? (
-          <span className="text-muted-foreground px-1 text-xs font-medium">{text.cover}</span>
+          <Pill>{text.cover}</Pill>
         ) : (
           <form action={setCoverAction.bind(null, treeId, photo.id)}>
             <Button type="submit" variant="ghost" size="sm">
