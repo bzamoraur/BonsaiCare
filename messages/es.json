@@ -412,6 +412,12 @@
     "errPhoto": "No pudimos eliminar esa foto. Inténtalo de nuevo.",
     "errCare": "No pudimos actualizar el registro de cuidados. Inténtalo de nuevo."
   },
+  "errors": {
+    "title": "Algo salió mal",
+    "body": "No pudimos cargar esto ahora mismo — suele ser un problema pasajero. Tus datos están a salvo.",
+    "tryAgain": "Reintentar",
+    "reportHint": "Si informas de esto, indica: {digest}"
+  },
   "log": {
     "title": "Registrar cuidados",
     "loadError": "No pudimos cargar tus árboles ahora mismo. Actualiza para volver a intentarlo.",
