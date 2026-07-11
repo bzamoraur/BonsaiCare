@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -51,7 +52,8 @@ export async function createTaskAction(
     await createTask(parsed.value);
   } catch (error) {
     logActionError("createTask", error);
-    return { status: "error", message: "We couldn't add that task. Please try again." };
+    const t = await getTranslations("taskForm");
+    return { status: "error", message: t("errAdd") };
   }
 
   revalidatePath(`/collection/${treeId}`);
@@ -73,7 +75,8 @@ export async function updateTaskAction(
     await updateTask(taskId, parsed.value);
   } catch (error) {
     logActionError("updateTask", error);
-    return { status: "error", message: "We couldn't save your changes. Please try again." };
+    const t = await getTranslations("taskForm");
+    return { status: "error", message: t("errUpdate") };
   }
 
   revalidatePath(`/collection/${treeId}`);

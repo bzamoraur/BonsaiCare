@@ -1,17 +1,11 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import { isOverdue } from "@/domain/scheduling";
 import { useLocalToday } from "@/lib/local-day";
 import { cn } from "@/lib/utils";
 import type { Enums } from "@/types/database.types";
-
-const dueFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
-// Format a bare "YYYY-MM-DD" at local midnight so the day survives any timezone.
-const formatDue = (iso: string) => dueFormatter.format(new Date(`${iso}T00:00:00`));
 
 /**
  * The due-date line on a care-plan task, with the "Overdue ·" prefix computed
@@ -27,8 +21,18 @@ export function TaskDueLabel({
   dueOn: string;
   serverToday: string;
 }) {
+  const t = useTranslations("taskForm");
+  const locale = useLocale();
   const today = useLocalToday(serverToday);
   const overdue = isOverdue({ status, dueOn }, today);
+  // Localize the month name, but keep the day-first order (es + en-GB both do) so an
+  // English reader never sees a US month-first date. Format a bare "YYYY-MM-DD" at
+  // local midnight so the day survives any timezone.
+  const dueFormatter = new Intl.DateTimeFormat(locale === "es" ? "es" : "en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
   return (
     <span
       className={cn(
@@ -36,8 +40,8 @@ export function TaskDueLabel({
         overdue ? "text-destructive font-medium" : "text-muted-foreground",
       )}
     >
-      {overdue ? "Overdue · " : ""}
-      {formatDue(dueOn)}
+      {overdue ? `${t("overdue")} · ` : ""}
+      {dueFormatter.format(new Date(`${dueOn}T00:00:00`))}
     </span>
   );
 }

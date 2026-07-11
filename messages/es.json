@@ -7,7 +7,9 @@
     "done": "Hecho",
     "title": "Título",
     "optional": "(opcional)",
-    "notes": "Notas"
+    "notes": "Notas",
+    "saving": "Guardando…",
+    "saveChanges": "Guardar cambios"
   },
   "auth": {
     "linkProblem": "Ese enlace de acceso no funcionó — puede haber caducado o ya haberse usado. Escribe tu correo abajo para recibir uno nuevo.",
@@ -348,6 +350,22 @@
     "saveTree": "Guardar árbol",
     "saveChanges": "Guardar cambios",
     "errCreate": "No pudimos guardar tu árbol. Inténtalo de nuevo.",
+    "errUpdate": "No pudimos guardar tus cambios. Inténtalo de nuevo."
+  },
+  "taskForm": {
+    "taskLabel": "Tarea",
+    "titlePlaceholder": "Trasplantar el enebro",
+    "type": "Tipo",
+    "notesPlaceholder": "Cualquier cosa que quieras recordar.",
+    "overdue": "Vencida",
+    "adding": "Añadiendo…",
+    "addTask": "Añadir tarea",
+    "added": "Añadida ✓",
+    "taskAdded": "Tarea añadida",
+    "editTitle": "Editar tarea",
+    "deleteThis": "Eliminar esta tarea",
+    "deleteSr": "Eliminar tarea",
+    "errAdd": "No pudimos añadir esa tarea. Inténtalo de nuevo.",
     "errUpdate": "No pudimos guardar tus cambios. Inténtalo de nuevo."
   },
   "log": {
