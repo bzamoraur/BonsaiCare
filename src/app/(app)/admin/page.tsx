@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 export const metadata = {
   title: "Owner metrics",
@@ -23,6 +24,19 @@ type OwnerMetrics = {
   total_trees: number;
   total_care_logs: number;
   total_tasks: number;
+};
+
+/** A row from the `recent_app_errors` RPC (jsonb). All text is attacker-writable
+ * (anon can POST to /api/log-error), so it is ONLY ever rendered as escaped React
+ * children below — never via dangerouslySetInnerHTML. */
+type AppErrorRow = {
+  id: number;
+  occurred_at: string;
+  source: "client" | "server";
+  context: string | null;
+  message: string | null;
+  digest: string | null;
+  path: string | null;
 };
 
 function Stat({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
@@ -49,6 +63,12 @@ export default async function AdminPage() {
   const { data, error } = await supabase.rpc("owner_metrics");
   if (error) logActionError("ownerMetrics.rpc", error);
   const metrics = (data as OwnerMetrics | null) ?? null;
+
+  const { data: errorData, error: errorsError } = await supabase.rpc("recent_app_errors", {
+    p_limit: 100,
+  });
+  if (errorsError) logActionError("recentAppErrors.rpc", errorsError);
+  const recentErrors = (errorData as AppErrorRow[] | null) ?? [];
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
@@ -104,6 +124,60 @@ export default async function AdminPage() {
           </p>
         </>
       )}
+
+      <hr className="border-border" />
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-sm font-medium">
+            Recent errors
+            {recentErrors.length > 0 ? (
+              <span className="text-muted-foreground"> ({recentErrors.length})</span>
+            ) : null}
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Server and browser crashes across everyone using the app — newest first, no private
+            data. Kept for reference; a friend&apos;s bug is no longer invisible.
+          </p>
+        </div>
+
+        {recentErrors.length === 0 ? (
+          <p className="text-muted-foreground text-sm">Nothing recorded — all quiet. 🌱</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {recentErrors.map((e) => (
+              <li
+                key={e.id}
+                className="border-border bg-card flex flex-col gap-1 rounded-xl border p-3"
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[0.65rem] font-medium",
+                      e.source === "server"
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-primary/10 text-primary",
+                    )}
+                  >
+                    {e.source}
+                  </span>
+                  {e.context ? (
+                    <span className="font-mono text-xs font-medium break-all">{e.context}</span>
+                  ) : null}
+                  <time className="text-muted-foreground ml-auto shrink-0 text-xs tabular-nums">
+                    {new Date(e.occurred_at).toLocaleString()}
+                  </time>
+                </div>
+                {e.message ? <p className="text-sm break-words">{e.message}</p> : null}
+                <div className="text-muted-foreground flex flex-wrap gap-x-3 text-xs">
+                  {e.path ? <span className="font-mono break-all">{e.path}</span> : null}
+                  {e.digest ? <span className="font-mono">digest: {e.digest}</span> : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </main>
   );
 }

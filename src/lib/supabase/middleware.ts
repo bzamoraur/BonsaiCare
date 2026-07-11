@@ -3,9 +3,19 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { env } from "@/lib/env";
 
-/** Paths reachable without a session (the sign-in screen and auth callbacks). */
+/**
+ * Paths reachable without a session: the sign-in screen, auth callbacks, the
+ * privacy note, and the client-crash sink (`/api/log-error` must accept beacons
+ * from an unauthenticated /login crash — otherwise those crashes redirect to
+ * /login and are never recorded; the RPC self-stamps a NULL owner for them).
+ */
 function isPublicPath(pathname: string): boolean {
-  return pathname === "/login" || pathname === "/privacy" || pathname.startsWith("/auth/");
+  return (
+    pathname === "/login" ||
+    pathname === "/privacy" ||
+    pathname === "/api/log-error" ||
+    pathname.startsWith("/auth/")
+  );
 }
 
 /**
