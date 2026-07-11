@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import { Photo } from "@/components/photo";
+import { Pill } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 
 import { setCoverAction } from "./photo-actions";
@@ -110,10 +111,10 @@ export function ChangeCover({
                           className="aspect-square w-full object-cover"
                         />
                         {isCover ? (
-                          <span className="bg-primary text-primary-foreground absolute top-1 right-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.65rem] font-medium">
+                          <Pill variant="primary" size="sm" className="absolute top-1 right-1">
                             <Check className="size-3" aria-hidden />
                             {t("current")}
-                          </span>
+                          </Pill>
                         ) : null}
                       </button>
                     </form>
