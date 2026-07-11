@@ -1,11 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { TreeMultiSelect } from "@/components/tree-multi-select";
 import { Button } from "@/components/ui/button";
+import { monthNames } from "@/lib/months";
 import { Constants, type Enums } from "@/types/database.types";
 
 import type { SchedulePlanState } from "./actions";
@@ -13,21 +14,6 @@ import type { SchedulePlanState } from "./actions";
 const fieldBase =
   "border-input bg-background focus-visible:ring-ring rounded-md border px-3 text-base outline-none focus-visible:ring-2";
 const inputClass = `${fieldBase} h-10`;
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 const initialState: SchedulePlanState = { status: "idle" };
 
@@ -54,7 +40,10 @@ export function ScheduleForm({
   const [recurring, setRecurring] = useState(true);
   const [seasonal, setSeasonal] = useState(false);
   const successRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("plan");
+  const tCommon = useTranslations("common");
   const tType = useTranslations("taskTypes");
+  const months = monthNames(useLocale());
 
   // Move focus to the confirmation on success so it's announced and the user
   // isn't stranded on <body> after the submit button unmounts.
@@ -79,14 +68,13 @@ export function ScheduleForm({
         className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-8 text-center outline-none"
       >
         <p className="text-balance">
-          Scheduled {state.label.toLowerCase()} on {state.count}{" "}
-          {state.count === 1 ? "tree" : "trees"}. 🌿
+          {t("scheduleSuccess", { count: state.count, label: state.label.toLowerCase() })}
         </p>
         <Link
           href="/today"
           className="text-primary text-sm font-medium underline-offset-4 hover:underline"
         >
-          See it on Today →
+          {t("seeItOnToday")}
         </Link>
       </div>
     );
@@ -97,7 +85,7 @@ export function ScheduleForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="plan-type" className="text-sm font-medium">
-            What care?
+            {t("whatCare")}
           </label>
           <select
             id="plan-type"
@@ -115,7 +103,8 @@ export function ScheduleForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="plan-title" className="text-sm font-medium">
-            Title <span className="text-muted-foreground font-normal">(optional)</span>
+            {tCommon("title")}{" "}
+            <span className="text-muted-foreground font-normal">{tCommon("optional")}</span>
           </label>
           <input
             id="plan-title"
@@ -137,7 +126,7 @@ export function ScheduleForm({
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="plan-due" className="text-sm font-medium">
-          {recurring ? "Starting" : "Due"}
+          {recurring ? t("starting") : t("due")}
         </label>
         <input
           id="plan-due"
@@ -157,7 +146,7 @@ export function ScheduleForm({
             onChange={(e) => setRecurring(e.target.checked)}
             className="size-4"
           />
-          Repeats
+          {t("repeats")}
         </label>
 
         {recurring ? (
@@ -165,7 +154,7 @@ export function ScheduleForm({
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="plan-interval" className="text-sm font-medium">
-                  Every (days)
+                  {t("everyDays")}
                 </label>
                 <input
                   id="plan-interval"
@@ -178,7 +167,7 @@ export function ScheduleForm({
               </div>
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="plan-anchor" className="text-sm font-medium">
-                  Counting from
+                  {t("countingFrom")}
                 </label>
                 <select
                   id="plan-anchor"
@@ -186,8 +175,8 @@ export function ScheduleForm({
                   defaultValue="completion"
                   className={inputClass}
                 >
-                  <option value="completion">when I do it</option>
-                  <option value="due">the due date</option>
+                  <option value="completion">{t("anchorCompletion")}</option>
+                  <option value="due">{t("anchorDue")}</option>
                 </select>
               </div>
             </div>
@@ -200,14 +189,14 @@ export function ScheduleForm({
                 onChange={(e) => setSeasonal(e.target.checked)}
                 className="size-4"
               />
-              Only during a season
+              {t("seasonOnly")}
             </label>
 
             {seasonal ? (
               <div className="grid gap-4 pl-6 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="plan-season-start" className="text-sm font-medium">
-                    From
+                    {t("seasonFrom")}
                   </label>
                   <select
                     id="plan-season-start"
@@ -215,7 +204,7 @@ export function ScheduleForm({
                     defaultValue="3"
                     className={inputClass}
                   >
-                    {MONTHS.map((month, i) => (
+                    {months.map((month, i) => (
                       <option key={month} value={i + 1}>
                         {month}
                       </option>
@@ -224,7 +213,7 @@ export function ScheduleForm({
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="plan-season-end" className="text-sm font-medium">
-                    To
+                    {t("seasonTo")}
                   </label>
                   <select
                     id="plan-season-end"
@@ -232,7 +221,7 @@ export function ScheduleForm({
                     defaultValue="10"
                     className={inputClass}
                   >
-                    {MONTHS.map((month, i) => (
+                    {months.map((month, i) => (
                       <option key={month} value={i + 1}>
                         {month}
                       </option>
@@ -248,10 +237,10 @@ export function ScheduleForm({
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending || selected.size === 0}>
           {pending
-            ? "Creating…"
+            ? t("creating")
             : selected.size === 0
-              ? "Pick trees to schedule"
-              : `Schedule on ${selected.size} tree${selected.size === 1 ? "" : "s"}`}
+              ? t("pickTrees")
+              : t("scheduleButton", { count: selected.size })}
         </Button>
         {state.status === "error" ? (
           <span role="alert" className="text-destructive text-sm">
@@ -261,11 +250,13 @@ export function ScheduleForm({
       </div>
 
       <p className="text-muted-foreground text-xs">
-        Feeding your trees? The{" "}
-        <Link href="/plan/fertilize" className="underline-offset-4 hover:underline">
-          fertilizing preset
-        </Link>{" "}
-        pre-fills the classic every-14-days, growing-season schedule.
+        {t.rich("fertilizeHint", {
+          link: (chunks) => (
+            <Link href="/plan/fertilize" className="underline-offset-4 hover:underline">
+              {chunks}
+            </Link>
+          ),
+        })}
       </p>
     </form>
   );

@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 
 import { parseTaskForm } from "@/domain/task-form";
@@ -20,15 +21,17 @@ export async function createFertilizePlanAction(
   _prev: FertilizeState,
   formData: FormData,
 ): Promise<FertilizeState> {
+  const t = await getTranslations("plan");
+  const tType = await getTranslations("taskTypes");
   const treeIds = formData
     .getAll("treeId")
     .filter((v): v is string => typeof v === "string" && UUID_RE.test(v));
   if (treeIds.length === 0) {
-    return { status: "error", message: "Pick at least one tree." };
+    return { status: "error", message: t("errPickTree") };
   }
 
   const parsed = parseTaskForm({
-    title: (formData.get("title") as string) || "Fertilize",
+    title: (formData.get("title") as string) || tType("fertilizing"),
     type: "fertilizing",
     treeId: treeIds[0],
     dueOn: formData.get("dueOn"),
@@ -55,6 +58,6 @@ export async function createFertilizePlanAction(
     return { status: "success", count };
   } catch (error) {
     logActionError("createFertilizePlan", error);
-    return { status: "error", message: "We couldn't create that schedule. Please try again." };
+    return { status: "error", message: t("errCreateFailed") };
   }
 }
