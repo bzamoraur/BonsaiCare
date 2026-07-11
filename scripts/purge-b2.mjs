@@ -90,9 +90,10 @@ if (!bucketId) {
   process.exit(1);
 }
 
-// Fail loud early if the key can't delete, rather than half-purging. For a
-// bucket-scoped key B2 returns its granted capabilities; a master key omits them
-// (and can delete), so only reject when the list is present AND lacks the cap.
+// Fail loud early if the key can't delete, rather than half-purging. B2 returns
+// the key's granted capabilities in `allowed.capabilities` (present for both
+// bucket-scoped and master keys); guard defensively — only reject when the list
+// is present AND lacks the cap, so an unexpected shape never blocks a valid key.
 if (Array.isArray(allowed?.capabilities) && !allowed.capabilities.includes("deleteFiles")) {
   console.error(
     "::error::The B2 key lacks the deleteFiles capability — recreate it as Read & Write. No deletion attempted.",
@@ -122,6 +123,24 @@ async function listVersionsUnder(prefix) {
     startFileId = page.nextFileId;
   }
   return versions;
+}
+
+// Delete one version, retrying ONCE on a transient B2 error (network drop, or
+// 401 expired token / 408 / 429 / 5xx) — per B2's integration checklist and
+// mirroring uploadOne in mirror-photos.mjs. Without this, a single transient
+// blip leaves the whole account unstamped until the next monthly run. Delete is
+// idempotent, so a retry is always safe.
+async function deleteVersion(fileName, fileId) {
+  const url = `${apiUrl}/b2api/v2/b2_delete_file_version`;
+  try {
+    await b2(url, { token, body: { fileName, fileId } });
+  } catch (e) {
+    const status = Number(String(e?.message).match(/HTTP (\d+)/)?.[1]);
+    const retriable =
+      !status || status === 401 || status === 408 || status === 429 || status >= 500;
+    if (!retriable) throw e;
+    await b2(url, { token, body: { fileName, fileId } });
+  }
 }
 
 // --- Drain --------------------------------------------------------------------
@@ -156,10 +175,7 @@ for (const { uid } of queued) {
   let ok = true;
   for (const v of versions) {
     try {
-      await b2(`${apiUrl}/b2api/v2/b2_delete_file_version`, {
-        token,
-        body: { fileName: v.fileName, fileId: v.fileId },
-      });
+      await deleteVersion(v.fileName, v.fileId);
       deletedVersions += 1;
     } catch (e) {
       console.error(`::warning::Deleting ${v.fileName} failed: ${e.message ?? e}`);
@@ -186,6 +202,12 @@ for (const { uid } of queued) {
 }
 
 if (DRY_RUN) {
+  if (failures.length > 0) {
+    console.error(
+      `::error::DRY_RUN could not enumerate ${failures.length} account(s): ${failures.join(", ")}.`,
+    );
+    process.exit(1);
+  }
   console.log("DRY_RUN complete — nothing was deleted or stamped.");
   process.exit(0);
 }
