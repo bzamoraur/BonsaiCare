@@ -315,5 +315,21 @@
     "errPickTree": "Pick at least one tree.",
     "errBadType": "Choose a valid type of care.",
     "errCreateFailed": "We couldn't create that plan. Please try again."
+  },
+  "log": {
+    "title": "Log care",
+    "loadError": "We couldn't load your trees right now. Please refresh to try again.",
+    "noTrees": "Add a tree first — then you can log its care from anywhere.",
+    "severalTrees": "Several trees →",
+    "batchTitle": "Log care · several trees",
+    "batchHeading": "Log care for several trees",
+    "batchIntro": "One care event, logged across every tree you pick.",
+    "batchSuccess": "{count, plural, one {Logged for # tree} other {Logged for # trees}}. 🌿",
+    "backToCollection": "Back to your collection →",
+    "logging": "Logging…",
+    "pickTrees": "Pick trees to log",
+    "logButton": "{count, plural, one {Log for # tree} other {Log for # trees}}",
+    "errPickTree": "Pick at least one tree.",
+    "errLogFailed": "We couldn't log that. Please try again."
   }
 }

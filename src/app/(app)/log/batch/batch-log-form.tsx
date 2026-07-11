@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
@@ -35,6 +36,7 @@ export function BatchLogForm({
   const [state, formAction, pending] = useActionState(action, initialState);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const successRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("log");
 
   // Move focus to the confirmation on success so it's announced and the user
   // isn't stranded after the submit button unmounts.
@@ -58,14 +60,12 @@ export function BatchLogForm({
         role="status"
         className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-8 text-center outline-none"
       >
-        <p className="text-balance">
-          Logged for {state.count} {state.count === 1 ? "tree" : "trees"}. 🌿
-        </p>
+        <p className="text-balance">{t("batchSuccess", { count: state.count })}</p>
         <Link
           href="/collection"
           className="text-primary text-sm font-medium underline-offset-4 hover:underline"
         >
-          Back to your collection →
+          {t("backToCollection")}
         </Link>
       </div>
     );
@@ -85,10 +85,10 @@ export function BatchLogForm({
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending || selected.size === 0}>
           {pending
-            ? "Logging…"
+            ? t("logging")
             : selected.size === 0
-              ? "Pick trees to log"
-              : `Log for ${selected.size} tree${selected.size === 1 ? "" : "s"}`}
+              ? t("pickTrees")
+              : t("logButton", { count: selected.size })}
         </Button>
         {state.status === "error" ? (
           <span role="alert" className="text-destructive text-sm">
