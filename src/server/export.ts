@@ -38,9 +38,26 @@ export const EXPORTED_TABLES = [
 
 export type ExportedTable = (typeof EXPORTED_TABLES)[number];
 
-// Compile-time exhaustiveness: if a new public table is not listed above, the
-// `missing` branch is selected and this assignment fails to typecheck, naming it.
-type MissingTables = Exclude<PublicTable, ExportedTable>;
+/**
+ * Tables deliberately NOT in the export: operational/internal, not user content,
+ * and unreadable by the user's own RLS-scoped client anyway. Listing them here
+ * (rather than silently omitting them) keeps the exhaustiveness guard meaningful —
+ * every new table must be a conscious "export" or "exclude" call, never a drop.
+ *  - app_errors:     diagnostic error log (RLS: no user policy; owner-only read).
+ *  - b2_purge_queue: post-deletion purge queue — it only exists once the account
+ *                    is already gone, and holds no user content (a UUID + times).
+ */
+export const EXCLUDED_TABLES = [
+  "app_errors",
+  "b2_purge_queue",
+] as const satisfies readonly PublicTable[];
+
+export type ExcludedTable = (typeof EXCLUDED_TABLES)[number];
+
+// Compile-time exhaustiveness: every public table must be consciously classified
+// as exported or excluded; an unclassified new table selects the `missing` branch
+// and this assignment fails to typecheck, naming it.
+type MissingTables = Exclude<PublicTable, ExportedTable | ExcludedTable>;
 const _assertAllTablesExported: [MissingTables] extends [never]
   ? true
   : { error: "Add this table to EXPORTED_TABLES"; missing: MissingTables } = true;
