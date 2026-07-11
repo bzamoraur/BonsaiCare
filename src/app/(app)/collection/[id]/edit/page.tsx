@@ -1,4 +1,5 @@
 import { ChevronLeft } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -13,13 +14,13 @@ type Params = { id: string };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }) {
   const { id } = await params;
-  const tree = await getTree(id);
-  return { title: tree ? `Edit ${tree.name}` : "Edit tree" };
+  const [tree, t] = await Promise.all([getTree(id), getTranslations("treeForm")]);
+  return { title: tree ? t("editMetaTitle", { name: tree.name }) : t("editTitle") };
 }
 
 export default async function EditTreePage({ params }: { params: Promise<Params> }) {
   const { id } = await params;
-  const tree = await getTree(id);
+  const [tree, t] = await Promise.all([getTree(id), getTranslations("treeForm")]);
   if (!tree) notFound();
 
   const [locations, locationValue, treeTags] = await Promise.all([
@@ -38,7 +39,7 @@ export default async function EditTreePage({ params }: { params: Promise<Params>
           <ChevronLeft className="size-4" aria-hidden />
           {tree.name}
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Edit tree</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("editTitle")}</h1>
       </div>
 
       <EditTreeForm

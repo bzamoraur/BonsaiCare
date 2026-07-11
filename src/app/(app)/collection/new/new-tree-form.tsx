@@ -17,6 +17,8 @@ const fieldClass =
 
 export function NewTreeForm() {
   const [state, formAction, pending] = useActionState(createTreeAction, initialState);
+  const t = useTranslations("treeForm");
+  const tCommon = useTranslations("common");
   const tStage = useTranslations("stages");
   const tHealth = useTranslations("health");
 
@@ -24,7 +26,7 @@ export function NewTreeForm() {
     <form action={formAction} className="flex flex-col gap-5">
       <div className="flex flex-col gap-1.5">
         <label htmlFor="name" className="text-sm font-medium">
-          Name
+          {t("name")}
         </label>
         <input
           id="name"
@@ -33,28 +35,30 @@ export function NewTreeForm() {
           required
           maxLength={80}
           autoFocus
-          placeholder="e.g. Front-door juniper"
+          placeholder={t("namePlaceholder")}
           className={fieldClass}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="species_label" className="text-sm font-medium">
-          Species <span className="text-muted-foreground font-normal">(optional)</span>
+          {t("species")}{" "}
+          <span className="text-muted-foreground font-normal">{tCommon("optional")}</span>
         </label>
         <input
           id="species_label"
           name="species_label"
           type="text"
           maxLength={120}
-          placeholder="e.g. Juniperus procumbens"
+          placeholder={t("speciesPlaceholder")}
           className={fieldClass}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="development_stage" className="text-sm font-medium">
-          Development stage <span className="text-muted-foreground font-normal">(optional)</span>
+          {t("developmentStage")}{" "}
+          <span className="text-muted-foreground font-normal">{tCommon("optional")}</span>
         </label>
         <select
           id="development_stage"
@@ -62,7 +66,7 @@ export function NewTreeForm() {
           defaultValue=""
           className={fieldClass}
         >
-          <option value="">Not sure yet</option>
+          <option value="">{t("notSureYet")}</option>
           {Constants.public.Enums.development_stage.map((stage) => (
             <option key={stage} value={stage}>
               {tStage(stage)}
@@ -73,10 +77,11 @@ export function NewTreeForm() {
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="health_status" className="text-sm font-medium">
-          Health <span className="text-muted-foreground font-normal">(optional)</span>
+          {t("health")}{" "}
+          <span className="text-muted-foreground font-normal">{tCommon("optional")}</span>
         </label>
         <select id="health_status" name="health_status" defaultValue="" className={fieldClass}>
-          <option value="">Not sure yet</option>
+          <option value="">{t("notSureYet")}</option>
           {Constants.public.Enums.health_status.map((status) => (
             <option key={status} value={status}>
               {tHealth(status)}
@@ -87,10 +92,10 @@ export function NewTreeForm() {
 
       <div className="flex items-center gap-4">
         <Button type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Save tree"}
+          {pending ? t("saving") : t("saveTree")}
         </Button>
         <Link href="/collection" className="text-muted-foreground hover:text-foreground text-sm">
-          Cancel
+          {tCommon("cancel")}
         </Link>
         {state.status === "error" ? (
           <span role="alert" className="text-destructive text-sm">

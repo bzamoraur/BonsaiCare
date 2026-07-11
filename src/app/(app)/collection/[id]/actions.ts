@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -56,7 +57,8 @@ export async function updateTreeAction(
     await syncTreeTags(id, tagNames);
   } catch (error) {
     logActionError("updateTree", error);
-    return { status: "error", message: "We couldn't save your changes. Please try again." };
+    const t = await getTranslations("treeForm");
+    return { status: "error", message: t("errUpdate") };
   }
 
   revalidatePath("/collection");
