@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 export type TreeOption = { id: string; name: string };
 
 /**
@@ -21,21 +23,22 @@ export function TreeMultiSelect({
   /** Called with the desired next state: true = select every tree, false = clear. */
   onToggleAll: (selectAll: boolean) => void;
 }) {
+  const t = useTranslations("treePicker");
   const allSelected = trees.length > 0 && selected.size === trees.length;
 
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="sr-only">Which trees?</legend>
+      <legend className="sr-only">{t("whichTrees")}</legend>
       <div className="flex items-center justify-between gap-4">
         <span className="text-sm font-medium" aria-hidden="true">
-          Which trees?
+          {t("whichTrees")}
         </span>
         <button
           type="button"
           onClick={() => onToggleAll(!allSelected)}
           className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-4 hover:underline"
         >
-          {allSelected ? "Clear" : "Select all"}
+          {allSelected ? t("clear") : t("selectAll")}
         </button>
       </div>
       <div className="border-border flex max-h-64 flex-col gap-0.5 overflow-y-auto rounded-xl border p-2">

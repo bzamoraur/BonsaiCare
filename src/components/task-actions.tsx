@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,8 @@ export function TaskActions({
   completeAction: (formData: FormData) => void;
   skipAction: (formData: FormData) => void;
 }) {
+  const t = useTranslations("taskActions");
+  const tCommon = useTranslations("common");
   const [confirming, setConfirming] = useState(false);
   // The viewer's local today — the default completion date and the date a skip
   // records, so both reflect their clock, not the server's UTC day.
@@ -43,20 +46,20 @@ export function TaskActions({
           type="date"
           name="completedOn"
           defaultValue={defaultDate}
-          aria-label="Completed on"
+          aria-label={t("completedOn")}
           className={dateInputClass}
         />
         {canLog ? (
           <label className="text-muted-foreground flex items-center gap-1.5 text-xs">
             <input type="checkbox" name="logEvent" defaultChecked className="size-4" />
-            Log care event
+            {t("logCareEvent")}
           </label>
         ) : null}
         <Button type="submit" size="sm">
-          Confirm
+          {t("confirm")}
         </Button>
         <Button type="button" variant="ghost" size="sm" onClick={() => setConfirming(false)}>
-          Cancel
+          {tCommon("cancel")}
         </Button>
       </form>
     );
@@ -65,14 +68,14 @@ export function TaskActions({
   return (
     <div className="flex items-center gap-1">
       <Button ref={triggerRef} type="button" size="sm" onClick={() => setConfirming(true)}>
-        Done
+        {tCommon("done")}
       </Button>
       <form action={skipAction}>
         {/* A skip records against the viewer's local day (controlled so it tracks
             the post-hydration value), matching the "Done" date. */}
         <input type="hidden" name="completedOn" value={defaultDate} readOnly />
         <Button type="submit" variant="ghost" size="sm">
-          Skip
+          {t("skip")}
         </Button>
       </form>
     </div>

@@ -48,6 +48,8 @@ export function CareEntryFields({
 }) {
   const [type, setType] = useState<CareEventType>(defaults.type);
   const tCare = useTranslations("careTypes");
+  const t = useTranslations("careFields");
+  const tCommon = useTranslations("common");
   const fields = CARE_FIELDS[type];
 
   // Prefer the explicit default (e.g. when editing an entry), then the last-used
@@ -60,7 +62,7 @@ export function CareEntryFields({
     <>
       <div className="flex flex-col gap-1.5">
         <label htmlFor={`${idPrefix}-type`} className="text-sm font-medium">
-          What did you do?
+          {t("whatDidYouDo")}
         </label>
         <select
           id={`${idPrefix}-type`}
@@ -84,7 +86,7 @@ export function CareEntryFields({
             // re-applies that type's pre-fill (some names, e.g. "amount", recur).
             <div key={`${type}-${field.name}`} className="flex flex-col gap-1.5">
               <label htmlFor={`${idPrefix}-${field.name}`} className="text-sm font-medium">
-                {field.label}
+                {t(field.labelKey)}
               </label>
               {field.kind === "text" ? (
                 <input
@@ -92,7 +94,7 @@ export function CareEntryFields({
                   name={field.name}
                   type="text"
                   maxLength={field.maxLength}
-                  placeholder={field.placeholder}
+                  placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
                   defaultValue={detailDefault(field.name)}
                   className={inputClass}
                 />
@@ -106,7 +108,7 @@ export function CareEntryFields({
                   <option value="">—</option>
                   {field.options.map((o) => (
                     <option key={o.value} value={o.value}>
-                      {o.label}
+                      {t(o.labelKey)}
                     </option>
                   ))}
                 </select>
@@ -119,7 +121,8 @@ export function CareEntryFields({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`${idPrefix}-when`} className="text-sm font-medium">
-            When <span className="text-muted-foreground font-normal">(defaults to today)</span>
+            {t("when")}{" "}
+            <span className="text-muted-foreground font-normal">{t("defaultsToday")}</span>
           </label>
           <input
             id={`${idPrefix}-when`}
@@ -131,7 +134,8 @@ export function CareEntryFields({
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`${idPrefix}-title`} className="text-sm font-medium">
-            Title <span className="text-muted-foreground font-normal">(optional)</span>
+            {tCommon("title")}{" "}
+            <span className="text-muted-foreground font-normal">{tCommon("optional")}</span>
           </label>
           <input
             id={`${idPrefix}-title`}
@@ -146,7 +150,8 @@ export function CareEntryFields({
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor={`${idPrefix}-notes`} className="text-sm font-medium">
-          Notes <span className="text-muted-foreground font-normal">(optional)</span>
+          {tCommon("notes")}{" "}
+          <span className="text-muted-foreground font-normal">{tCommon("optional")}</span>
         </label>
         <textarea
           id={`${idPrefix}-notes`}
@@ -154,7 +159,7 @@ export function CareEntryFields({
           rows={2}
           maxLength={2000}
           defaultValue={defaults.notes}
-          placeholder="Anything worth remembering."
+          placeholder={t("notesPlaceholder")}
           className={`${fieldBase} resize-y py-2`}
         />
       </div>

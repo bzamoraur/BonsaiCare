@@ -2,7 +2,12 @@
   "common": {
     "collectionTask": "Tarea de la colección",
     "taskUpdateError": "No pudimos actualizar esa tarea. Inténtalo de nuevo.",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "done": "Hecho",
+    "title": "Título",
+    "optional": "(opcional)",
+    "notes": "Notas"
   },
   "auth": {
     "linkProblem": "Ese enlace de acceso no funcionó — puede haber caducado o ya haberse usado. Escribe tu correo abajo para recibir uno nuevo.",
@@ -213,5 +218,46 @@
     "yesterday": "ayer",
     "daysAgo": "hace {days} d",
     "weeksAgo": "hace {weeks} sem"
+  },
+  "careFields": {
+    "whatDidYouDo": "¿Qué hiciste?",
+    "when": "Cuándo",
+    "defaultsToday": "(por defecto hoy)",
+    "notesPlaceholder": "Cualquier cosa que quieras recordar.",
+    "labelAmount": "Cantidad",
+    "labelProduct": "Producto",
+    "labelNpk": "NPK",
+    "labelIntensity": "Intensidad",
+    "labelBranches": "Ramas",
+    "labelGauge": "Calibre del alambre",
+    "labelNewPot": "Maceta nueva",
+    "labelSoilMix": "Sustrato",
+    "labelRootWork": "Trabajo de raíces",
+    "labelIssue": "Problema",
+    "labelTreatment": "Tratamiento",
+    "labelExtent": "Alcance",
+    "phThorough": "p. ej. a fondo",
+    "phProduct": "p. ej. Biogold",
+    "phNpk": "p. ej. 5-5-5",
+    "phBranches": "p. ej. inferior izquierda, ápice",
+    "phGauge": "p. ej. 2,5 mm",
+    "phSoilMix": "p. ej. akadama/pumita/lava",
+    "phIssue": "p. ej. araña roja",
+    "optLight": "Ligera",
+    "optModerate": "Moderada",
+    "optHard": "Fuerte",
+    "optPartial": "Parcial",
+    "optFull": "Total"
+  },
+  "taskActions": {
+    "completedOn": "Completada el",
+    "logCareEvent": "Registrar cuidado",
+    "confirm": "Confirmar",
+    "skip": "Omitir"
+  },
+  "treePicker": {
+    "whichTrees": "¿Qué árboles?",
+    "clear": "Quitar todo",
+    "selectAll": "Seleccionar todo"
   }
 }
