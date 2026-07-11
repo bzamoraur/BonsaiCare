@@ -7,7 +7,9 @@
     "done": "Done",
     "title": "Title",
     "optional": "(optional)",
-    "notes": "Notes"
+    "notes": "Notes",
+    "saving": "Saving…",
+    "saveChanges": "Save changes"
   },
   "auth": {
     "linkProblem": "That sign-in link didn't work — it may have expired or already been used. Enter your email below for a fresh one.",
@@ -348,6 +350,22 @@
     "saveTree": "Save tree",
     "saveChanges": "Save changes",
     "errCreate": "We couldn't save your tree. Please try again.",
+    "errUpdate": "We couldn't save your changes. Please try again."
+  },
+  "taskForm": {
+    "taskLabel": "Task",
+    "titlePlaceholder": "Repot the juniper",
+    "type": "Type",
+    "notesPlaceholder": "Anything worth remembering.",
+    "overdue": "Overdue",
+    "adding": "Adding…",
+    "addTask": "Add task",
+    "added": "Added ✓",
+    "taskAdded": "Task added",
+    "editTitle": "Edit task",
+    "deleteThis": "Delete this task",
+    "deleteSr": "Delete task",
+    "errAdd": "We couldn't add that task. Please try again.",
     "errUpdate": "We couldn't save your changes. Please try again."
   },
   "log": {

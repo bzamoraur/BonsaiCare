@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export function EditTaskForm({
   action: (prev: TaskFormState, formData: FormData) => Promise<TaskFormState>;
   defaults: TaskDefaults;
 }) {
+  const tCommon = useTranslations("common");
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
@@ -26,7 +28,7 @@ export function EditTaskForm({
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Save changes"}
+          {pending ? tCommon("saving") : tCommon("saveChanges")}
         </Button>
         {state.status === "error" ? (
           <span role="alert" className="text-destructive text-sm">

@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ type Props = {
 };
 
 export function AddTaskForm({ action, defaultDueOn }: Props) {
+  const t = useTranslations("taskForm");
+  const tCommon = useTranslations("common");
   const [state, formAction, pending] = useActionState(action, initialState);
   const [open, setOpen] = useState(false);
   const [prevStatus, setPrevStatus] = useState(state.status);
@@ -61,7 +64,7 @@ export function AddTaskForm({ action, defaultDueOn }: Props) {
       {/* Persistent polite region so "added" is reliably announced across the
           form→collapsed swap (a region mounted with its content often isn't). */}
       <span role="status" aria-live="polite" className="sr-only">
-        {state.status === "success" ? "Task added" : ""}
+        {state.status === "success" ? t("taskAdded") : ""}
       </span>
 
       {open ? (
@@ -74,10 +77,10 @@ export function AddTaskForm({ action, defaultDueOn }: Props) {
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={pending}>
-              {pending ? "Adding…" : "Add task"}
+              {pending ? t("adding") : t("addTask")}
             </Button>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              Close
+              {tCommon("close")}
             </Button>
             {state.status === "error" ? (
               <span role="alert" className="text-destructive text-sm">
@@ -96,11 +99,11 @@ export function AddTaskForm({ action, defaultDueOn }: Props) {
             onClick={() => setOpen(true)}
           >
             <Plus aria-hidden />
-            Add task
+            {t("addTask")}
           </Button>
           {state.status === "success" ? (
             <span className="text-primary text-sm" aria-hidden="true">
-              Added ✓
+              {t("added")}
             </span>
           ) : null}
         </div>

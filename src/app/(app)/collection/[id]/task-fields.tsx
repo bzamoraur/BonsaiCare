@@ -1,8 +1,9 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { monthNames } from "@/lib/months";
 import { Constants, type Enums } from "@/types/database.types";
 
 // `:user-invalid` turns a required field's border red once the user has tried to
@@ -11,21 +12,6 @@ import { Constants, type Enums } from "@/types/database.types";
 const fieldBase =
   "border-input bg-background focus-visible:ring-ring rounded-md border px-3 text-base outline-none focus-visible:ring-2 [&:user-invalid]:border-destructive [&:user-invalid]:ring-destructive";
 const inputClass = `${fieldBase} h-10`;
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 export type TaskDefaults = {
   title: string;
@@ -50,14 +36,18 @@ export type TaskDefaults = {
 export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
   const [recurring, setRecurring] = useState(defaults.recurring);
   const [seasonal, setSeasonal] = useState(defaults.seasonal);
+  const t = useTranslations("taskForm");
+  const tCommon = useTranslations("common");
+  const tPlan = useTranslations("plan");
   const tType = useTranslations("taskTypes");
+  const months = monthNames(useLocale());
 
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="task-title" className="text-sm font-medium">
-            Task
+            {t("taskLabel")}
           </label>
           <input
             id="task-title"
@@ -65,19 +55,19 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
             type="text"
             required
             maxLength={120}
-            placeholder="Repot the juniper"
+            placeholder={t("titlePlaceholder")}
             defaultValue={defaults.title}
             className={inputClass}
           />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="task-type" className="text-sm font-medium">
-            Type
+            {t("type")}
           </label>
           <select id="task-type" name="type" defaultValue={defaults.type} className={inputClass}>
-            {Constants.public.Enums.task_type.map((t) => (
-              <option key={t} value={t}>
-                {tType(t)}
+            {Constants.public.Enums.task_type.map((tt) => (
+              <option key={tt} value={tt}>
+                {tType(tt)}
               </option>
             ))}
           </select>
@@ -86,7 +76,7 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="task-due" className="text-sm font-medium">
-          Due
+          {tPlan("due")}
         </label>
         <input
           id="task-due"
@@ -107,7 +97,7 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
             onChange={(e) => setRecurring(e.target.checked)}
             className="size-4"
           />
-          Repeats
+          {tPlan("repeats")}
         </label>
 
         {recurring ? (
@@ -115,7 +105,7 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="task-interval" className="text-sm font-medium">
-                  Every (days)
+                  {tPlan("everyDays")}
                 </label>
                 <input
                   id="task-interval"
@@ -128,7 +118,7 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
               </div>
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="task-anchor" className="text-sm font-medium">
-                  Counting from
+                  {tPlan("countingFrom")}
                 </label>
                 <select
                   id="task-anchor"
@@ -136,8 +126,8 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
                   defaultValue={defaults.anchor}
                   className={inputClass}
                 >
-                  <option value="completion">when I do it</option>
-                  <option value="due">the due date</option>
+                  <option value="completion">{tPlan("anchorCompletion")}</option>
+                  <option value="due">{tPlan("anchorDue")}</option>
                 </select>
               </div>
             </div>
@@ -150,14 +140,14 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
                 onChange={(e) => setSeasonal(e.target.checked)}
                 className="size-4"
               />
-              Only during a season
+              {tPlan("seasonOnly")}
             </label>
 
             {seasonal ? (
               <div className="grid gap-4 pl-6 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="task-season-start" className="text-sm font-medium">
-                    From
+                    {tPlan("seasonFrom")}
                   </label>
                   <select
                     id="task-season-start"
@@ -165,7 +155,7 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
                     defaultValue={defaults.seasonStartMonth}
                     className={inputClass}
                   >
-                    {MONTHS.map((m, i) => (
+                    {months.map((m, i) => (
                       <option key={m} value={i + 1}>
                         {m}
                       </option>
@@ -174,7 +164,7 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="task-season-end" className="text-sm font-medium">
-                    To
+                    {tPlan("seasonTo")}
                   </label>
                   <select
                     id="task-season-end"
@@ -182,7 +172,7 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
                     defaultValue={defaults.seasonEndMonth}
                     className={inputClass}
                   >
-                    {MONTHS.map((m, i) => (
+                    {months.map((m, i) => (
                       <option key={m} value={i + 1}>
                         {m}
                       </option>
@@ -197,7 +187,8 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="task-notes" className="text-sm font-medium">
-          Notes <span className="text-muted-foreground font-normal">(optional)</span>
+          {tCommon("notes")}{" "}
+          <span className="text-muted-foreground font-normal">{tCommon("optional")}</span>
         </label>
         <textarea
           id="task-notes"
@@ -205,7 +196,7 @@ export function TaskFields({ defaults }: { defaults: TaskDefaults }) {
           rows={2}
           maxLength={2000}
           defaultValue={defaults.notes}
-          placeholder="Anything worth remembering."
+          placeholder={t("notesPlaceholder")}
           className={`${fieldBase} resize-y py-2`}
         />
       </div>

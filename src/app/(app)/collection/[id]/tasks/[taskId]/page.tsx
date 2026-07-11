@@ -1,4 +1,5 @@
 import { ChevronLeft } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -32,12 +33,17 @@ function taskToDefaults(task: Task): TaskDefaults {
 }
 
 export async function generateMetadata() {
-  return { title: "Edit task" };
+  const t = await getTranslations("taskForm");
+  return { title: t("editTitle") };
 }
 
 export default async function EditTaskPage({ params }: { params: Promise<Params> }) {
   const { id, taskId } = await params;
-  const [tree, task] = await Promise.all([getTree(id), getTask(taskId)]);
+  const [tree, task, t] = await Promise.all([
+    getTree(id),
+    getTask(taskId),
+    getTranslations("taskForm"),
+  ]);
   if (!tree || !task || task.tree_id !== id) notFound();
 
   return (
@@ -51,7 +57,7 @@ export default async function EditTaskPage({ params }: { params: Promise<Params>
       </Link>
 
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Edit task</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("editTitle")}</h1>
       </header>
 
       <EditTaskForm
@@ -62,10 +68,10 @@ export default async function EditTaskPage({ params }: { params: Promise<Params>
       <hr className="border-border" />
 
       <div className="flex items-center justify-between gap-3">
-        <span className="text-muted-foreground text-sm">Delete this task</span>
+        <span className="text-muted-foreground text-sm">{t("deleteThis")}</span>
         <ConfirmDeleteButton
           action={deleteTaskAction.bind(null, taskId, id)}
-          srLabel="Delete task"
+          srLabel={t("deleteSr")}
         />
       </div>
     </main>
