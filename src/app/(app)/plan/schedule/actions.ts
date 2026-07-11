@@ -25,16 +25,17 @@ export async function createSchedulePlanAction(
   _prev: SchedulePlanState,
   formData: FormData,
 ): Promise<SchedulePlanState> {
+  const t = await getTranslations("plan");
   const treeIds = formData
     .getAll("treeId")
     .filter((v): v is string => typeof v === "string" && UUID_RE.test(v));
   if (treeIds.length === 0) {
-    return { status: "error", message: "Pick at least one tree." };
+    return { status: "error", message: t("errPickTree") };
   }
 
   const typeRaw = formData.get("type");
   if (typeof typeRaw !== "string" || !TASK_TYPES.includes(typeRaw)) {
-    return { status: "error", message: "Choose a valid type of care." };
+    return { status: "error", message: t("errBadType") };
   }
   const type = typeRaw as Enums<"task_type">;
   const tType = await getTranslations("taskTypes");
@@ -70,6 +71,6 @@ export async function createSchedulePlanAction(
     return { status: "success", count, label: tType(type) };
   } catch (error) {
     logActionError("createSchedulePlan", error);
-    return { status: "error", message: "We couldn't create that plan. Please try again." };
+    return { status: "error", message: t("errCreateFailed") };
   }
 }

@@ -1,4 +1,5 @@
 import { ChevronLeft } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 import { listTrees } from "@/server/trees";
@@ -6,11 +7,14 @@ import { listTrees } from "@/server/trees";
 import { createFertilizePlanAction } from "./actions";
 import { FertilizeForm } from "./fertilize-form";
 
-export const metadata = {
-  title: "Fertilizing schedule",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("plan");
+  return { title: t("fertilizeTitle") };
+}
 
 export default async function FertilizePlanPage() {
+  const t = await getTranslations("plan");
+  const tNav = await getTranslations("nav");
   const trees = await listTrees();
   const defaultDueOn = new Date().toISOString().slice(0, 10);
 
@@ -21,22 +25,16 @@ export default async function FertilizePlanPage() {
         className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-sm"
       >
         <ChevronLeft className="size-4" aria-hidden />
-        Collection
+        {tNav("collection")}
       </Link>
 
       <header className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Fertilizing schedule</h1>
-        <p className="text-muted-foreground text-sm text-balance">
-          The classic bonsai plan — every 14 days through the growing season — set up across as many
-          trees as you like. It skips winter automatically, and you can edit any of it later per
-          tree.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("fertilizeTitle")}</h1>
+        <p className="text-muted-foreground text-sm text-balance">{t("fertilizeIntro")}</p>
       </header>
 
       {trees.length === 0 ? (
-        <p className="text-muted-foreground text-sm text-balance">
-          Add a tree first, then come back to plan its feeding.
-        </p>
+        <p className="text-muted-foreground text-sm text-balance">{t("fertilizeNoTrees")}</p>
       ) : (
         <FertilizeForm
           trees={trees.map((tree) => ({ id: tree.id, name: tree.name }))}

@@ -1,4 +1,5 @@
 import { ChevronLeft } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 import { listTrees } from "@/server/trees";
@@ -6,11 +7,14 @@ import { listTrees } from "@/server/trees";
 import { createSchedulePlanAction } from "./actions";
 import { ScheduleForm } from "./schedule-form";
 
-export const metadata = {
-  title: "Plan care",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("plan");
+  return { title: t("scheduleTitle") };
+}
 
 export default async function SchedulePlanPage() {
+  const t = await getTranslations("plan");
+  const tNav = await getTranslations("nav");
   const trees = await listTrees();
   const defaultDueOn = new Date().toISOString().slice(0, 10);
 
@@ -21,21 +25,16 @@ export default async function SchedulePlanPage() {
         className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-sm"
       >
         <ChevronLeft className="size-4" aria-hidden />
-        Collection
+        {tNav("collection")}
       </Link>
 
       <header className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Plan care across trees</h1>
-        <p className="text-muted-foreground text-sm text-balance">
-          Set up the same task — watering, feeding, an inspection, anything — on several trees at
-          once. Make it recurring or a one-off; you can edit any of it per tree later.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("scheduleHeading")}</h1>
+        <p className="text-muted-foreground text-sm text-balance">{t("scheduleIntro")}</p>
       </header>
 
       {trees.length === 0 ? (
-        <p className="text-muted-foreground text-sm text-balance">
-          Add a tree first, then come back to plan its care.
-        </p>
+        <p className="text-muted-foreground text-sm text-balance">{t("scheduleNoTrees")}</p>
       ) : (
         <ScheduleForm
           trees={trees.map((tree) => ({ id: tree.id, name: tree.name }))}

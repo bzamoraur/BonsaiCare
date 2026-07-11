@@ -1,31 +1,18 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { TreeMultiSelect } from "@/components/tree-multi-select";
 import { Button } from "@/components/ui/button";
+import { monthNames } from "@/lib/months";
 
 import type { FertilizeState } from "./actions";
 
 const fieldBase =
   "border-input bg-background focus-visible:ring-ring rounded-md border px-3 text-base outline-none focus-visible:ring-2";
 const inputClass = `${fieldBase} h-10`;
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 const initialState: FertilizeState = { status: "idle" };
 
@@ -49,6 +36,9 @@ export function FertilizeForm({
   const [state, formAction, pending] = useActionState(action, initialState);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const successRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("plan");
+  const tType = useTranslations("taskTypes");
+  const months = monthNames(useLocale());
 
   // Move focus to the confirmation on success so it's announced and the user
   // isn't stranded on <body> after the submit button unmounts.
@@ -72,14 +62,12 @@ export function FertilizeForm({
         role="status"
         className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-8 text-center outline-none"
       >
-        <p className="text-balance">
-          Created {state.count} fertilizing {state.count === 1 ? "schedule" : "schedules"}. 🌿
-        </p>
+        <p className="text-balance">{t("fertilizeSuccess", { count: state.count })}</p>
         <Link
           href="/today"
           className="text-primary text-sm font-medium underline-offset-4 hover:underline"
         >
-          See them on Today →
+          {t("seeThemOnToday")}
         </Link>
       </div>
     );
@@ -97,7 +85,7 @@ export function FertilizeForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="fert-interval" className="text-sm font-medium">
-            Every (days)
+            {t("everyDays")}
           </label>
           <input
             id="fert-interval"
@@ -110,7 +98,7 @@ export function FertilizeForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="fert-start" className="text-sm font-medium">
-            Starting
+            {t("starting")}
           </label>
           <input
             id="fert-start"
@@ -125,12 +113,12 @@ export function FertilizeForm({
       <fieldset className="border-border flex flex-col gap-3 rounded-xl border p-3">
         <label className="flex items-center gap-2 text-sm font-medium">
           <input type="checkbox" name="seasonal" defaultChecked className="size-4" />
-          Only during the growing season
+          {t("growingSeasonOnly")}
         </label>
         <div className="grid gap-4 pl-6 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="fert-season-start" className="text-sm font-medium">
-              From
+              {t("seasonFrom")}
             </label>
             <select
               id="fert-season-start"
@@ -138,7 +126,7 @@ export function FertilizeForm({
               defaultValue="3"
               className={inputClass}
             >
-              {MONTHS.map((month, i) => (
+              {months.map((month, i) => (
                 <option key={month} value={i + 1}>
                   {month}
                 </option>
@@ -147,7 +135,7 @@ export function FertilizeForm({
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="fert-season-end" className="text-sm font-medium">
-              To
+              {t("seasonTo")}
             </label>
             <select
               id="fert-season-end"
@@ -155,7 +143,7 @@ export function FertilizeForm({
               defaultValue="10"
               className={inputClass}
             >
-              {MONTHS.map((month, i) => (
+              {months.map((month, i) => (
                 <option key={month} value={i + 1}>
                   {month}
                 </option>
@@ -165,15 +153,16 @@ export function FertilizeForm({
         </div>
       </fieldset>
 
-      <input type="hidden" name="title" value="Fertilize" />
+      {/* Stores the fertilize task's title in the creator's language. */}
+      <input type="hidden" name="title" value={tType("fertilizing")} />
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending || selected.size === 0}>
           {pending
-            ? "Creating…"
+            ? t("creating")
             : selected.size === 0
-              ? "Pick trees to schedule"
-              : `Create ${selected.size} schedule${selected.size === 1 ? "" : "s"}`}
+              ? t("pickTrees")
+              : t("createSchedulesButton", { count: selected.size })}
         </Button>
         {state.status === "error" ? (
           <span role="alert" className="text-destructive text-sm">
