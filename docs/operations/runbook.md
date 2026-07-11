@@ -129,6 +129,23 @@ classified as orphans), and a deleting run **refuses pathological counts**
 (orphans > max(20, 20% of the bucket), or a DB that claims zero photos) unless
 `FORCE_SWEEP=true` is set after inspecting a dry run.
 
+## Delete-path B2 purge (deleted accounts)
+
+`.github/workflows/b2-purge.yml` (monthly, 15th 05:00 UTC + manual dispatch)
+completes account deletion off-site. Deleting an account removes the user's DB
+rows and Supabase Storage bytes, but the B2 mirror **never deletes**, so their
+photos would linger there. `delete_my_account` enqueues the user's storage
+prefix in `b2_purge_queue` (the app holds no B2 delete key by design);
+`scripts/purge-b2.mjs` drains the queue, deleting **every file version** under
+`<uid>/` from B2, then stamping `purged_at` — only after the prefix is fully
+cleared, so a partial failure retries next run (delete is idempotent). Manual
+runs default to **dry-run**; scheduled runs delete. Fails loud + ops-alert
+issue. Reuses the mirror's secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
+`B2_KEY_ID`, `B2_APP_KEY`, `B2_BUCKET`) — no new secrets, since the mirror's
+Read & Write key already grants `deleteFiles` (the script fails loud if it
+doesn't). Verify: `select uid, requested_at, purged_at from public.b2_purge_queue
+order by requested_at desc;` — a drained row has `purged_at` set.
+
 ## Owner metrics (private config — one-time seed)
 
 Since S08.3 the `/admin` metrics RPC (`owner_metrics`) is gated **inside the

@@ -11,7 +11,7 @@
 
 | Fact | Value | Verified |
 |---|---|---|
-| Migration high-water mark | `20260706130000_owner_metrics` (all 8 repo migrations pushed) | 2026-07-06 (owner ran `db push`; /admin loads) |
+| Migration high-water mark | `20260711130000_b2_purge_queue` (all 12 repo migrations pushed) | 2026-07-12 (owner ran `db push`; `app_errors` + `b2_purge_queue` live) |
 | Account deletion live-tested | Yes — throwaway-account acceptance test | 2026-07-06 |
 | `anon` EXECUTE on SECURITY DEFINER fns | ✅ Revoked in S08.3 (#72); advisors cleared | 2026-07-07 |
 
@@ -38,8 +38,8 @@
 |---|---|---|
 | `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` | keep-warm | ✅ Verified live 2026-07-06: run 28790896388 → `HTTP 200 — database queried` (the earlier 401 was the workflow's bug, fixed S08.8) |
 | `SUPABASE_DB_URL` | weekly DB backup | ✅ Verified live 2026-07-06: run 28816036702 SUCCESS after the owner reset the DB password (first value had URL-breaking characters) |
-| `SUPABASE_SERVICE_ROLE_KEY` | orphan sweep + photo mirror | ✅ Verified live 2026-07-06: dry-run 28816343325 → `Scanned 1 object(s); 1 known; 0 orphans` (Supabase key label is `github_orphan_sweep` — underscores; hyphens not allowed) |
-| `B2_KEY_ID` / `B2_APP_KEY` / `B2_BUCKET` (+ `B2_ENDPOINT`, unused by the native-API script) | photo mirror | Set 2026-07-06 — first mirror run pending this PR's merge |
+| `SUPABASE_SERVICE_ROLE_KEY` | orphan sweep + photo mirror + B2 purge | ✅ Verified live 2026-07-06: dry-run 28816343325 → `Scanned 1 object(s); 1 known; 0 orphans` (Supabase key label is `github_orphan_sweep` — underscores; hyphens not allowed) |
+| `B2_KEY_ID` / `B2_APP_KEY` / `B2_BUCKET` (+ `B2_ENDPOINT`, unused by the native-API script) | photo mirror + B2 purge (delete-path) | Set 2026-07-06 — reused as-is by `b2-purge.yml` (Read & Write key already grants `deleteFiles`; no new secret) |
 
 ## Owner decisions in force (2026-07-06)
 

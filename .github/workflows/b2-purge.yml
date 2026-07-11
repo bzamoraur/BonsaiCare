@@ -1,0 +1,71 @@
+name: B2 purge (deleted accounts)
+
+# Delete-path completeness (ADR-0008). When a user deletes their account,
+# `delete_my_account` enqueues their storage prefix in `b2_purge_queue` — the app
+# runtime holds NO B2 delete key by design. This drains that queue: for each
+# queued account it deletes every file version under `<uid>/` from the Backblaze
+# B2 photo mirror, then stamps `purged_at`.
+#
+# The delete-capable key lives ONLY here (reusing the mirror's secrets — its
+# Read & Write key already includes deleteFiles), never in the app runtime.
+# Scheduled runs delete; manual runs default to a DRY-RUN preview. FAILS LOUD: a
+# missing secret or a failed purge turns the run red and files an ops-alert issue.
+# Scheduled workflows run from the default branch only.
+# Requires repo secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (shared with the
+# mirror/sweep), B2_KEY_ID, B2_APP_KEY, B2_BUCKET (all already set for the mirror).
+
+on:
+  schedule:
+    - cron: "0 5 15 * *" # monthly, the 15th at 05:00 UTC (after the mirror at 03:30)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "List what would be purged without deleting"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Purge deleted-account photos from B2
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          # Scheduled runs (no inputs) delete; a manual run defaults to dry-run.
+          DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
+        run: node scripts/purge-b2.mjs
+
+      - name: Open an ops-alert issue on failure
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Ops alert: ${{ github.workflow }} failed"
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "Failed again: $run_url"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+              --body "Scheduled workflow failed: $run_url — triage steps in docs/operations/runbook.md."
+          fi
