@@ -5,6 +5,7 @@ import {
   isInSeasonWindow,
   isOverdue,
   parseRecurrence,
+  projectFutureOccurrences,
   type Recurrence,
   type SchedulableTask,
 } from "./scheduling";
@@ -303,5 +304,54 @@ describe("parseRecurrence", () => {
     ["null", null],
   ])("rejects %s", (_label, input) => {
     expect(parseRecurrence(input).ok).toBe(false);
+  });
+});
+
+describe("projectFutureOccurrences", () => {
+  const every = (interval_days: number, anchor: "completion" | "due" = "due"): Recurrence => ({
+    interval_days,
+    anchor,
+  });
+
+  it("excludes the due date itself — only later occurrences are returned", () => {
+    // Due 2026-08-19; the next occurrence (09-02) is out of August, so nothing.
+    expect(
+      projectFutureOccurrences("2026-08-19", every(14), "northern", "2026-08-01", "2026-08-31"),
+    ).toEqual([]);
+  });
+
+  it("lists every later occurrence inside the window", () => {
+    expect(
+      projectFutureOccurrences("2026-08-01", every(7), "northern", "2026-08-01", "2026-08-31"),
+    ).toEqual(["2026-08-08", "2026-08-15", "2026-08-22", "2026-08-29"]);
+  });
+
+  it("fast-forwards from a due date in an earlier month (the 45-day case)", () => {
+    // A fertilizing task due Aug 15, repeating every 45 days: next month with an
+    // occurrence is late September — the bug the owner hit.
+    expect(
+      projectFutureOccurrences("2026-08-15", every(45), "northern", "2026-09-01", "2026-09-30"),
+    ).toEqual(["2026-09-29"]);
+  });
+
+  it("honours the season skip — no projections during the dormant window", () => {
+    const rule = growingSeason(); // every 14 days, Mar–Oct, northern-canonical
+    expect(
+      projectFutureOccurrences("2026-10-25", rule, "northern", "2026-11-01", "2026-12-31"),
+    ).toEqual([]);
+  });
+
+  it("resumes projecting at the next in-season month", () => {
+    const rule = growingSeason();
+    expect(
+      projectFutureOccurrences("2026-10-25", rule, "northern", "2027-03-01", "2027-03-31"),
+    ).toEqual(["2027-03-01", "2027-03-15", "2027-03-29"]);
+  });
+
+  it("is bounded by maxSteps for a far-future window with a tiny interval", () => {
+    // Ten one-day steps from Jan 1 never reach 2030 → empty, no runaway loop.
+    expect(
+      projectFutureOccurrences("2026-01-01", every(1), "northern", "2030-01-01", "2030-01-31", 10),
+    ).toEqual([]);
   });
 });
