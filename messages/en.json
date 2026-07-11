@@ -5,7 +5,17 @@
   },
   "auth": {
     "linkProblem": "That sign-in link didn't work — it may have expired or already been used. Enter your email below for a fresh one.",
-    "signInProblem": "We couldn't sign you in. Please try again."
+    "signInProblem": "We couldn't sign you in. Please try again.",
+    "accountDeleted": "Your account and all your data have been permanently deleted. Thank you for growing with us. 🌱"
+  },
+  "login": {
+    "checkEmailTitle": "Check your email",
+    "sentBody": "We sent a sign-in link to <b>{email}</b>. Open it on this device to continue.",
+    "useDifferentEmail": "Use a different email",
+    "subtitle": "Sign in with your email — no password needed.",
+    "emailLabel": "Email address",
+    "sending": "Sending…",
+    "sendLink": "Send magic link"
   },
   "privacy": {
     "title": "Privacy",
@@ -101,7 +111,31 @@
     "signedIn": "Signed in",
     "signOut": "Sign out",
     "ownerMetrics": "Owner metrics",
-    "privacyNote": "Privacy note"
+    "privacyNote": "Privacy note",
+    "displayName": "Display name",
+    "displayNamePlaceholder": "Your name",
+    "hemisphere": "Hemisphere",
+    "hemisphereHint": "Drives seasonal care timing, so getting this right matters.",
+    "hemisphereNorthern": "Northern",
+    "hemisphereSouthern": "Southern",
+    "units": "Units",
+    "unitsMetric": "Metric (°C, cm)",
+    "unitsImperial": "Imperial (°F, in)",
+    "saving": "Saving…",
+    "saveChanges": "Save changes",
+    "saved": "Saved ✓",
+    "deleteAccount": "Delete account",
+    "deleteWarning": "This permanently deletes your account and <b>all</b> your data — every tree, photo, care log, and task. It cannot be undone. Consider exporting your data first.",
+    "deleteConfirmLabel": "Type <code>DELETE</code> to confirm.",
+    "deleting": "Deleting…",
+    "deleteMyAccount": "Delete my account",
+    "preparing": "Preparing…",
+    "downloadFailed": "Download failed. Please try again.",
+    "errNotSignedIn": "You are not signed in.",
+    "errBadHemisphere": "Please choose a valid hemisphere.",
+    "errBadUnits": "Please choose a valid unit system.",
+    "errTypeDelete": "Type DELETE to confirm.",
+    "errDeleteFailed": "We could not delete your account."
   },
   "taskTypes": {
     "watering": "Water",

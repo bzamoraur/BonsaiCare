@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { logActionError } from "@/lib/log-action-error";
 import { createClient } from "@/lib/supabase/server";
@@ -28,13 +29,14 @@ export async function updateProfile(
   _prev: ProfileFormState,
   formData: FormData,
 ): Promise<ProfileFormState> {
+  const t = await getTranslations("settings");
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { status: "error", message: "You are not signed in." };
+    return { status: "error", message: t("errNotSignedIn") };
   }
 
   const hemisphere = formData.get("hemisphere");
@@ -42,10 +44,10 @@ export async function updateProfile(
   const displayNameRaw = formData.get("display_name");
 
   if (typeof hemisphere !== "string" || !HEMISPHERES.includes(hemisphere as Hemisphere)) {
-    return { status: "error", message: "Please choose a valid hemisphere." };
+    return { status: "error", message: t("errBadHemisphere") };
   }
   if (typeof units !== "string" || !UNITS.includes(units as Units)) {
-    return { status: "error", message: "Please choose a valid unit system." };
+    return { status: "error", message: t("errBadUnits") };
   }
 
   const displayName = typeof displayNameRaw === "string" ? displayNameRaw.trim() : "";
@@ -77,9 +79,10 @@ export async function deleteAccountAction(
   _prev: DeleteAccountState,
   formData: FormData,
 ): Promise<DeleteAccountState> {
+  const t = await getTranslations("settings");
   const confirmation = formData.get("confirmation");
   if (typeof confirmation !== "string" || confirmation.trim() !== DELETE_CONFIRMATION) {
-    return { status: "error", message: `Type ${DELETE_CONFIRMATION} to confirm.` };
+    return { status: "error", message: t("errTypeDelete") };
   }
 
   const supabase = await createClient();
@@ -87,14 +90,14 @@ export async function deleteAccountAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { status: "error", message: "You are not signed in." };
+    return { status: "error", message: t("errNotSignedIn") };
   }
 
   try {
     await deleteAccount(supabase, user.id);
   } catch (error) {
     logActionError("deleteAccount", error);
-    const message = error instanceof Error ? error.message : "We could not delete your account.";
+    const message = error instanceof Error ? error.message : t("errDeleteFailed");
     return { status: "error", message };
   }
 

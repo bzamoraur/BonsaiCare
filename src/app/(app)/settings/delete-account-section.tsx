@@ -1,6 +1,7 @@
 "use client";
 
 import { TriangleAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ const fieldClass =
   "border-input bg-background focus-visible:ring-ring h-10 rounded-md border px-3 text-base outline-none focus-visible:ring-2";
 
 export function DeleteAccountSection() {
+  const t = useTranslations("settings");
   const [state, formAction, pending] = useActionState(deleteAccountAction, initialState);
   const [confirmation, setConfirmation] = useState("");
   const canDelete = confirmation.trim() === "DELETE";
@@ -22,15 +24,16 @@ export function DeleteAccountSection() {
     <section className="border-destructive/30 flex flex-col gap-3 rounded-lg border p-4">
       <div className="flex items-center gap-2">
         <TriangleAlert className="text-destructive size-4" aria-hidden="true" />
-        <h2 className="text-destructive text-sm font-medium">Delete account</h2>
+        <h2 className="text-destructive text-sm font-medium">{t("deleteAccount")}</h2>
       </div>
       <p className="text-muted-foreground text-sm">
-        This permanently deletes your account and <strong>all</strong> your data — every tree,
-        photo, care log, and task. It cannot be undone. Consider exporting your data first.
+        {t.rich("deleteWarning", { b: (chunks) => <strong>{chunks}</strong> })}
       </p>
       <form action={formAction} className="flex flex-col gap-3">
         <label htmlFor="confirmation" className="text-sm">
-          Type <span className="font-mono font-medium">DELETE</span> to confirm.
+          {t.rich("deleteConfirmLabel", {
+            code: (chunks) => <span className="font-mono font-medium">{chunks}</span>,
+          })}
         </label>
         <input
           id="confirmation"
@@ -46,7 +49,7 @@ export function DeleteAccountSection() {
         />
         <div className="flex items-center gap-3">
           <Button type="submit" variant="destructive" disabled={!canDelete || pending}>
-            {pending ? "Deleting…" : "Delete my account"}
+            {pending ? t("deleting") : t("deleteMyAccount")}
           </Button>
           {state.status === "error" ? (
             <span id="delete-error" role="alert" className="text-destructive text-sm">

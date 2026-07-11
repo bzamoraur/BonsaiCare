@@ -1,6 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -21,6 +22,7 @@ export function DownloadButton({
   children: React.ReactNode;
   fallbackName: string;
 }) {
+  const t = useTranslations("settings");
   const [status, setStatus] = useState<"idle" | "working" | "error">("idle");
 
   async function handleDownload() {
@@ -57,11 +59,11 @@ export function DownloadButton({
         className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
       >
         <Download aria-hidden="true" />
-        {status === "working" ? "Preparing…" : children}
+        {status === "working" ? t("preparing") : children}
       </button>
       {status === "error" ? (
         <span role="alert" className="text-destructive text-xs">
-          Download failed. Please try again.
+          {t("downloadFailed")}
         </span>
       ) : null}
     </div>

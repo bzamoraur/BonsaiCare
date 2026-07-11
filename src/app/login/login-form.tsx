@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 type Status = "idle" | "sending" | "sent" | "error";
 
 export function LoginForm() {
+  const t = useTranslations("login");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -37,10 +39,12 @@ export function LoginForm() {
   if (status === "sent") {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("checkEmailTitle")}</h1>
         <p className="text-muted-foreground max-w-sm text-balance">
-          We sent a sign-in link to <span className="font-medium">{email}</span>. Open it on this
-          device to continue.
+          {t.rich("sentBody", {
+            email,
+            b: (chunks) => <span className="font-medium">{chunks}</span>,
+          })}
         </p>
         <button
           type="button"
@@ -50,7 +54,7 @@ export function LoginForm() {
             setError(null);
           }}
         >
-          Use a different email
+          {t("useDifferentEmail")}
         </button>
       </div>
     );
@@ -60,14 +64,12 @@ export function LoginForm() {
     <div className="flex flex-col items-center gap-8">
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-semibold tracking-tight">Bonsai Companion</h1>
-        <p className="text-muted-foreground text-balance">
-          Sign in with your email — no password needed.
-        </p>
+        <p className="text-muted-foreground text-balance">{t("subtitle")}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-3" noValidate>
         <label htmlFor="email" className="sr-only">
-          Email address
+          {t("emailLabel")}
         </label>
         <input
           id="email"
@@ -82,7 +84,7 @@ export function LoginForm() {
           className="border-input bg-background focus-visible:ring-ring h-11 rounded-md border px-3 text-base outline-none focus-visible:ring-2 disabled:opacity-50"
         />
         <Button type="submit" disabled={status === "sending" || email.length === 0}>
-          {status === "sending" ? "Sending…" : "Send magic link"}
+          {status === "sending" ? t("sending") : t("sendLink")}
         </Button>
         {status === "error" && error ? (
           <p role="alert" className="text-destructive text-sm">
