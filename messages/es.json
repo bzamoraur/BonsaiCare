@@ -5,7 +5,17 @@
   },
   "auth": {
     "linkProblem": "Ese enlace de acceso no funcionó — puede haber caducado o ya haberse usado. Escribe tu correo abajo para recibir uno nuevo.",
-    "signInProblem": "No pudimos iniciar tu sesión. Inténtalo de nuevo."
+    "signInProblem": "No pudimos iniciar tu sesión. Inténtalo de nuevo.",
+    "accountDeleted": "Tu cuenta y todos tus datos se han eliminado de forma permanente. Gracias por crecer con nosotros. 🌱"
+  },
+  "login": {
+    "checkEmailTitle": "Revisa tu correo",
+    "sentBody": "Te hemos enviado un enlace de acceso a <b>{email}</b>. Ábrelo en este dispositivo para continuar.",
+    "useDifferentEmail": "Usar otro correo",
+    "subtitle": "Inicia sesión con tu correo — sin contraseña.",
+    "emailLabel": "Correo electrónico",
+    "sending": "Enviando…",
+    "sendLink": "Enviar enlace de acceso"
   },
   "privacy": {
     "title": "Privacidad",
@@ -101,7 +111,31 @@
     "signedIn": "Sesión iniciada",
     "signOut": "Cerrar sesión",
     "ownerMetrics": "Métricas del propietario",
-    "privacyNote": "Aviso de privacidad"
+    "privacyNote": "Aviso de privacidad",
+    "displayName": "Nombre para mostrar",
+    "displayNamePlaceholder": "Tu nombre",
+    "hemisphere": "Hemisferio",
+    "hemisphereHint": "Determina el calendario estacional de cuidados, así que conviene acertar.",
+    "hemisphereNorthern": "Norte",
+    "hemisphereSouthern": "Sur",
+    "units": "Unidades",
+    "unitsMetric": "Métrico (°C, cm)",
+    "unitsImperial": "Imperial (°F, in)",
+    "saving": "Guardando…",
+    "saveChanges": "Guardar cambios",
+    "saved": "Guardado ✓",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteWarning": "Esto elimina de forma permanente tu cuenta y <b>todos</b> tus datos: cada árbol, foto, registro de cuidados y tarea. No se puede deshacer. Considera exportar tus datos primero.",
+    "deleteConfirmLabel": "Escribe <code>DELETE</code> para confirmar.",
+    "deleting": "Eliminando…",
+    "deleteMyAccount": "Eliminar mi cuenta",
+    "preparing": "Preparando…",
+    "downloadFailed": "No se pudo descargar. Inténtalo de nuevo.",
+    "errNotSignedIn": "No has iniciado sesión.",
+    "errBadHemisphere": "Elige un hemisferio válido.",
+    "errBadUnits": "Elige un sistema de unidades válido.",
+    "errTypeDelete": "Escribe DELETE para confirmar.",
+    "errDeleteFailed": "No pudimos eliminar tu cuenta."
   },
   "taskTypes": {
     "watering": "Regar",

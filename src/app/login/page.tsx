@@ -34,8 +34,7 @@ export default async function LoginPage({
           role="status"
           className="border-border bg-muted text-muted-foreground max-w-sm rounded-md border px-4 py-3 text-center text-sm"
         >
-          Your account and all your data have been permanently deleted. Thank you for growing with
-          us. 🌱
+          {t("accountDeleted")}
         </p>
       ) : null}
 
