@@ -2,7 +2,12 @@
   "common": {
     "collectionTask": "Collection task",
     "taskUpdateError": "We couldn't update that task. Please try again.",
-    "close": "Close"
+    "close": "Close",
+    "cancel": "Cancel",
+    "done": "Done",
+    "title": "Title",
+    "optional": "(optional)",
+    "notes": "Notes"
   },
   "auth": {
     "linkProblem": "That sign-in link didn't work — it may have expired or already been used. Enter your email below for a fresh one.",
@@ -213,5 +218,46 @@
     "yesterday": "yesterday",
     "daysAgo": "{days}d ago",
     "weeksAgo": "{weeks}w ago"
+  },
+  "careFields": {
+    "whatDidYouDo": "What did you do?",
+    "when": "When",
+    "defaultsToday": "(defaults to today)",
+    "notesPlaceholder": "Anything worth remembering.",
+    "labelAmount": "Amount",
+    "labelProduct": "Product",
+    "labelNpk": "NPK",
+    "labelIntensity": "Intensity",
+    "labelBranches": "Branches",
+    "labelGauge": "Wire gauge",
+    "labelNewPot": "New pot",
+    "labelSoilMix": "Soil mix",
+    "labelRootWork": "Root work",
+    "labelIssue": "Issue",
+    "labelTreatment": "Treatment",
+    "labelExtent": "Extent",
+    "phThorough": "e.g. thorough",
+    "phProduct": "e.g. Biogold",
+    "phNpk": "e.g. 5-5-5",
+    "phBranches": "e.g. lower left, apex",
+    "phGauge": "e.g. 2.5mm",
+    "phSoilMix": "e.g. akadama/pumice/lava",
+    "phIssue": "e.g. spider mites",
+    "optLight": "Light",
+    "optModerate": "Moderate",
+    "optHard": "Hard",
+    "optPartial": "Partial",
+    "optFull": "Full"
+  },
+  "taskActions": {
+    "completedOn": "Completed on",
+    "logCareEvent": "Log care event",
+    "confirm": "Confirm",
+    "skip": "Skip"
+  },
+  "treePicker": {
+    "whichTrees": "Which trees?",
+    "clear": "Clear",
+    "selectAll": "Select all"
   }
 }

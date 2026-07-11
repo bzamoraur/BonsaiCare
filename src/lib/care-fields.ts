@@ -5,78 +5,101 @@ import type { CareEventType } from "@/domain/care";
  * and the server action (which field names to collect). Keeping one source keeps
  * the form, the action, and the Zod schemas in `domain/care.ts` in lockstep.
  * Field caps mirror the Zod schemas (which remain authoritative).
+ *
+ * `labelKey` / `placeholderKey` / option `labelKey` are i18n keys under the
+ * `careFields` namespace, resolved in `care-entry-fields.tsx` — the config carries
+ * keys, not user-facing strings, so it stays a plain (non-React) module while the
+ * copy is translated. `placeholderKey` is per-field on purpose: e.g. `amount` shows
+ * a hint when watering but not when fertilizing.
  */
 export type CareField =
-  | { name: string; label: string; kind: "text"; maxLength: number; placeholder?: string }
-  | { name: string; label: string; kind: "select"; options: { value: string; label: string }[] };
+  | { name: string; labelKey: string; kind: "text"; maxLength: number; placeholderKey?: string }
+  | {
+      name: string;
+      labelKey: string;
+      kind: "select";
+      options: { value: string; labelKey: string }[];
+    };
 
 export const CARE_FIELDS: Record<CareEventType, CareField[]> = {
   watering: [
-    { name: "amount", label: "Amount", kind: "text", maxLength: 60, placeholder: "e.g. thorough" },
+    {
+      name: "amount",
+      labelKey: "labelAmount",
+      kind: "text",
+      maxLength: 60,
+      placeholderKey: "phThorough",
+    },
   ],
   fertilizing: [
     {
       name: "product",
-      label: "Product",
+      labelKey: "labelProduct",
       kind: "text",
       maxLength: 120,
-      placeholder: "e.g. Biogold",
+      placeholderKey: "phProduct",
     },
-    { name: "npk", label: "NPK", kind: "text", maxLength: 20, placeholder: "e.g. 5-5-5" },
-    { name: "amount", label: "Amount", kind: "text", maxLength: 60 },
+    { name: "npk", labelKey: "labelNpk", kind: "text", maxLength: 20, placeholderKey: "phNpk" },
+    { name: "amount", labelKey: "labelAmount", kind: "text", maxLength: 60 },
   ],
   pruning: [
     {
       name: "intensity",
-      label: "Intensity",
+      labelKey: "labelIntensity",
       kind: "select",
       options: [
-        { value: "light", label: "Light" },
-        { value: "moderate", label: "Moderate" },
-        { value: "hard", label: "Hard" },
+        { value: "light", labelKey: "optLight" },
+        { value: "moderate", labelKey: "optModerate" },
+        { value: "hard", labelKey: "optHard" },
       ],
     },
   ],
   wiring: [
     {
       name: "branches",
-      label: "Branches",
+      labelKey: "labelBranches",
       kind: "text",
       maxLength: 200,
-      placeholder: "e.g. lower left, apex",
+      placeholderKey: "phBranches",
     },
-    { name: "gauge", label: "Wire gauge", kind: "text", maxLength: 40, placeholder: "e.g. 2.5mm" },
+    {
+      name: "gauge",
+      labelKey: "labelGauge",
+      kind: "text",
+      maxLength: 40,
+      placeholderKey: "phGauge",
+    },
   ],
   repotting: [
-    { name: "new_pot", label: "New pot", kind: "text", maxLength: 120 },
+    { name: "new_pot", labelKey: "labelNewPot", kind: "text", maxLength: 120 },
     {
       name: "soil_mix",
-      label: "Soil mix",
+      labelKey: "labelSoilMix",
       kind: "text",
       maxLength: 160,
-      placeholder: "e.g. akadama/pumice/lava",
+      placeholderKey: "phSoilMix",
     },
-    { name: "root_work", label: "Root work", kind: "text", maxLength: 200 },
+    { name: "root_work", labelKey: "labelRootWork", kind: "text", maxLength: 200 },
   ],
   pest_treatment: [
     {
       name: "issue",
-      label: "Issue",
+      labelKey: "labelIssue",
       kind: "text",
       maxLength: 120,
-      placeholder: "e.g. spider mites",
+      placeholderKey: "phIssue",
     },
-    { name: "treatment", label: "Treatment", kind: "text", maxLength: 160 },
+    { name: "treatment", labelKey: "labelTreatment", kind: "text", maxLength: 160 },
   ],
   styling: [],
   defoliation: [
     {
       name: "extent",
-      label: "Extent",
+      labelKey: "labelExtent",
       kind: "select",
       options: [
-        { value: "partial", label: "Partial" },
-        { value: "full", label: "Full" },
+        { value: "partial", labelKey: "optPartial" },
+        { value: "full", labelKey: "optFull" },
       ],
     },
   ],
