@@ -1,5 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+
+import { reportClientError } from "@/lib/report-client-error";
+
 /**
  * Last-resort error boundary — catches errors in the root layout itself, which
  * (app)/error.tsx can't reach. It replaces the whole document, so it can't use
@@ -14,6 +18,15 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Record the crash so it isn't invisible (see app_errors). Once per error.
+  useEffect(() => {
+    reportClientError({
+      context: "global-error-boundary",
+      message: error.message,
+      digest: error.digest,
+    });
+  }, [error]);
+
   return (
     <html lang="en">
       <body

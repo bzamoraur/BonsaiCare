@@ -1,8 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
+import { reportClientError } from "@/lib/report-client-error";
 
 /**
  * Error boundary for the app shell. Without this, a transient failure while a
@@ -20,6 +22,16 @@ export default function AppError({
   reset: () => void;
 }) {
   const t = useTranslations("errors");
+
+  // Record the crash so it isn't invisible (see app_errors). Once per error.
+  useEffect(() => {
+    reportClientError({
+      context: "app-error-boundary",
+      message: error.message,
+      digest: error.digest,
+    });
+  }, [error]);
+
   return (
     <main className="mx-auto flex min-h-[60dvh] w-full max-w-2xl flex-col items-center justify-center gap-4 px-6 py-10 text-center">
       <div className="flex flex-col gap-1.5">
