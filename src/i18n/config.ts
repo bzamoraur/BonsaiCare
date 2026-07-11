@@ -21,3 +21,28 @@ export const localeLabels: Record<Locale, string> = {
 export function isLocale(value: string | undefined): value is Locale {
   return value !== undefined && (locales as readonly string[]).includes(value);
 }
+
+/**
+ * Picks the best supported locale from an `Accept-Language` header, honouring the
+ * `q` weights and matching on the primary subtag (so `es-ES` and `es-419` both map
+ * to `es`). Used only pre-login, when there's no NEXT_LOCALE cookie yet — so a
+ * Spanish-browser friend lands on a Spanish login/privacy page. Falls back to the
+ * default when nothing matches.
+ */
+export function localeFromAcceptLanguage(header: string | null | undefined): Locale {
+  if (!header) return defaultLocale;
+  const ranked = header
+    .split(",")
+    .map((part) => {
+      const [tag, q] = part.trim().split(";q=");
+      return { tag: tag.trim().toLowerCase(), q: q === undefined ? 1 : Number(q) || 0 };
+    })
+    .filter((entry) => entry.tag)
+    .sort((a, b) => b.q - a.q);
+
+  for (const { tag } of ranked) {
+    const primary = tag.split("-")[0];
+    if (isLocale(primary)) return primary;
+  }
+  return defaultLocale;
+}
