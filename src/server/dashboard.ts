@@ -1,3 +1,4 @@
+import { parseRecurrence, projectFutureOccurrences } from "@/domain/scheduling";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database.types";
 
@@ -9,6 +10,9 @@ import type { Tables } from "@/types/database.types";
 export type DashboardTask = Tables<"tasks"> & {
   tree: { id: string; name: string } | null;
 };
+
+/** A forecast occurrence of a recurring task on a future date (no row exists yet). */
+export type ProjectedOccurrence = { iso: string; task: DashboardTask };
 
 /** Normalize the `tree` embed: a to-one FK yields an object, but be robust to an
  * array or null so a card never dereferences the wrong shape. */
@@ -92,4 +96,70 @@ export async function listCalendarTasks(fromIso: string, toIso: string): Promise
   if (error) throw new Error(`Failed to load the calendar: ${error.message}`);
 
   return normalizeTasks(data);
+}
+
+/**
+ * Forecast occurrences of recurring tasks that fall in `[fromIso, toIso]` but have
+ * no row yet. Only ONE pending row exists per recurring series (its next due date;
+ * a new one is spawned on completion), so future occurrences never appear on the
+ * calendar. This projects each pending recurring task forward (season-aware, via
+ * the domain `projectFutureOccurrences`) so the month shows the plan ahead. The
+ * real next occurrence is excluded — it's already returned by `listCalendarTasks`
+ * and rendered actionable; these projections are read-only "planned" markers.
+ * Owner-scoped by RLS.
+ */
+export async function listCalendarProjections(
+  fromIso: string,
+  toIso: string,
+  todayIso: string,
+): Promise<ProjectedOccurrence[]> {
+  // A forecast only makes sense forward: never paint "planned" markers on days that
+  // have already passed (an overdue series would otherwise dot earlier days of the
+  // current month, and past months would show forecasts entirely). Clamp the window
+  // start to today. (Uses the server's UTC day as a generous floor — a day of
+  // timezone slack on a read-only forecast marker is immaterial.)
+  const rangeStart = todayIso > fromIso ? todayIso : fromIso;
+  if (rangeStart > toIso) return [];
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Season interpretation needs the owner's hemisphere; a genuinely absent profile
+  // falls back to the canonical northern default (matches resolveTask).
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("hemisphere")
+    .eq("id", user?.id ?? "")
+    .maybeSingle();
+  const hemisphere = profile?.hemisphere ?? "northern";
+
+  // A series whose next occurrence is already past the window can't project into it.
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*, tree:trees(id, name)")
+    .eq("status", "pending")
+    .not("recurrence", "is", null)
+    .lte("due_on", toIso)
+    .order("due_on", { ascending: true });
+  if (error) throw new Error(`Failed to load the calendar forecast: ${error.message}`);
+
+  const projections: ProjectedOccurrence[] = [];
+  for (const task of normalizeTasks(data)) {
+    const parsed = parseRecurrence(task.recurrence);
+    // A recurrence that fails to parse is out-of-band corruption (every write path
+    // validates it) — skip that series rather than guess a schedule.
+    if (!parsed.ok) continue;
+    for (const iso of projectFutureOccurrences(
+      task.due_on,
+      parsed.value,
+      hemisphere,
+      rangeStart,
+      toIso,
+    )) {
+      projections.push({ iso, task });
+    }
+  }
+  return projections;
 }

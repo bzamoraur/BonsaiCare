@@ -183,3 +183,35 @@ export function computeNextDueOn(
   if (isInSeasonWindow(monthOf(candidate), recurrence, hemisphere)) return candidate;
   return firstDayOfNextInSeasonMonth(candidate, recurrence, hemisphere);
 }
+
+/**
+ * Forecasts a recurring task's future occurrences within `[rangeStart, rangeEnd]`
+ * (inclusive ISO dates), for the calendar's forward view. Only ONE row exists per
+ * recurring series — its next `dueOn` — so occurrences beyond it aren't stored;
+ * this projects them by stepping `computeNextDueOn` from the due date (season-aware).
+ *
+ * Projection is always **due-anchored** (a forecast reads from the schedule, not
+ * unknowable future completion dates), so a `completion`-anchored series is
+ * estimated — callers render these as "planned", not actionable. `dueOn` itself is
+ * excluded (it's the real, already-rendered row); only strictly-later occurrences
+ * are returned. `maxSteps` bounds the walk (a far-future view with a tiny interval).
+ */
+export function projectFutureOccurrences(
+  dueOn: string,
+  recurrence: Recurrence,
+  hemisphere: Hemisphere,
+  rangeStart: string,
+  rangeEnd: string,
+  maxSteps = 1000,
+): string[] {
+  const occurrences: string[] = [];
+  let cursor = dueOn;
+  for (let step = 0; step < maxSteps; step++) {
+    // Due-anchored: feed the current occurrence as both anchors so the base is it,
+    // regardless of the rule's own anchor.
+    cursor = computeNextDueOn({ dueOn: cursor, completedOn: cursor }, recurrence, hemisphere);
+    if (cursor > rangeEnd) break;
+    if (cursor >= rangeStart) occurrences.push(cursor);
+  }
+  return occurrences;
+}

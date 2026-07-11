@@ -1,4 +1,4 @@
-import { listCalendarTasks, type DashboardTask } from "@/server/dashboard";
+import { listCalendarProjections, listCalendarTasks } from "@/server/dashboard";
 
 import { completeFromCalendarAction, skipFromCalendarAction } from "./actions";
 import { CalendarView, type AgendaTask } from "./calendar-view";
@@ -10,8 +10,9 @@ export const metadata = {
 const pad = (n: number) => String(n).padStart(2, "0");
 const monthParam = (year: number, month: number) => `${year}-${pad(month)}`;
 
-// Within a day, still-to-do tasks sort before completed ones (actionable first).
-const statusRank = (task: DashboardTask) => (task.status === "done" ? 1 : 0);
+// Within a day: actionable (pending) first, then settled (done), then forecast
+// (projected) last.
+const itemRank = (item: AgendaTask) => (item.projected ? 2 : item.task.status === "done" ? 1 : 0);
 
 /** Parse `?m=YYYY-MM` to `{year, month}` (1-based month); default to the server's
  * current month. The viewer's local month may differ at a boundary — the view's
@@ -42,35 +43,51 @@ export default async function CalendarPage({
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const monthStart = `${monthParam(year, month)}-01`;
   const monthEnd = `${monthParam(year, month)}-${pad(daysInMonth)}`;
-  const tasks = await listCalendarTasks(monthStart, monthEnd);
+  // Real rows in the month, plus forecast occurrences of recurring series whose only
+  // stored row is elsewhere (a recurring task keeps just its next date as a row).
+  const [tasks, projections] = await Promise.all([
+    listCalendarTasks(monthStart, monthEnd),
+    listCalendarProjections(monthStart, monthEnd, serverToday),
+  ]);
 
-  // Per-day tallies split by status so the grid can show open vs. settled dots.
-  const counts: Record<string, { pending: number; done: number }> = {};
-  const byDay = new Map<string, DashboardTask[]>();
-  for (const task of tasks) {
-    const bucket = counts[task.due_on] ?? { pending: 0, done: 0 };
-    counts[task.due_on] = bucket;
-    if (task.status === "done") bucket.done += 1;
-    else bucket.pending += 1;
-    const list = byDay.get(task.due_on);
-    if (list) list.push(task);
-    else byDay.set(task.due_on, [task]);
-  }
-  // Sort each day (pending first), then bind the per-task complete/skip actions so
-  // the agenda rows can act inline. Only pending rows render them, but binding is
-  // cheap and keeps the shape uniform. The viewed month is bound too so an action's
-  // error redirect keeps the viewer on this month, not the server's current one.
+  // Per-day tallies split by kind so the grid can show open / settled / planned dots.
   const monthKey = monthParam(year, month);
+  const counts: Record<string, { pending: number; done: number; projected: number }> = {};
+  const byDay = new Map<string, AgendaTask[]>();
+  const bump = (iso: string, kind: "pending" | "done" | "projected") => {
+    const bucket = (counts[iso] ??= { pending: 0, done: 0, projected: 0 });
+    bucket[kind] += 1;
+  };
+  const push = (iso: string, item: AgendaTask) => {
+    const list = byDay.get(iso);
+    if (list) list.push(item);
+    else byDay.set(iso, [item]);
+  };
+
+  // Real tasks carry inline complete/skip actions (pre-bound to id + viewed month, so
+  // an action's error redirect keeps the viewer on this month). Only pending rows
+  // render them, but binding is cheap and keeps the shape uniform.
+  for (const task of tasks) {
+    bump(task.due_on, task.status === "done" ? "done" : "pending");
+    push(task.due_on, {
+      task,
+      complete: completeFromCalendarAction.bind(null, task.id, monthKey),
+      skip: skipFromCalendarAction.bind(null, task.id, monthKey),
+    });
+  }
+  // Projected occurrences are read-only forecasts: a synthetic id + the forecast date,
+  // flagged `projected` so the view renders them faded with no actions.
+  for (const { iso, task } of projections) {
+    bump(iso, "projected");
+    push(iso, {
+      task: { ...task, id: `${task.id}:${iso}`, due_on: iso, status: "pending" },
+      projected: true,
+    });
+  }
+
   const agenda = [...byDay.keys()].sort().map((iso) => ({
     iso,
-    tasks: byDay
-      .get(iso)!
-      .sort((a, b) => statusRank(a) - statusRank(b))
-      .map((task): AgendaTask => ({
-        task,
-        complete: completeFromCalendarAction.bind(null, task.id, monthKey),
-        skip: skipFromCalendarAction.bind(null, task.id, monthKey),
-      })),
+    tasks: byDay.get(iso)!.sort((a, b) => itemRank(a) - itemRank(b)),
   }));
 
   // Month structure (day count, weekday of the 1st) is timezone-independent, so it

@@ -17,11 +17,13 @@ import { AddTaskSheet } from "./add-task-sheet";
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /** One agenda entry: the task plus its complete/skip server actions, pre-bound to
- * the task id on the server. Only pending rows render the actions. */
+ * the task id on the server. Only real pending rows carry the actions; a `projected`
+ * entry is a read-only forecast of a recurring series' future occurrence. */
 export type AgendaTask = {
   task: DashboardTask;
-  complete: (formData: FormData) => void;
-  skip: (formData: FormData) => void;
+  projected?: boolean;
+  complete?: (formData: FormData) => void;
+  skip?: (formData: FormData) => void;
 };
 
 /**
@@ -48,7 +50,7 @@ export function CalendarView({
   year: number;
   month: number;
   cells: (number | null)[];
-  counts: Record<string, { pending: number; done: number }>;
+  counts: Record<string, { pending: number; done: number; projected: number }>;
   agenda: { iso: string; tasks: AgendaTask[] }[];
   prevParam: string;
   nextParam: string;
@@ -83,10 +85,11 @@ export function CalendarView({
   });
   // Format a bare "YYYY-MM-DD" at local midnight so the day survives any timezone.
   const formatDayHeader = (iso: string) => dayHeaderFmt.format(new Date(`${iso}T00:00:00`));
-  const dotsLabel = (pending: number, done: number) =>
+  const dotsLabel = (pending: number, done: number, projected: number) =>
     [
       pending > 0 ? t("dueCount", { count: pending }) : null,
       done > 0 ? t("doneCount", { count: done }) : null,
+      projected > 0 ? t("plannedCount", { count: projected }) : null,
     ]
       .filter(Boolean)
       .join(", ");
@@ -158,15 +161,16 @@ export function CalendarView({
             const count = counts[iso];
             const pending = count?.pending ?? 0;
             const done = count?.done ?? 0;
-            const total = pending + done;
+            const projected = count?.projected ?? 0;
+            const total = pending + done + projected;
             const isToday = iso === today;
             const cellClass = cn(
               "flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border text-sm",
               isToday ? "border-foreground" : "border-border",
             );
-            // Pending dots (solid brand) first, then completed ones (a muted grey —
-            // "settled" but opaque enough to still read as a dot); capped at 3.
-            // Decorative here: the enclosing cell carries the label for AT.
+            // Dots read pending (solid brand) → done (muted grey, settled) → planned
+            // (faint brand, a forecast); capped at 3. Decorative here: the enclosing
+            // cell carries the label for AT.
             const content = (
               <>
                 <span className={isToday ? "font-semibold" : undefined}>{day}</span>
@@ -177,7 +181,11 @@ export function CalendarView({
                         key={i}
                         className={cn(
                           "size-1 rounded-full",
-                          i < pending ? "bg-primary" : "bg-muted-foreground/70",
+                          i < pending
+                            ? "bg-primary"
+                            : i < pending + done
+                              ? "bg-muted-foreground/70"
+                              : "bg-primary/30",
                         )}
                       />
                     ))}
@@ -192,7 +200,7 @@ export function CalendarView({
               <a
                 key={idx}
                 href={`#day-${iso}`}
-                aria-label={`${dotsLabel(pending, done)} — ${formatDayHeader(iso)}`}
+                aria-label={`${dotsLabel(pending, done, projected)} — ${formatDayHeader(iso)}`}
                 className={cn(
                   cellClass,
                   "hover:border-foreground/40 focus-visible:ring-ring outline-none focus-visible:ring-2",
@@ -247,17 +255,23 @@ export function CalendarView({
 }
 
 function AgendaRow({ item, serverToday }: { item: AgendaTask; serverToday: string }) {
-  const { task, complete, skip } = item;
+  const { task, projected, complete, skip } = item;
   const t = useTranslations("taskTypes");
   const tc = useTranslations("common");
   const tCal = useTranslations("calendar");
   const done = task.status === "done";
   // A completed action reads as settled: a check in a primary-tint circle plus a
-  // "Done" tag. Pending rows carry inline Done/Skip actions; the title links to the
+  // "Done" tag. A projected occurrence is a dashed, faded forecast with a "Planned"
+  // tag and no actions. Pending rows carry inline Done/Skip; the title links to the
   // owning tree (kept out of the same interactive element as the buttons).
   const Icon = done ? Check : TASK_TYPE_ICONS[task.type];
   return (
-    <li className="border-border bg-card flex flex-col gap-2 rounded-xl border p-3">
+    <li
+      className={cn(
+        "border-border bg-card flex flex-col gap-2 rounded-xl border p-3",
+        projected && "border-dashed opacity-75",
+      )}
+    >
       <div className="flex items-center gap-3">
         <div
           className={cn(
@@ -282,10 +296,11 @@ function AgendaRow({ item, serverToday }: { item: AgendaTask; serverToday: strin
             {t(task.type)}
             {task.tree ? ` · ${task.tree.name}` : ` · ${tc("collectionTask")}`}
             {done ? ` · ${tCal("done")}` : ""}
+            {projected ? ` · ${tCal("planned")}` : ""}
           </span>
         </div>
       </div>
-      {!done ? (
+      {!done && !projected && complete && skip ? (
         <div className="flex flex-wrap items-center gap-1 pl-11">
           <TaskActions
             type={task.type}
