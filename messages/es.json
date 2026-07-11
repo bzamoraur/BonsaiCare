@@ -315,5 +315,21 @@
     "errPickTree": "Elige al menos un árbol.",
     "errBadType": "Elige un tipo de cuidado válido.",
     "errCreateFailed": "No pudimos crear ese plan. Inténtalo de nuevo."
+  },
+  "log": {
+    "title": "Registrar cuidados",
+    "loadError": "No pudimos cargar tus árboles ahora mismo. Actualiza para volver a intentarlo.",
+    "noTrees": "Añade un árbol primero — así podrás registrar sus cuidados desde cualquier lugar.",
+    "severalTrees": "Varios árboles →",
+    "batchTitle": "Registrar cuidados · varios árboles",
+    "batchHeading": "Registrar cuidados en varios árboles",
+    "batchIntro": "Un cuidado, registrado en cada árbol que elijas.",
+    "batchSuccess": "{count, plural, one {Registrado en # árbol} other {Registrado en # árboles}}. 🌿",
+    "backToCollection": "Volver a tu colección →",
+    "logging": "Registrando…",
+    "pickTrees": "Elige árboles para registrar",
+    "logButton": "{count, plural, one {Registrar en # árbol} other {Registrar en # árboles}}",
+    "errPickTree": "Elige al menos un árbol.",
+    "errLogFailed": "No pudimos registrarlo. Inténtalo de nuevo."
   }
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 
 import { parseCareForm } from "@/lib/care-form";
@@ -21,11 +22,12 @@ export async function logBatchCareAction(
   _prev: BatchLogState,
   formData: FormData,
 ): Promise<BatchLogState> {
+  const t = await getTranslations("log");
   const treeIds = formData
     .getAll("treeId")
     .filter((v): v is string => typeof v === "string" && UUID_RE.test(v));
   if (treeIds.length === 0) {
-    return { status: "error", message: "Pick at least one tree." };
+    return { status: "error", message: t("errPickTree") };
   }
 
   // Validate the shared fields once, using any selected id as the representative.
@@ -46,6 +48,6 @@ export async function logBatchCareAction(
     return { status: "success", count };
   } catch (error) {
     logActionError("logBatchCare", error);
-    return { status: "error", message: "We couldn't log that. Please try again." };
+    return { status: "error", message: t("errLogFailed") };
   }
 }

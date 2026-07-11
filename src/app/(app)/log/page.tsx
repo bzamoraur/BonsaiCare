@@ -1,4 +1,5 @@
 import { Leaf } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -8,11 +9,15 @@ import { logActionError } from "@/lib/log-action-error";
 import { cn } from "@/lib/utils";
 import { listTrees, type TreeCard } from "@/server/trees";
 
-export const metadata = {
-  title: "Log care",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("log");
+  return { title: t("title") };
+}
 
 export default async function LogPage() {
+  const t = await getTranslations("log");
+  const tCollection = await getTranslations("collection");
+  const tCalendar = await getTranslations("calendar");
   let trees: TreeCard[] = [];
   let loadError = false;
   try {
@@ -29,30 +34,28 @@ export default async function LogPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Log care</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
 
       {loadError ? (
         <p role="alert" className="text-destructive text-sm">
-          We couldn&apos;t load your trees right now. Please refresh to try again.
+          {t("loadError")}
         </p>
       ) : trees.length === 0 ? (
         <section className="border-border bg-card flex flex-col items-center gap-4 rounded-2xl border p-8 text-center">
-          <p className="text-muted-foreground text-balance">
-            Add a tree first — then you can log its care from anywhere.
-          </p>
+          <p className="text-muted-foreground text-balance">{t("noTrees")}</p>
           <Link href="/collection/new" className={cn(buttonVariants())}>
-            Add a tree
+            {tCollection("addATree")}
           </Link>
         </section>
       ) : (
         <>
           <div className="flex items-center justify-between gap-4">
-            <p className="text-muted-foreground text-sm">Which tree?</p>
+            <p className="text-muted-foreground text-sm">{tCalendar("whichTree")}</p>
             <Link
               href="/log/batch"
               className="text-primary text-sm font-medium underline-offset-4 hover:underline"
             >
-              Several trees →
+              {t("severalTrees")}
             </Link>
           </div>
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
