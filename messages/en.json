@@ -368,6 +368,15 @@
     "errAdd": "We couldn't add that task. Please try again.",
     "errUpdate": "We couldn't save your changes. Please try again."
   },
+  "careForm": {
+    "logCare": "Log care",
+    "logging": "Logging…",
+    "logIt": "Log it",
+    "logged": "Logged ✓",
+    "editTitle": "Edit care entry",
+    "errLog": "We couldn't log that. Please try again.",
+    "errUpdate": "We couldn't save your changes. Please try again."
+  },
   "log": {
     "title": "Log care",
     "loadError": "We couldn't load your trees right now. Please refresh to try again.",

@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -32,7 +33,8 @@ export async function logCareAction(
     await createCareEntry(parsed.value);
   } catch (error) {
     logActionError("createCareEntry", error);
-    return { status: "error", message: "We couldn't log that. Please try again." };
+    const t = await getTranslations("careForm");
+    return { status: "error", message: t("errLog") };
   }
 
   revalidatePath(`/collection/${treeId}`);
@@ -57,7 +59,8 @@ export async function updateCareAction(
     await updateCareEntry(entryId, parsed.value);
   } catch (error) {
     logActionError("updateCareEntry", error);
-    return { status: "error", message: "We couldn't save your changes. Please try again." };
+    const t = await getTranslations("careForm");
+    return { status: "error", message: t("errUpdate") };
   }
 
   revalidatePath(`/collection/${treeId}`);

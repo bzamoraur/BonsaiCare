@@ -368,6 +368,15 @@
     "errAdd": "No pudimos añadir esa tarea. Inténtalo de nuevo.",
     "errUpdate": "No pudimos guardar tus cambios. Inténtalo de nuevo."
   },
+  "careForm": {
+    "logCare": "Registrar cuidado",
+    "logging": "Registrando…",
+    "logIt": "Registrar",
+    "logged": "Registrado ✓",
+    "editTitle": "Editar cuidado",
+    "errLog": "No pudimos registrarlo. Inténtalo de nuevo.",
+    "errUpdate": "No pudimos guardar tus cambios. Inténtalo de nuevo."
+  },
   "log": {
     "title": "Registrar cuidados",
     "loadError": "No pudimos cargar tus árboles ahora mismo. Actualiza para volver a intentarlo.",
