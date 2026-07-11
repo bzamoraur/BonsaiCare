@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,8 @@ type Props = {
 };
 
 export function LogCareForm({ action, defaultOpen = false, lastByType }: Props) {
+  const t = useTranslations("careForm");
+  const tCommon = useTranslations("common");
   const [state, formAction, pending] = useActionState(action, initialState);
   const [open, setOpen] = useState(defaultOpen);
   const formRef = useRef<HTMLFormElement>(null);
@@ -60,11 +63,11 @@ export function LogCareForm({ action, defaultOpen = false, lastByType }: Props) 
       <div className="flex items-center gap-3">
         <Button type="button" size="sm" onClick={() => setOpen(true)}>
           <Plus aria-hidden />
-          Log care
+          {t("logCare")}
         </Button>
         {state.status === "success" ? (
           <span role="status" className="text-primary text-sm">
-            Logged ✓
+            {t("logged")}
           </span>
         ) : null}
       </div>
@@ -81,13 +84,13 @@ export function LogCareForm({ action, defaultOpen = false, lastByType }: Props) 
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? "Logging…" : "Log it"}
+          {pending ? t("logging") : t("logIt")}
         </Button>
         <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-          Close
+          {tCommon("close")}
         </Button>
         <span role="status" aria-live="polite" className="text-primary text-sm">
-          {state.status === "success" ? "Logged ✓" : ""}
+          {state.status === "success" ? t("logged") : ""}
         </span>
         {state.status === "error" ? (
           <span role="alert" className="text-destructive text-sm">

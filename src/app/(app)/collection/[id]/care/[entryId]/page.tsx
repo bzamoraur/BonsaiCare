@@ -1,4 +1,5 @@
 import { ChevronLeft } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -10,15 +11,20 @@ import { getTree } from "@/server/trees";
 import { updateCareAction } from "../../care-actions";
 import { EditCareForm } from "../../edit-care-form";
 
-export const metadata = {
-  title: "Edit care entry",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("careForm");
+  return { title: t("editTitle") };
+}
 
 type Params = { id: string; entryId: string };
 
 export default async function EditCarePage({ params }: { params: Promise<Params> }) {
   const { id, entryId } = await params;
-  const [tree, entry] = await Promise.all([getTree(id), getCareEntry(entryId)]);
+  const [tree, entry, t] = await Promise.all([
+    getTree(id),
+    getCareEntry(entryId),
+    getTranslations("careForm"),
+  ]);
   if (!tree || !entry || entry.tree_id !== id) notFound();
 
   const defaults: CareDefaults = {
@@ -39,7 +45,7 @@ export default async function EditCarePage({ params }: { params: Promise<Params>
           <ChevronLeft className="size-4" aria-hidden />
           {tree.name}
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Edit care entry</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("editTitle")}</h1>
       </div>
 
       <EditCareForm
