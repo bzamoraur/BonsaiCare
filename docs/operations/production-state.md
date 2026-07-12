@@ -1,6 +1,6 @@
 # Production State
 
-> **Status:** Living · **Updated:** 2026-07-08
+> **Status:** Living · **Updated:** 2026-07-12
 >
 > The one-page answer to "what is actually live and armed in production?" —
 > the question no other doc could answer at the 2026-07-06 audit. The owner (or
@@ -38,6 +38,7 @@
 |---|---|---|
 | `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` | keep-warm | ✅ Verified live 2026-07-06: run 28790896388 → `HTTP 200 — database queried` (the earlier 401 was the workflow's bug, fixed S08.8) |
 | `SUPABASE_DB_URL` | weekly DB backup | ✅ Verified live 2026-07-06: run 28816036702 SUCCESS after the owner reset the DB password (first value had URL-breaking characters) |
+| `BACKUP_ENCRYPTION_KEY` | weekly DB backup ENCRYPTION (AES-256) | `backup.yml` (#116) fails loud and uploads nothing without it (resolves the beta-readiness CRITICAL: a public-repo artifact must not leak `auth.users`). Owner to confirm it is set AND the passphrase is escrowed off-repo. |
 | `SUPABASE_SERVICE_ROLE_KEY` | orphan sweep + photo mirror + B2 purge | ✅ Verified live 2026-07-06: dry-run 28816343325 → `Scanned 1 object(s); 1 known; 0 orphans` (Supabase key label is `github_orphan_sweep` — underscores; hyphens not allowed) |
 | `B2_KEY_ID` / `B2_APP_KEY` / `B2_BUCKET` (+ `B2_ENDPOINT`, unused by the native-API script) | photo mirror + B2 purge (delete-path) | Set 2026-07-06 — reused as-is by `b2-purge.yml` (Read & Write key already grants `deleteFiles`; no new secret) |
 
@@ -48,6 +49,15 @@ repo → **public** ✅ done · photo backup → **Backblaze B2** ✅ account/bu
 created · care dates = plain `date`
 ([ADR-0012](../decisions/0012-care-dates-are-calendar-dates.md), migrates in
 S08.3).
+
+## Supabase Auth config (owner-set)
+
+`{{ .Token }}` added to **both** the Confirm-signup and Magic-Link email
+templates — enables the 6-digit **OTP code** fallback for the iPhone
+in-app-browser PKCE failure (the magic link opens in a different browser, so the
+PKCE verifier cookie is absent). Auth **OTP expiry shortened**. Additive to
+[ADR-0010](../decisions/0010-auth-magic-link-first.md) (magic-link-first), not a
+replacement. Verified 2026-07-11 (owner, #137).
 
 ## Drills & manual cadences
 

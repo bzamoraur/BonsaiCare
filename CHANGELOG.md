@@ -6,6 +6,96 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Today, in season (M8 first slice, 2026-07-11)
+
+- **A hemisphere-aware "seasonal focus" card on Today.** The daily home now names
+  what the current season calls for, so the app reflects where the collection is
+  in the year — inverted for the southern hemisphere like the recurrence windows
+  (a pure `seasonForMonth` domain helper in `src/domain/season.ts`). Bilingual,
+  and the first slice of the M8 "it knows bonsai" intelligence. **No schema
+  change.** (#138)
+
+### Added — Sign in with a 6-digit code (M7, 2026-07-11)
+
+- **An OTP code fallback for when the magic link can't complete.** Some mail apps
+  open the link in an in-app browser that doesn't share the sign-in cookie, so the
+  PKCE handshake fails (hit on iPhone in-app browsers). The "check your email"
+  screen now also accepts the **6-digit code** the same email carries
+  (`verifyOtp`, `type: 'email'`) — a direct token exchange that needs no PKCE
+  cookie. Additive to magic-link-first
+  ([ADR-0010](docs/decisions/0010-auth-magic-link-first.md)), not a reversal; the
+  owner added `{{ .Token }}` to the Confirm-signup and Magic-Link email templates
+  and shortened the OTP expiry.
+
+### Added — Deleted accounts are purged off-site too (M7, 2026-07-11)
+
+- **Account deletion now reaches the off-site photo mirror.** Because the app
+  runtime deliberately holds no Backblaze B2 credentials, `delete_my_account`
+  enqueues the user's photo prefix into a new `b2_purge_queue` table (FK-less, so
+  the row outlives the `auth.users` cascade it triggers) before cascading; a
+  scheduled Actions job (`b2-purge.yml` + `scripts/purge-b2.mjs`, monthly, manual
+  runs default to a dry-run) drains the queue and deletes every B2 version under
+  `<uid>/`. Closes the ADR-0008 "delete doesn't reach the off-site copy" gap,
+  reusing the mirror's existing Read & Write key — no new secret. (#136)
+
+### Added — Durable error visibility (M7, 2026-07-11)
+
+- **Client crashes and server errors now persist where the owner can see them.** A
+  new PII-poor `app_errors` table (RLS on, no policies) records both:
+  `error.tsx`/`global-error.tsx` report client crashes via `navigator.sendBeacon`
+  to a public `/api/log-error` route, and server errors are persisted through Next
+  `after()`. `record_client_error` is `SECURITY DEFINER` and self-stamps
+  `owner_id` (granted to anon, so a signed-out `/login` crash still records); the
+  owner reads them on **/admin → "Recent errors"** via an owner-gated
+  `recent_app_errors`, every field escaped on render. The durable interim until a
+  hosted monitor (Sentry, still deferred) is worth adding. (#134, #135)
+
+### Added — Small UI polish pass (M7, 2026-07-11)
+
+- Extracted a shared `<Pill>`, standardized the page gaps, and restored a missing
+  focus ring. **No schema change.** (#133)
+
+### Added — The app speaks Spanish, end to end (M7 friends-release gate, 2026-07-11)
+
+- **Full ES/EN across every friend-facing surface.** The trusted users are
+  Spanish-speaking, so the whole UI is now bilingual on **next-intl 4** with a
+  **cookie-resolved locale** (no URL routing) and an English fallback: login,
+  settings, today, collection, calendar, plan, quick-log, the care/task/tree
+  forms, tree-detail, the error boundary, and the enum label maps. A parity guard
+  test fails if `messages/en.json` and `messages/es.json` drift out of key-parity.
+- **Pre-login locale follows the browser.** Before sign-in the locale defaults
+  from `Accept-Language`, so a Spanish speaker lands in Spanish on first visit.
+  This was the P1 "i18n before the friends release" gate — now met. **No schema
+  change.** (#109–#132, #126)
+
+### Security — The weekly DB backup is encrypted at rest (CRITICAL, 2026-07-11)
+
+- **The public-repo backup artifact can no longer leak `auth.users`.** `backup.yml`
+  now AES-256-encrypts the dump (`openssl`, pbkdf2) into `backup.tar.gz.enc` using
+  a `BACKUP_ENCRYPTION_KEY` secret, and **fails loud and uploads nothing** if the
+  key is missing — it never uploads a plaintext dump of emails, password hashes,
+  and session tokens. Closes the beta-readiness CRITICAL; the restore drill was
+  re-run 2026-07-08. Restoring now requires the same passphrase, so escrow it
+  off-repo. (#116)
+
+### Added — Plan ahead on the calendar (M6, 2026-07-10)
+
+- **Recurring tasks now project forward as "planned" occurrences.** The calendar
+  shows the upcoming instances of a recurring task, not just its single next due
+  date, so a busy season is visible in advance. Derived from the recurrence rule
+  at read time — **no schema change.** (#127)
+
+### Added — Calendar, Today & photo craft pass (M6, 2026-07-10)
+
+- A run of daily-driver polish: craft-serif page titles, collapsible per-month
+  folders on the timeline, a Filters sheet on the collection, an interactive hero
+  photo (change the cover from the hero), adding tasks straight from the calendar,
+  a Today summary line and a recent-photos strip, a service-worker photo cache
+  keyed by the token-stripped Storage path (so repeat photo views cost no egress),
+  uniform tree-card heights, a clearer login-error message, a first-run Today CTA,
+  and a `/privacy` note page. **No schema change.** (#105–#108, #113–#115,
+  #117–#119)
+
 ### Added — Faster, lighter photos + tap-to-zoom (M6 / Sprint 10, 2026-07-10)
 
 - **Grids and timelines load small thumbnails, not full images.** Every photo now

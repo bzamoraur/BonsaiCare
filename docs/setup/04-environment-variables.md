@@ -1,6 +1,6 @@
 # Setup 04 — Environment Variables Reference
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-12
 
 > The single reference for every env var. Mirrors [`.env.example`](../../.env.example).
 > **Secrets never go in the repo** — only in `.env.local` (git-ignored), Vercel
@@ -19,7 +19,9 @@
 | `OWNER_USER_ID` | server only (Vercel) | gates `/admin` + the Settings owner link | Supabase → Authentication → Users → your row's **UID**. Never `NEXT_PUBLIC_`. |
 | `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` | GitHub Action secrets | arms `keep-warm.yml` | Same values as the two `NEXT_PUBLIC_*` vars above — exact names, no prefix. |
 | `SUPABASE_DB_URL` | **SECRET — GitHub Actions only** | arms `backup.yml` (weekly DB dump) | Dashboard **Connect** button → **Session pooler** URI with the DB password filled in. ⚠ Not the direct connection (IPv6-only on free tier — unreachable from GitHub runners) and not the transaction pooler (breaks pg_dump). |
-| `SUPABASE_SERVICE_ROLE_KEY` | **SECRET — GitHub Actions only** | arms `reconcile-storage.yml` (orphan sweep) | Settings → API Keys → a **Secret key** (`sb_secret_…`; a legacy `service_role` JWT also works). Bypasses RLS — never in the app runtime or Vercel. *(Name kept for the historical role it maps to; the app-side equivalent concept is `SUPABASE_SECRET_KEY`.)* |
+| `BACKUP_ENCRYPTION_KEY` | **SECRET — GitHub Actions only** | arms `backup.yml` (AES-256-encrypts the weekly DB dump before upload) | Any strong passphrase you generate — store it in your password manager. `backup.yml` **fails loud and uploads nothing** if this is missing (the public-repo artifact contains `auth.users`). You need the same passphrase to decrypt/restore. |
+| `SUPABASE_SERVICE_ROLE_KEY` | **SECRET — GitHub Actions only** | arms `reconcile-storage.yml` (orphan sweep), `photo-backup.yml` (monthly B2 photo mirror) **and** `b2-purge.yml` (delete-path B2 purge) | Settings → API Keys → a **Secret key** (`sb_secret_…`; a legacy `service_role` JWT also works). Bypasses RLS — never in the app runtime or Vercel. *(Name kept for the historical role it maps to; the app-side equivalent concept is `SUPABASE_SECRET_KEY`.)* |
+| `B2_KEY_ID` / `B2_APP_KEY` / `B2_BUCKET` | **SECRET — GitHub Actions only** | arm `photo-backup.yml` (monthly off-site B2 photo mirror) **and** `b2-purge.yml` (delete-path purge of a deleted account's photos) | Backblaze B2 → an application key scoped to the bucket with **Read & Write** (the write role already grants `deleteFiles`, which b2-purge requires — the script fails loud otherwise). `B2_BUCKET` is the bucket name. Reused as-is by both workflows; no separate delete key. |
 
 > Naming rule: **`NEXT_PUBLIC_` is a promise that the value is public** (Next.js
 > inlines it into the client bundle). Never prefix a secret with `NEXT_PUBLIC_`.
@@ -30,7 +32,7 @@
 |---|---|---|
 | `.env.local` (your machine, git-ignored) | the `NEXT_PUBLIC_*` + any you need locally | `cp .env.example .env.local` then fill in. |
 | **Vercel** → Project → Settings → Environment Variables | `NEXT_PUBLIC_*` + `OWNER_USER_ID` (+ `SUPABASE_SECRET_KEY` only if ever used) | set per environment (Prod/Preview). |
-| **GitHub** → repo → Settings → Secrets and variables → Actions | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (keep-warm) · `SUPABASE_DB_URL` (backup) · `SUPABASE_SERVICE_ROLE_KEY` (orphan sweep) · `SUPABASE_ACCESS_TOKEN`/`SUPABASE_PROJECT_REF` if CI ever needs the CLI | which are actually set: [production-state](../operations/production-state.md). |
+| **GitHub** → repo → Settings → Secrets and variables → Actions | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (keep-warm) · `SUPABASE_DB_URL` + `BACKUP_ENCRYPTION_KEY` (backup) · `SUPABASE_SERVICE_ROLE_KEY` + `B2_KEY_ID`/`B2_APP_KEY`/`B2_BUCKET` (orphan sweep, photo mirror, B2 purge) · `SUPABASE_ACCESS_TOKEN`/`SUPABASE_PROJECT_REF` if CI ever needs the CLI | which are actually set: [production-state](../operations/production-state.md). |
 
 ## Common errors & fixes
 - Putting a secret behind `NEXT_PUBLIC_` → it leaks to every visitor. Don't.

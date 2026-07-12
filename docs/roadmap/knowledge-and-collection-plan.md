@@ -2,7 +2,11 @@
 
 > **Status:** Proposed · **Created:** 2026-07-09 · Owner feedback + a 4-stream
 > web-grounded research pass (65 sources). Sequencing feeds
-> [improvement-plan](./improvement-plan.md); nothing here is built yet.
+> [improvement-plan](./improvement-plan.md). **Part 1 friction fixes have
+> since shipped** (F-A completed-task history — Today "Recently done" +
+> calendar done-markers, PRs #86/#88; F-B batch-care on Today — "Log several"
+> button, #86 — folded into Sprint 09); Parts 2–3 (species-knowledge layer,
+> pots collection) are not built yet.
 
 Two things prompted this: **friction in what shipped** (batch care isn't
 discoverable; completed tasks vanish instead of staying logged) and **three new

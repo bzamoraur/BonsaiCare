@@ -1,6 +1,6 @@
 # ADR-0010: Authentication via email magic-link for the MVP
 
-- **Status:** Accepted
+- **Status:** Accepted — amended by [ADR-0015](./0015-otp-code-sign-in-fallback.md) (additive 6-digit OTP code sign-in; passwordless posture unchanged)
 - **Date:** 2026-06-26
 - **Deciders:** Owner + Claude
 

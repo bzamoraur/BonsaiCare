@@ -1,6 +1,6 @@
 # Backlog
 
-> **Status:** Living · **Updated:** 2026-07-06
+> **Status:** Living · **Updated:** 2026-07-12
 >
 > The ordered holding pen for everything not in the current milestone. Items
 > graduate into a sprint when their phase is active. Format: concise user
@@ -123,13 +123,14 @@ list for the reasoning). Re-order from real usage evidence.
   never shown twice unless asked. State lives in a `profiles` flag so it's
   per-user, not per-device. Gate the *friends* release on this. (P1 for the
   friends stage, M)
-- **Language switch (ES / EN)** — the app is English-only; a Spanish-speaking
-  friend needs Spanish. Introduce an i18n layer (dictionary + a `next-intl`-style
-  message catalog), a user-preference toggle in Settings persisted on `profiles`,
-  and Spanish translations of all UI + care-type/label strings. New ADR for the
-  i18n approach and where locale is resolved (cookie vs profile). Do this *before*
-  the friends release, not after strings have sprawled. (P1 for the friends
-  stage, M–L)
+- [x] **Language switch (ES / EN) — ✅ shipped (PRs #109–#132).** Full Spanish
+  across every friend-facing surface (login, settings, today, collection, calendar,
+  plan, quick-log, care/task/tree forms, tree-detail, error boundaries, enum label
+  maps) on **next-intl 4** with a **cookie-resolved locale** (no URL routing),
+  English fallback, and an en/es parity guard; pre-login locale defaults from
+  **Accept-Language** (#126). This was the P1 "i18n before the friends release"
+  gate — now met. (Follow-up: the promised i18n ADR was never written — capture the
+  as-built approach.)
 - **Google OAuth** — additive per [ADR-0010](../decisions/0010-auth-magic-link-first.md). (P3, S)
 
 ## Phase 3 — optional commercial (P3)
@@ -170,6 +171,15 @@ Logged per the quality protocol; scheduled, not aspirational:
   that refuses to delete when orphans exceed 20% of scanned objects. The sweep
   secret is **armed and dry-run-verified** (see
   [production-state](../operations/production-state.md)).
+- **Encrypted backups + off-site delete-purge — ✅ DONE.** The weekly DB backup is
+  now **AES-256-encrypted** before upload and **fails loud** (uploads nothing) if
+  `BACKUP_ENCRYPTION_KEY` is missing (PR #116 — closed the beta-readiness CRITICAL
+  that a public-repo artifact leaked `auth.users`; restore drill 2026-07-08). And
+  account deletion now reaches the off-site B2 mirror: `delete_my_account()`
+  enqueues the user's prefix in `b2_purge_queue`, drained monthly by `b2-purge.yml`
+  + `scripts/purge-b2.mjs` (PR #136) — closing the
+  [ADR-0008](../decisions/0008-data-ownership-and-export.md) delete-path off-site
+  gap.
 - **Playwright e2e auth harness — ✅ DONE (Sprint 06, PRs #42–#43).** Shipped as
   designed: a global-setup mints a confirmed user against the CI Supabase stack
   and injects a real `@supabase/ssr` session (produced by the library itself, not
@@ -192,9 +202,12 @@ Logged per the quality protocol; scheduled, not aspirational:
 - **RLS-test coverage rule** — every new table ships with isolation assertions
   (M4 `tasks`, Phase-2 `push_subscriptions`); this is a Definition-of-Done
   checkbox, not an option. *(Standing.)*
-- **Error monitoring** — interim: Vercel's built-in observability captures
-  unhandled runtime errors, and `(app)/error.tsx` + `global-error.tsx` degrade
-  gracefully (Sprint 07). **Sentry is deferred**: `@sentry/nextjs@10` currently
+- **Error monitoring** — interim **upgraded to a durable log (PRs #134–#135)**: client crashes
+  (`error.tsx`/`global-error.tsx` `sendBeacon` → the public `/api/log-error` path)
+  and server errors (persisted via Next `after()`) now write to an `app_errors`
+  table (RLS on, owner-stamped) and surface in `/admin`'s "Recent errors" section —
+  not just Vercel's ephemeral logs. `(app)/error.tsx` + `global-error.tsx` continue
+  to degrade gracefully (Sprint 07). **Sentry is deferred**: `@sentry/nextjs@10` currently
   fails to install (its transitive `import-in-the-middle` pins
   `es-module-lexer@^2.2.0`, which isn't published), and Next 16 + Turbopack
   support is unproven. Revisit once it installs cleanly, then forward errors to a
@@ -206,8 +219,9 @@ Logged per the quality protocol; scheduled, not aspirational:
   need, revisit TanStack Query. *(Trigger-gated.)*
 - **`supabase db push` discipline** — hosted migrations lag the repo until the
   owner pushes; every schema PR must flag it. *(Standing. As of 2026-07-06 the
-  hosted DB is fully caught up — all 8 migrations pushed and owner-verified
-  (account deletion live-tested; /admin loads). Current state is tracked in
+  hosted DB is fully caught up — as of 2026-07-11 **all 12 migrations** are pushed and
+  owner-verified (high-water `20260711130000`; the `app_errors` + `b2_purge_queue`
+  pair from PR #134 is live). Current state is tracked in
   [operations/production-state.md](../operations/production-state.md); a weekly
   drift check reusing `SUPABASE_DB_URL` is proposed in the improvement plan.)*
 

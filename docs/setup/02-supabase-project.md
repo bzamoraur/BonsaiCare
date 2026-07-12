@@ -1,6 +1,6 @@
 # Setup 02 — Create the Supabase Project (click-by-click, 2026)
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-12
 
 > Audience: **non-expert owner.** This creates the **backend** (database + auth +
 > photo storage). You can do Parts A–D **now**; Parts E–F happen during the
@@ -113,6 +113,20 @@ We use passwordless **magic-link** sign-in ([ADR-0010](../decisions/0010-auth-ma
 3. (Free tier) The built-in email sender is rate-limited but fine for 1–3 users.
    If delivery is slow/spammy later, add a free custom SMTP (e.g. Resend) under
    **Authentication → Emails / SMTP** — a Phase-2 nicety, not required now.
+4. **Enable the 6-digit code fallback (needed for iPhone / in-app browsers).**
+   Some mail apps open the magic link in an in-app browser that doesn't share
+   the sign-in cookie, so the *link* fails. The app therefore also accepts the
+   **6-digit code** the same email carries (`verifyOtp` on the "check your
+   email" screen, see `src/app/login/login-form.tsx`). Under **Authentication →
+   Emails (Templates)**, add `{{ .Token }}` to **both** templates (keeping
+   `{{ .ConfirmationURL }}` so the link still works where it can):
+   - **Confirm signup** — new users' first sign-in; add a line like
+     `Your code: {{ .Token }}`.
+   - **Magic Link** — returning users; add the same line.
+
+   Then shorten the code's lifetime under **Authentication → Sign In /
+   Providers → Email → Email OTP Expiration** (e.g. 600–900 s) so a leaked code
+   expires quickly.
 
 ## Part E — Connect the CLI and push the schema
 
@@ -165,6 +179,7 @@ Action pings the project to keep it responsive — see
 | Symptom | Cause | Fix |
 |---|---|---|
 | Magic link → "redirect not allowed" | Sign-in URL not in **Redirect URLs** | Add `http://localhost:3000/**` (and your prod URL) under **Auth → URL Configuration**. |
+| Sign-in fails on iPhone / in an in-app browser | Magic link opened in a browser that doesn't share the sign-in cookie (PKCE) | Enter the **6-digit code** from the same email instead; requires the `{{ .Token }}` template edit (Part D step 4). |
 | App reads nothing / "permission denied" | Using a legacy/wrong key, or not signed in | Use the **Publishable** key in `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; confirm a valid session. |
 | `supabase link` fails | Not logged in / wrong ref / wrong DB password | `pnpm exec supabase login`; recheck the ref (Settings → General) and the Part B password. |
 | `supabase db push` says "must be logged in" | CLI not authenticated | Run `pnpm exec supabase login` first. |

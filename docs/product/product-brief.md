@@ -1,6 +1,6 @@
 # Product Brief — Bonsai Companion
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-12
 >
 > The single source of truth for *what* we are building and *why*. Scope
 > decisions here govern the roadmap.
@@ -36,7 +36,8 @@ even dedicated apps execute poorly (see [benchmark](../research/benchmark.md)):
   collection who wants reliable, low-friction tracking and a beautiful
   progression record. Northern hemisphere (Spain), outdoor + some indoor trees.
 - **Secondary (soon):** a handful of trusted users, each with their own private
-  collection and account.
+  collection and account. They are Spanish-speaking, so the app ships bilingual
+  (English + Spanish).
 - **Future (optional):** a commercial audience of intermediate+ hobbyists. The
   architecture preserves this path but the MVP does not chase it.
 

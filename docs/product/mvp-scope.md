@@ -1,6 +1,6 @@
 # MVP Scope
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-12
 >
 > The authoritative in/out list. Changing scope means editing this file (and
 > saying why) — not silently building extra.
@@ -50,6 +50,9 @@ Grouped by the user's stated MVP needs, refined by research.
 - **Data export (CSV/JSON)** of trees, events, and tasks — a deliberate
   trust/anti-lock-in feature, in from the start.
 - Hemisphere/season setting (user-overridable) so seasonal logic is correct.
+- **Bilingual UI (English + Spanish)** — locale remembered per user and inferred
+  from the browser before sign-in; the trusted users are Spanish-speaking. Was
+  the P1 "i18n before the friends release" gate.
 
 ## Explicitly out of MVP (deferred — with the seam that keeps them cheap later)
 

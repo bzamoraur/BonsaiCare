@@ -1,6 +1,6 @@
 # Information Architecture & Key Flows
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-12
 >
 > The navigation skeleton and the handful of flows that must be excellent.
 > Screens are described by intent, not pixels.
@@ -10,7 +10,9 @@
 A bottom tab bar on mobile / side rail on desktop:
 
 1. **Today (Dashboard)** — the home. "What needs attention": overdue, due today,
-   upcoming; quick glance at collection health. The default landing screen.
+   upcoming; quick glance at collection health, plus a hemisphere-aware
+   **seasonal focus** card (what the current season calls for). The default
+   landing screen.
 2. **Collection** — the photo-first grid of trees; filter/sort/search; add tree.
 3. **Calendar** — tasks over time (list + month view); create/complete/skip.
 4. *(Quick-add)* — a persistent central **+** action: log care or add photo to
@@ -26,7 +28,7 @@ tree → actions (log, add photo, edit, archive).
 
 | Screen | Purpose |
 |---|---|
-| Today / Dashboard | Attention list + health glance. |
+| Today / Dashboard | Attention list + health glance + seasonal focus. |
 | Collection grid | Browse/organize/search trees; entry to add. |
 | Add/Edit tree | Structured profile capture (progressive disclosure). |
 | Tree detail | Hero, facts, timeline, tasks, actions. |
@@ -90,3 +92,5 @@ archive). Reassures: your data is yours.
   actually used.
 - **Desktop/web** uses width for a richer catalogue + larger progression view, not
   more chrome.
+- **Bilingual throughout** — every surface renders in the user's chosen language
+  (English or Spanish); locale is inferred from the browser before sign-in.
