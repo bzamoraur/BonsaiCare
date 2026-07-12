@@ -5,12 +5,15 @@ import Link from "next/link";
 import { Photo } from "@/components/photo";
 import { TreeCard } from "@/components/tree-card";
 import { buttonVariants } from "@/components/ui/button";
+import { seasonForMonth } from "@/domain/season";
 import { cn } from "@/lib/utils";
 import { listDashboardTasks, listPastTasks } from "@/server/dashboard";
 import { listRecentPhotos } from "@/server/photos";
+import { getOwnerHemisphere } from "@/server/profile";
 import { countActiveTrees, listTriageTrees } from "@/server/trees";
 
 import { completeFromTodayAction, skipFromTodayAction } from "./actions";
+import { SeasonalCard } from "./seasonal-card";
 import { TodayDashboard, type DashboardItem } from "./today-dashboard";
 
 export const metadata = {
@@ -27,15 +30,23 @@ export default async function TodayPage({
 }) {
   const { error } = await searchParams;
   const [t, tc] = await Promise.all([getTranslations("today"), getTranslations("common")]);
-  const [tasks, triage, past, treeCount, recentPhotos] = await Promise.all([
+  const [tasks, triage, past, treeCount, recentPhotos, hemisphere] = await Promise.all([
     listDashboardTasks(),
     listTriageTrees(),
     listPastTasks(),
     countActiveTrees(),
     listRecentPhotos(),
+    getOwnerHemisphere(),
   ]);
 
   const serverToday = new Date().toISOString().slice(0, 10);
+  const season = seasonForMonth(Number(serverToday.slice(5, 7)), hemisphere);
+  const seasonText = {
+    spring: { title: t("seasonal.spring.title"), focus: t("seasonal.spring.focus") },
+    summer: { title: t("seasonal.summer.title"), focus: t("seasonal.summer.focus") },
+    autumn: { title: t("seasonal.autumn.title"), focus: t("seasonal.autumn.focus") },
+    winter: { title: t("seasonal.winter.title"), focus: t("seasonal.winter.focus") },
+  }[season];
   const items: DashboardItem[] = tasks.map((task) => ({
     task,
     complete: completeFromTodayAction.bind(null, task.id),
@@ -58,6 +69,13 @@ export default async function TodayPage({
           {tc("taskUpdateError")}
         </p>
       ) : null}
+
+      <SeasonalCard
+        season={season}
+        heading={t("seasonalHeading")}
+        title={seasonText.title}
+        focus={seasonText.focus}
+      />
 
       <TodayDashboard items={items} serverToday={serverToday} treeCount={treeCount} />
 
