@@ -227,6 +227,7 @@ export type Database = {
           display_name: string | null;
           hemisphere: Database["public"]["Enums"]["hemisphere"];
           id: string;
+          onboarding_seen_at: string | null;
           units: Database["public"]["Enums"]["units"];
           updated_at: string;
         };
@@ -236,6 +237,7 @@ export type Database = {
           display_name?: string | null;
           hemisphere?: Database["public"]["Enums"]["hemisphere"];
           id: string;
+          onboarding_seen_at?: string | null;
           units?: Database["public"]["Enums"]["units"];
           updated_at?: string;
         };
@@ -245,6 +247,7 @@ export type Database = {
           display_name?: string | null;
           hemisphere?: Database["public"]["Enums"]["hemisphere"];
           id?: string;
+          onboarding_seen_at?: string | null;
           units?: Database["public"]["Enums"]["units"];
           updated_at?: string;
         };
