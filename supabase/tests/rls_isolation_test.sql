@@ -11,7 +11,7 @@
 -- ============================================================================
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(34);
 
 -- Fixed UUIDs so we can reference seeded rows across roles.
 -- A = user A, B = user B; suffixes: 1=tree 2=location 3=tag 4=species.
@@ -28,6 +28,18 @@ select is((select count(*)::int from public.profiles where id = '11111111-1111-1
   1, 'handle_new_user created a profile for user A');
 select is((select count(*)::int from public.profiles where id = '22222222-2222-2222-2222-222222222222'),
   1, 'handle_new_user created a profile for user B');
+
+-- Onboarding tour flag (S12.1): a new signup must start NULL so the tour shows
+-- exactly once. The column carries no default (the trigger never sets it, and the
+-- one-time backfill only touched rows existing at migration time), so these
+-- test users — created just now — are NULL.
+select is((select count(*)::int from public.profiles
+    where id = '11111111-1111-1111-1111-111111111111' and onboarding_seen_at is null),
+  1, 'a new user starts with onboarding_seen_at NULL (tour will show once)');
+select has_column('public', 'profiles', 'onboarding_seen_at',
+  'profiles has the onboarding_seen_at column');
+select col_hasnt_default('public', 'profiles', 'onboarding_seen_at',
+  'onboarding_seen_at has no default → new signups stay NULL and see the tour');
 
 -- One row per owned table for each user (seeded as superuser; bypasses RLS).
 insert into public.locations (id, owner_id, name) values
@@ -81,6 +93,8 @@ select is_empty($$ update public.trees set name='hacked'
   where owner_id='11111111-1111-1111-1111-111111111111' returning 1 $$, 'B cannot update A''s tree');
 select is_empty($$ update public.profiles set display_name='hacked'
   where id='11111111-1111-1111-1111-111111111111' returning 1 $$, 'B cannot update A''s profile');
+select is_empty($$ update public.profiles set onboarding_seen_at=now()
+  where id='11111111-1111-1111-1111-111111111111' returning 1 $$, 'B cannot mark A''s onboarding tour seen');
 select is_empty($$ update public.locations set name='hacked'
   where owner_id='11111111-1111-1111-1111-111111111111' returning 1 $$, 'B cannot update A''s location');
 select is_empty($$ update public.tags set name='hacked'
@@ -107,6 +121,9 @@ select lives_ok($$ insert into public.trees (owner_id, name)
 select lives_ok($$ insert into public.species (owner_id, common_name)
   values ('22222222-2222-2222-2222-222222222222', 'B another species') $$,
   'B can insert their own species');
+select isnt_empty($$ update public.profiles set onboarding_seen_at=now()
+  where id='22222222-2222-2222-2222-222222222222' returning 1 $$,
+  'B can mark their own onboarding tour seen');
 
 -- ---- Anonymous (unauthenticated) sessions reach nothing ---------------------
 reset role;
