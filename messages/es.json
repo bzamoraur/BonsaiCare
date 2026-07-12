@@ -96,7 +96,26 @@
     "recentPhotos": "Momentos recientes",
     "firstRunTitle": "Añade tu primer árbol para empezar a registrar sus cuidados.",
     "firstRunAddTree": "Añadir árbol",
-    "firstRunPlan": "Planificar cuidados"
+    "firstRunPlan": "Planificar cuidados",
+    "seasonalHeading": "Esta temporada",
+    "seasonal": {
+      "spring": {
+        "title": "Primavera",
+        "focus": "El crecimiento despierta — la mejor época para trasplantar. Retoma el abono y vigila las plagas al brotar."
+      },
+      "summer": {
+        "title": "Verano",
+        "focus": "Máximo crecimiento y calor. Riega en profundidad, a menudo dos veces al día, da sombra a los árboles delicados y evita podas fuertes."
+      },
+      "autumn": {
+        "title": "Otoño",
+        "focus": "El crecimiento se ralentiza. Reduce el abono, deja que los caducos tomen color y prepara la protección invernal."
+      },
+      "winter": {
+        "title": "Invierno",
+        "focus": "Casi en reposo. Riega poco, protege las raíces de las heladas fuertes y no abones — buen momento para alambrar ramas desnudas."
+      }
+    }
   },
   "collection": {
     "title": "Colección",

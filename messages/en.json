@@ -96,7 +96,26 @@
     "recentPhotos": "Recent moments",
     "firstRunTitle": "Add your first tree to start tracking its care.",
     "firstRunAddTree": "Add a tree",
-    "firstRunPlan": "Plan care"
+    "firstRunPlan": "Plan care",
+    "seasonalHeading": "This season",
+    "seasonal": {
+      "spring": {
+        "title": "Spring",
+        "focus": "Growth is waking up — the prime repotting window. Resume feeding and watch for pests as buds open."
+      },
+      "summer": {
+        "title": "Summer",
+        "focus": "Peak growth and heat. Water deeply, often twice a day, shade tender trees, and hold off on heavy pruning."
+      },
+      "autumn": {
+        "title": "Autumn",
+        "focus": "Growth is slowing. Ease off feeding, let deciduous trees colour up, and get winter protection ready."
+      },
+      "winter": {
+        "title": "Winter",
+        "focus": "Mostly dormant. Water sparingly, shield roots from hard frost, and skip feeding — a good time to wire bare branches."
+      }
+    }
   },
   "collection": {
     "title": "Collection",
