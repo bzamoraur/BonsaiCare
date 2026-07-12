@@ -195,6 +195,7 @@
   },
   "onboarding": {
     "eyebrow": "Getting started",
+    "stepCounter": "Step {current} of {total}",
     "addTreeTitle": "Add your first tree",
     "addTreeBody": "Snap a photo and give it a name — that's all it takes. Species, pot, and the rest can wait until you feel like it.",
     "logCareTitle": "Log care in seconds",

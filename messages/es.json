@@ -195,6 +195,7 @@
   },
   "onboarding": {
     "eyebrow": "Primeros pasos",
+    "stepCounter": "Paso {current} de {total}",
     "addTreeTitle": "Añade tu primer árbol",
     "addTreeBody": "Haz una foto y ponle un nombre: con eso basta. La especie, la maceta y lo demás pueden esperar a cuando te apetezca.",
     "logCareTitle": "Registra cuidados en segundos",

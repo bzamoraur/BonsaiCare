@@ -2,11 +2,11 @@
 
 import { GalleryVerticalEnd, NotebookPen, Sprout, X, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { markOnboardingSeen } from "@/app/(app)/onboarding-actions";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   isFirstStep,
   isLastStep,
@@ -46,6 +46,7 @@ const STEP_ICONS: Record<TourStepId, LucideIcon> = {
  */
 export function OnboardingTour({ initialOpen }: { initialOpen: boolean }) {
   const t = useTranslations("onboarding");
+  const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(initialOpen);
   const [index, setIndex] = useState(0);
@@ -124,6 +125,9 @@ export function OnboardingTour({ initialOpen }: { initialOpen: boolean }) {
           </div>
 
           <div className="flex flex-col items-center gap-4 text-center" aria-live="polite">
+            <p className="sr-only">
+              {t("stepCounter", { current: index + 1, total: TOUR_STEPS.length })}
+            </p>
             <span
               className="bg-primary/10 text-primary flex size-14 items-center justify-center rounded-full"
               aria-hidden
@@ -139,7 +143,7 @@ export function OnboardingTour({ initialOpen }: { initialOpen: boolean }) {
             <p className="text-muted-foreground text-sm text-balance">{t(`${stepId}Body`)}</p>
           </div>
 
-          {/* Progress dots — decorative; the eyebrow + buttons convey state to AT. */}
+          {/* Progress dots — decorative; step position is announced via the sr-only counter above. */}
           <div className="flex items-center justify-center gap-1.5" aria-hidden>
             {TOUR_STEPS.map((id, i) => (
               <span
@@ -161,19 +165,22 @@ export function OnboardingTour({ initialOpen }: { initialOpen: boolean }) {
             >
               {t("back")}
             </Button>
-            {last ? (
-              <Link
-                href="/collection/new"
-                onClick={dismiss}
-                className={cn(buttonVariants({ variant: "default" }))}
-              >
-                {t("finish")}
-              </Link>
-            ) : (
-              <Button type="button" onClick={() => setIndex(nextStep(index))}>
-                {t("next")}
-              </Button>
-            )}
+            {/* One stable <button> across all steps: swapping it for a <Link> on the
+                last step would unmount the focused node and drop keyboard focus, so
+                the finish step navigates programmatically instead. */}
+            <Button
+              type="button"
+              onClick={() => {
+                if (last) {
+                  dismiss();
+                  router.push("/collection/new");
+                } else {
+                  setIndex(nextStep(index));
+                }
+              }}
+            >
+              {last ? t("finish") : t("next")}
+            </Button>
           </div>
         </div>
       ) : null}

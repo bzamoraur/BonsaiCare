@@ -28,7 +28,7 @@ test("replaying the onboarding tour walks the three steps and dismisses", async 
   await expect(dialog.getByRole("heading", { name: "Follow each tree's story" })).toBeVisible();
 
   // The last step offers the add-a-tree call to action instead of "Next".
-  await expect(dialog.getByRole("link", { name: "Add my first tree" })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Add my first tree" })).toBeVisible();
 
   // Back returns to the previous step.
   await dialog.getByRole("button", { name: "Back" }).click();
