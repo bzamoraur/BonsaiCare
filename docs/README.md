@@ -43,6 +43,11 @@ manual steps get a click-by-click setup guide. All docs follow the
 - [0009 — Licensing (proprietary for now)](decisions/0009-licensing-proprietary-for-now.md)
 - [0010 — Auth via email magic-link first](decisions/0010-auth-magic-link-first.md)
 - [0011 — Server Actions & validation scope](decisions/0011-server-actions-and-validation.md)
+- [0012 — Care events are calendar dates](decisions/0012-care-dates-are-calendar-dates.md)
+- [0013 — Error observability (interim in-DB log)](decisions/0013-error-observability-interim.md)
+- [0014 — Off-site delete purge queue](decisions/0014-offsite-delete-purge-queue.md)
+- [0015 — OTP code sign-in fallback (amends ADR-0010)](decisions/0015-otp-code-sign-in-fallback.md)
+- [0016 — Internationalization (next-intl 4, cookie locale)](decisions/0016-i18n-next-intl-cookie-locale.md)
 
 ## UX
 
@@ -54,6 +59,9 @@ manual steps get a click-by-click setup guide. All docs follow the
 - [Roadmap (phased, with current status)](roadmap/roadmap.md)
 - [Improvement plan (post-M5 execution order, from the milestone audit)](roadmap/improvement-plan.md)
 - [Backlog (stories, features, tech-debt register)](roadmap/backlog.md)
+- [Going-public plan (app-store publication, security, monetization research)](roadmap/going-public-plan.md)
+- [Knowledge & collection modules plan](roadmap/knowledge-and-collection-plan.md)
+- [Scaling-readiness (indexing / cache / async ground-truth)](roadmap/scaling-readiness.md)
 - Sprints (all shipped ✅): [01 — Skeleton & Spine](roadmap/sprint-01.md) ·
   [02 — Log care, fast](roadmap/sprint-02.md) ·
   [03 — The tree's story](roadmap/sprint-03.md) ·

@@ -1,6 +1,6 @@
 # Roadmap
 
-> **Status:** Living · **Updated:** 2026-07-06
+> **Status:** Living · **Updated:** 2026-07-12
 >
 > Phased, scope-disciplined. Each phase has an exit criterion. We do not start a
 > phase's "nice-to-haves" until its core ships. Estimates are rough effort for a
@@ -196,13 +196,16 @@ deletion is real. What's missing is *control* and *visibility*, in this order:
    table for key actions (logged care, created/completed task) feeding the
    metrics view. Reach for PostHog/Plausible only if richer funnels are ever
    needed. No PII beyond the user id already held; a new ADR for the events shape.
-5. **Error monitoring** — Sentry (already M5 slice 8) so the owner *sees* a
-   colleague's bug rather than hearing about it later.
+5. **Error monitoring** — a durable interim log **shipped (PRs #134–#135)**: client
+   crashes and server errors persist to `app_errors` and surface on `/admin`, so the
+   owner *sees* a colleague's bug rather than hearing about it later. Sentry (M5
+   slice 8) is still deferred — uninstallable on Next 16.
 
-**Sequence:** M5 ✅ (Sentry deferred — uninstallable on Next 16; error
-boundaries + Vercel logs interim) → Sprint 08 hardening + M6 daily-driver →
-**M7** ships the remaining gates (OTP code login, allowlist + CAPTCHA,
-onboarding tour, ES/EN, usage analytics) → invite. Detailed sequencing:
+**Sequence:** M5 ✅ (Sentry deferred — uninstallable on Next 16; interim is now a
+durable `app_errors` log surfaced on `/admin`) → Sprint 08 hardening ✅ + M6
+daily-driver ✅ → **M7 in progress**: **OTP code login ✅ (#137) and ES/EN i18n ✅
+(#109–#132) shipped**; the remaining gates are the allowlist + CAPTCHA, onboarding
+tour, and usage analytics → invite. Detailed sequencing:
 [improvement plan](./improvement-plan.md); holding pen: [backlog](./backlog.md).
 
 ## Phase 3 — Optional commercial (only if pursued)

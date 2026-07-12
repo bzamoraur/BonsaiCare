@@ -57,10 +57,15 @@ excludes `_next/static`, images, `sw.js`, etc. from session refresh); pages are
 intentionally **dynamic** because per-user RLS data can't be CDN/ISR-cached; and
 **thumbnails (S10.1, shipped)** already cut per-image bytes ~10×.
 
-The one legitimate gap is **signed-URL churn** ([S10.2] / risk #9): cover and photo
-URLs are re-minted with a fresh token on every render, so the browser sees a new URL
-each visit and re-downloads the bytes. Real, but **small now** — thumbnails already
-took the big lever, leaving ~tens of MB/month against Supabase's 5 GB free egress.
+The remaining gap is **server-side signed-URL churn** ([S10.2] first half / risk #9):
+cover and photo URLs are re-minted with a fresh token on every render. **PR #111
+already closed the browser side** — its service-worker cache is keyed by the
+**token-stripped Storage path**, so repeat views hit disk with zero egress despite
+the changing token (production builds only). What's left is the *first* view of each
+path per device (and non-SW contexts); server-side path→URL-string memoization
+(`unstable_cache`) would remove that too. Small now — thumbnails **and the SW cache**
+already took the big levers, leaving ~tens of MB/month against Supabase's 5 GB free
+egress.
 
 - **Trigger for S10.2:** egress actually appears in the Supabase usage dashboard, or
   friends onboard.
@@ -72,9 +77,12 @@ took the big lever, leaving ~tens of MB/month against Supabase's 5 GB free egres
   still-valid URL. The TTL only sets how long that string stays valid. (A longer-lived
   URL is a mild security trade — a leaked link is valid 24 h vs 1 h — fine for
   decorative photos.)
-- **Trap 2 — ordering.** Do **not** add the service-worker photo cache before URLs
-  are stable: cache-first on unique-per-render URLs never hits and bloats device
-  storage. It's the _second half_ of S10.2, keyed by the token-stripped path.
+- **Trap 2 — ordering (resolved differently than expected, PR #111).** The worry was
+  that a service-worker photo cache added *before* stable URLs "never hits." #111
+  sidestepped it by keying the SW cache on the **token-stripped path**, so it hits
+  even while URLs still carry a fresh token — the SW half of S10.2 shipped *first* and
+  works. Server-side URL-string memoization (Trap 1) is the remaining, optional first
+  half.
 
 **Skip:** `unstable_cache` / KV / Redis / ISR on the DB list & dashboard reads.
 Per-user RLS data can't be shared-cached, the reads are already single indexed
@@ -111,7 +119,7 @@ function budget at this scale.
 
 | Signal | Then do |
 | --- | --- |
-| Supabase **egress** rises in the usage dashboard, or friends onboard | S10.2 stable signed URLs (memoize the URL _string_) → _then_ the SW photo cache |
+| Supabase **egress** rises in the usage dashboard, or friends onboard | server-side S10.2 — memoize the signed-URL _string_ (the SW photo-cache half already shipped, PR #111) |
 | A user passes ~a few **thousand care entries** and recency chips feel slow | owner-wide recency `distinct on` view |
 | An account reaches **5-figure completed tasks** | partial `tasks(owner_id, completed_at) where status='done'` |
 | A **bulk multi-photo uploader** is built | Web-Worker / single-pass image compression |

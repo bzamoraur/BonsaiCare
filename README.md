@@ -4,14 +4,19 @@ A calm, photo-first companion for tracking, maintaining, and learning from a rea
 bonsai collection — built to be genuinely pleasant to use, not a generic CRUD
 admin panel.
 
-> **Status: Phase 1 (MVP) feature-complete — M1–M5 shipped and live** *(updated
-> 2026-07-06)*. Collection + photos, unified care timeline, season-aware
-> recurring tasks, the Today dashboard, full JSON/CSV/photo export, real account
-> deletion, dark mode, an authenticated e2e harness, and production hardening
-> all shipped (PRs #2–#57). Next: the audit-driven
-> [improvement plan](docs/roadmap/improvement-plan.md) — hardening sprint, then
-> daily-driver polish, then the friends release. Current audit snapshot:
-> [PROJECT_EXPORT.md](PROJECT_EXPORT.md).
+> **Status: Phase 1 (MVP) shipped; friends-release hardening largely done**
+> *(updated 2026-07-12)*. On top of M1–M5, the post-audit
+> [improvement plan](docs/roadmap/improvement-plan.md) has largely landed: Sprint
+> 08 fix-first hardening (encrypted DB backup, RPC-grant revokes, honest offline
+> page, restore drill), most of the M6 daily-driver pass (batch care, recency
+> chips + repeat-last, thumbnails + lightbox, archived view/unarchive, inline
+> calendar actions), full ES/EN Spanish i18n across every friend-facing surface
+> (next-intl 4, cookie locale, Accept-Language default), durable error logging
+> (`app_errors` + `/admin`), a 6-digit OTP sign-in fallback, and an off-site B2
+> photo mirror with delete-path purge — PRs #2–#138 (132 commits). Next: the
+> remaining friends-release gates (registration allowlist + CAPTCHA, onboarding),
+> then the invite. Current audit snapshot:
+> [PROJECT_EXPORT.md](PROJECT_EXPORT.md) — stale (2026-07-06), regenerate.
 
 ## What it is
 

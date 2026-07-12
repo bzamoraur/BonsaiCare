@@ -5,17 +5,22 @@ and high-signal; detailed reasoning lives in `docs/`.
 
 ## What this is
 A personal, production-grade **bonsai care & tracking PWA**. **Phase 1 (MVP) is
-feature-complete**: M1–M5 all shipped and live (PRs #2–#57; auth/shell/schema →
-trees & photos → timeline & care logging → tasks/recurrence/dashboard → export,
-real deletion, dark mode, a11y, e2e harness, hardening). Execution order now
-comes from `docs/roadmap/improvement-plan.md` (2026-07-06 milestone audit:
-Sprint 08 fix-first hardening → M6 daily-driver → M7 friends release → M8
-intelligence → M9 offline/sharing); current audit snapshot:
-`PROJECT_EXPORT.md`; what's armed in prod: `docs/operations/production-state.md`.
-Keep this status line current — update it in the same PR that changes it (this
-is a Definition-of-Done item for every milestone-closing PR). Read
-`docs/product/product-brief.md` and `docs/architecture/overview.md` before
-non-trivial work.
+shipped and live**; post-audit execution is well underway. Done since the
+2026-07-06 audit: Sprint 08 fix-first hardening (S08.1–8.11: encrypted DB backup,
+RPC-grant revokes, restore drill), most of M6 daily-driver (batch care,
+recency/repeat-last, thumbnails + lightbox, archived view/unarchive, calendar
+actions), and the M7 i18n gate — full ES/EN across every friend-facing surface
+(next-intl 4, cookie locale, Accept-Language default) — plus durable error
+logging (`app_errors` + `/admin`), a 6-digit OTP sign-in fallback, and a B2
+off-site photo mirror + delete-path purge. PRs #2–#138 (132 commits). Remaining
+before invite: registration allowlist + CAPTCHA and onboarding (M7); then M8
+intelligence, M9 offline/sharing. Order still from
+`docs/roadmap/improvement-plan.md`; current audit snapshot: `PROJECT_EXPORT.md`
+(stale — 2026-07-06); what's armed in prod:
+`docs/operations/production-state.md`. Keep this status line current — update it
+in the same PR that changes it (this is a Definition-of-Done item for every
+milestone-closing PR). Read `docs/product/product-brief.md` and
+`docs/architecture/overview.md` before non-trivial work.
 
 ## Golden rules (don't violate without an ADR)
 1. **Scope discipline.** Build only what's in `docs/product/mvp-scope.md`. New
@@ -56,7 +61,7 @@ src/proxy.ts    Next 16 proxy (session refresh + route gating)
 supabase/       migrations/ + tests/ (pgTAP RLS suites)
 e2e/            Playwright specs + cookie-capture auth harness (CI-only)
 scripts/        ops/utility scripts (icon generation, storage reconcile)
-.github/        CI + dormant-until-secret ops crons (keep-warm, backup, sweep)
+.github/        CI + ops crons (keep-warm, backup [encrypted], photo-backup, sweep, b2-purge)
 ```
 
 ## Core domain concepts (use this language)

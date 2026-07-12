@@ -1,6 +1,6 @@
 # Risks, Assumptions & Open Questions
 
-> **Status:** Living · **Updated:** 2026-07-05
+> **Status:** Living · **Updated:** 2026-07-12
 >
 > Reviewed at each phase boundary. Severity = Impact × Likelihood. "Owner" =
 > the project owner / sole developer initially.
@@ -17,8 +17,9 @@
 | R6 | **Supabase MCP prompt-injection** could exfiltrate private data if an AI agent has write/prod access. | High (if misused) | Dev project only, read-only mode, single-project scope; never production write. ([data-and-privacy](../architecture/data-and-privacy.md)) | Policy set. |
 | R7 | **Recurrence/season logic bugs** (the exact Southern-hemisphere failure Bonsai Empire shipped). | Med | Explicit `hemisphere` field; pure, unit-tested season/recurrence functions; test the season-window skip case. | Planned in testing strategy. |
 | R8 | **Solo-developer bus factor / momentum loss.** | Med | Thorough docs, ADRs, CI, and a backlog so work can pause/resume (or transfer) cleanly. | Ongoing. |
-| R9 | **Data loss / no backups** on a free tier. | High | Owner-confirmed 2026-07-06: the free tier has **no managed backups**. Weekly automated DB dump shipped (`backup.yml`, 90-day artifacts; arm via the Session-pooler `SUPABASE_DB_URL`). Remaining gaps, scheduled in the [improvement plan](../roadmap/improvement-plan.md): a restore drill (S08.11 — a backup is a hope until restored once) and **photo bytes** (DB dumps exclude the bucket; monthly manual photo-archive export until the M9.3 bucket mirror). In-app export stays the on-demand copy. | Mitigated — drill + photo backup pending. |
+| R9 | **Data loss / no backups** on a free tier. | High | Owner-confirmed 2026-07-06: the free tier has **no managed backups**. Weekly automated DB dump shipped (`backup.yml`, 35-day artifacts; arm via the Session-pooler `SUPABASE_DB_URL`), **AES-256-encrypted before upload** (fails loud if `BACKUP_ENCRYPTION_KEY` is missing — a public-repo artifact must never leak plaintext `auth.users`). Restore **drill completed 2026-07-08**. **Photo bytes** now mirrored monthly to Backblaze B2 (`photo-backup.yml`, incremental, never deletes). In-app export stays the on-demand copy. | Mitigated — DB + photo backups shipped, encrypted, restore-drilled. |
 | R10 | **Over-engineering the domain** (premature normalization of pots/species/wiring). | Med | MVP keeps current-state-on-tree + event log; normalize only when a concept earns it. | Controlled by scope. |
+| R11 | **Magic-link sign-in fails in some in-app / cross-browser contexts** (the link opens in a different browser than it was requested from, breaking the PKCE handshake — hit on iPhone in-app browsers). | Med | 6-digit **OTP code fallback** shipped (`verifyOtp`, `type:'email'`); the same email carries `{{ .Token }}` alongside the link, so a code entered in the original browser completes sign-in when the link can't. Additive to magic-link-first ([ADR-0010](../decisions/0010-auth-magic-link-first.md)); OTP expiry shortened. | Mitigated. |
 
 ## Resolved decisions (owner-confirmed 2026-06-26)
 
@@ -28,8 +29,9 @@ The Phase-0 open questions are now answered:
    we optimize it for present-day build/preview velocity and keep the app
    portable. Flip to Cloudflare only if/when commercial becomes real
    ([ADR-0003](../decisions/0003-hosting-vercel.md), reaffirmed).
-2. **Auth → email magic-link only** for the MVP; Google OAuth deferred to Phase 2
-   ([ADR-0010](../decisions/0010-auth-magic-link-first.md)).
+2. **Auth → email magic-link** for the MVP (with an additive **6-digit OTP code
+   fallback** for cross-browser/in-app-browser cases — see R11); Google OAuth
+   deferred to Phase 2 ([ADR-0010](../decisions/0010-auth-magic-link-first.md)).
 3. **Collection size → ~40–50 trees.** Comfortably within free-tier storage with
    compression (see R4 and [cost-model](../operations/cost-model.md)); small
    enough that pagination/performance is a non-issue for the MVP.

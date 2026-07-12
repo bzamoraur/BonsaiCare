@@ -1,6 +1,6 @@
 # Architecture Overview
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-12
 >
 > The system-level picture. Decisions are recorded as ADRs in
 > [`docs/decisions/`](../decisions/); this doc ties them together.
@@ -85,7 +85,16 @@ Summary — full rationale in the ADRs.
 
 - **Auth:** Supabase Auth, **email magic-link** — live since M1 (no passwords to
   leak; OAuth remains a Phase 2 option — [ADR-0010](../decisions/0010-auth-magic-link-first.md)).
-  Session persisted; no forced re-login (a competitor pain).
+  Session persisted; no forced re-login (a competitor pain). A **6-digit OTP
+  code** is an additive fallback for contexts where the magic link opens in a
+  different browser and breaks the PKCE handshake (e.g. iPhone in-app browsers);
+  the sign-up/magic-link emails now carry both a link and a code.
+- **Internationalization:** the UI ships **bilingual (English + Spanish)** via
+  next-intl 4 with a cookie-stored locale (no URL routing); pre-login locale is
+  inferred from `Accept-Language`. `messages/en.json` + `messages/es.json` are
+  held at parity by a guard test; all friend-facing surfaces (login, settings,
+  today, collection, calendar, plan, quick-log, tree/care/task forms,
+  tree-detail, error boundaries, enum label maps) are translated.
 - **Offline:** installable + offline-*tolerant* (cached app shell via the service
   worker). **Not** offline-first with sync in MVP — a deliberate scope choice
   ([mvp-scope](../product/mvp-scope.md)).
@@ -105,8 +114,10 @@ Summary — full rationale in the ADRs.
   [`.env.example`](../../.env.example) and
   [setup/04](../setup/04-environment-variables.md). Nothing secret in the repo.
 - **Data ownership:** CSV/JSON export from early on (anti-lock-in trust feature).
-- **Observability (MVP-light):** Vercel logs + Supabase logs; add lightweight
-  error reporting (e.g. Sentry free) only if needed.
+- **Observability (MVP-light):** Vercel logs + Supabase logs, plus a durable,
+  PII-poor **`app_errors`** log (client-boundary + server errors) the owner
+  reads on `/admin` — the interim record until a hosted tool (e.g. Sentry) is
+  worth adding. See [data-and-privacy](./data-and-privacy.md).
 
 ## Future-proofing (without over-building now)
 

@@ -1,12 +1,14 @@
 # Domain Model
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-12
 >
 > Reviewed against competitor research (see the
 > [benchmark](../research/benchmark.md)). This document defines the
 > **conceptual** model; the physical schema lives in `supabase/migrations/`
-> (implemented through the tasks migration) and must stay consistent with
-> this file — when they drift, reconcile in the same PR.
+> (implemented across the migrations in that directory, now through
+> `20260711130000_b2_purge_queue.sql`) and must stay consistent with this file
+> — when they drift, reconcile in the same PR. Operational/system tables that
+> aren't part of a user's aggregate are called out separately below.
 
 ## Design principles
 
@@ -32,7 +34,10 @@
 5. **Privacy by construction.** Every row that belongs to a user carries
    `owner_id`. Postgres Row-Level Security (RLS) enforces that users only ever
    read/write their own data. See
-   [Data, Security & Privacy](./data-and-privacy.md).
+   [Data, Security & Privacy](./data-and-privacy.md). The handful of
+   **operational** tables (`app_errors`, `b2_purge_queue`; see below) are the
+   deliberate exception — not part of any user's aggregate, RLS **on with no
+   policies**, reachable only through `SECURITY DEFINER` functions.
 
 ## Entity overview
 
@@ -200,6 +205,53 @@ trivially editable.
 | Season as an entity | Derived from date + `profile.hemisphere`. A lookup table is overkill. |
 | Sharing / multi-user trees | Each trusted user has their own account + collection. Sharing is a future feature; the `owner_id` model doesn't preclude it. |
 | Styling/pruning/repotting as separate tables | They are `care_log_entry` types. Promote to dedicated tables only if a type earns rich, heavily-queried structure. |
+
+## System & operational tables (outside the owner aggregate)
+
+These tables are **not** part of any user's aggregate and don't appear in the
+entity diagram. RLS is **on with no policies** (all API grants revoked); they
+are reachable only through `SECURITY DEFINER` functions. They exist to run the
+service, not to model a user's collection.
+
+### app_errors (durable error log)
+A PII-poor crash log the owner reads on `/admin` — the interim record until a
+hosted tool (e.g. Sentry) is worth adding (#134/#135).
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | uuid (PK) | |
+| `occurred_at` | timestamptz | Indexed `desc` for the recent-errors read. |
+| `owner_id` | uuid (FK auth.users), nullable | `ON DELETE CASCADE`; null when the crash had no session. |
+| `source` | enum(`client`,`server`) | Where the error was captured. |
+| `context` | text (≤200) | Machine tag (e.g. a route/action name) — never user content. |
+| `message` | text (≤2000) | Error message. |
+| `digest` | text (≤100) | Matches Next's `error.digest`. |
+| `path` | text (≤500) | **Pathname only** — never the query string. |
+| `user_agent` | text | The reporting client. |
+| `release` | text | Deploy commit SHA. |
+
+- **Write path:** `record_client_error()` (`SECURITY DEFINER`) stamps
+  `owner_id := auth.uid()` itself and is granted to `anon`, so a crash on a
+  signed-out `/login` still records.
+- **Read path:** `recent_app_errors()` is owner-gated on the
+  `private.app_config` singleton (fails **closed** to null; limit clamped to
+  `[1,500]`).
+
+### b2_purge_queue (off-site delete propagation)
+One row per deleted account, so account deletion can reach the off-site
+Backblaze B2 photo mirror the app runtime holds no credentials for (#134/#136).
+
+| Field | Type | Notes |
+|---|---|---|
+| `uid` | uuid (PK) | The user's Storage prefix to purge. |
+| `requested_at` | timestamptz | Partial index `where purged_at is null`. |
+| `purged_at` | timestamptz, nullable | Set once the B2 job has drained the prefix. |
+
+Intentionally **FK-less and `owner_id`-less** so the row **outlives** the
+`auth.users` delete that enqueues it. Written by `delete_my_account()` (still a
+`void` signature) in the same transaction *before* the cascade; read/updated by
+`b2-purge.yml` + `scripts/purge-b2.mjs` via `service_role` (`BYPASSRLS`, granted
+`select, update`).
 
 ## Integrity & edge cases to honor in implementation
 

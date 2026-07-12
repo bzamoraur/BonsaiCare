@@ -1,6 +1,6 @@
 # Improvement Plan — from "feature-complete" to "loved" (post-M5)
 
-> **Status:** Accepted (owner, 2026-07-06) · **Updated:** 2026-07-08 (Sprint 08 complete)
+> **Status:** Accepted (owner, 2026-07-06) · **Updated:** 2026-07-12 (Sprint 08 ✅; M6 Sprints 09–10 ✅; M7 Sprint 11 — i18n S11.3 ✅ + OTP S11.1 ✅ shipped; gate slices S11.2/11.4/11.5 pending)
 >
 > **Owner decisions recorded (2026-07-06):** ① plan order approved as written;
 > ② registration = **allowlist**; ③ repo goes **public** (branch protection +
@@ -27,8 +27,9 @@
    tiers. The two budget watch-items (GitHub Actions minutes, Supabase egress)
    get explicit mitigations.
 3. **Friends gates before invites.** No URL is shared until M7's exit criteria
-   pass — that ordering is a safety property (open signup + unthrottled OTP +
-   iOS login dead end), not just polish.
+   pass — that ordering is a safety property. The **iOS-login dead end is now fixed**
+   (OTP code fallback, S11.1 ✅, #137); the still-open gates are **open signup** (no
+   allowlist yet) and **unthrottled OTP** (no CAPTCHA yet), not just polish.
 4. **Evidence re-orders the tail.** M8/M9 ordering is a hypothesis; once usage
    analytics (M7) exist, lived friction re-prioritizes them — per the roadmap's
    standing rule.
@@ -113,6 +114,13 @@ register, runbook, env reference) ships with this plan's own PR — already done
 
 ## M6 — "A daily driver at 40 trees" (Sprints 09–10)
 
+> ✅ **COMPLETE.** Both sprints shipped: batch care logging (#83), recency chips
+> + repeat-last-event (#84), completed-task history (#86/#88), archived filter +
+> unarchive (#92), thumbnails (#101), lightbox + compare (#102), the stable-URL
+> service-worker photo cache (#111), and the craft-serif heading pass (#105). The
+> daily-driver exit — a full watering/feeding round in <1 min with instant
+> photos — is met.
+
 **Sprint 09 — "Log 40 trees in 40 seconds"** (capture at scale):
 
 1. **Batch care logging** — multi-select trees (reuse the plan/schedule picker)
@@ -158,16 +166,24 @@ register, runbook, env reference) ships with this plan's own PR — already done
 
 **Sprint 11 — "Speak their language, guard the door":**
 
-1. **OTP code sign-in** — `{{ .Token }}` in the email template + 6-digit input
-   on the "check your email" screen (`verifyOtp`). Fixes the iOS installed-PWA
-   dead end AND link-scanner failures; additive per ADR-0010. 【high #4】
+> **In progress:** S11.1 OTP ✅ (#137) and S11.3 i18n ES/EN ✅ (#109–#132) shipped;
+> the door-guarding slices remain — S11.2 registration gate + CAPTCHA, S11.4
+> hemisphere onboarding, and S11.5 species combobox — all pending.
+
+1. ✅ **OTP code sign-in — shipped (PR #137).** `{{ .Token }}` added to **both** the
+   Confirm-signup and Magic-Link email templates + a 6-digit input (`verifyOtp`, type
+   `'email'`) on the "check your email" screen; Auth OTP expiry shortened. Fixes the
+   iPhone in-app-browser / installed-PWA PKCE dead end; additive per ADR-0010. 【high #4】
 2. **Registration gate** — `allowed_emails` + before-user-created auth hook
    (owner decision: default gated), warm "ask for an invite" login state,
    pgTAP for the rejection; **Turnstile CAPTCHA** on OTP (protects the email
    quota — the owner's own login). 【security lens】
-3. **i18n ES/EN** — the promised ADR (proposal: typed dictionary, locale on
-   `profiles`, cookie fallback), scaffold, Spanish translations, locale-driven
-   Intl formats. Before more strings sprawl — the backlog's own warning.
+3. ✅ **i18n ES/EN — shipped (PRs #109–#132).** Delivered on **next-intl 4** with a
+   **cookie-resolved locale** (no URL routing) + English fallback — *not* the
+   originally-proposed "typed dictionary + locale on `profiles`"; full Spanish across
+   every surface + enum label maps, an en/es parity guard, and an **Accept-Language**
+   pre-login default (#126). Done before strings sprawled — the backlog's warning, met.
+   **ADR still owed** (record the as-built approach).
 4. **Hemisphere onboarding** — one-time prompt (locale-guessed default) —
    southern users currently get inverted seasons silently.
 5. **Species combobox** — activate the dormant seeded lookup on tree forms
@@ -214,7 +230,12 @@ register, runbook, env reference) ships with this plan's own PR — already done
 3. **Photo-bucket backup — ✅ pulled forward, DONE 2026-07-06** (the owner had
    the B2 account ready, so this data-safety item didn't wait for M9):
    `photo-backup.yml` mirrors `tree-photos` to Backblaze B2 monthly,
-   incrementally, never deleting on the mirror side.
+   incrementally, never deleting on the mirror side. Since then account deletion
+   also reaches this off-site mirror — `delete_my_account()` enqueues the user's
+   prefix in `b2_purge_queue`, drained monthly by `b2-purge.yml` +
+   `scripts/purge-b2.mjs` (#136), closing the ADR-0008 off-site delete-path gap;
+   and the **weekly DB backup is now AES-256-encrypted and fail-loud** if
+   `BACKUP_ENCRYPTION_KEY` is missing (#116, the beta-readiness CRITICAL fix).
 4. **Read-only share link per tree** — revocable token → minimal public
    progression page. The first organic growth loop.
 5. **Desktop layout** — side rail + two-column tree detail; **year-in-review**

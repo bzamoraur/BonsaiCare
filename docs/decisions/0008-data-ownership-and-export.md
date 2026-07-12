@@ -3,6 +3,9 @@
 - **Status:** Accepted
 - **Date:** 2026-06-26
 - **Deciders:** Owner + Claude
+- **See also:** [ADR-0014](./0014-offsite-delete-purge-queue.md) implements the
+  off-site (Backblaze B2 mirror) propagation of the "account deletion is real"
+  corollary — enqueue at deletion + an out-of-band Actions purge job.
 
 ## Context
 

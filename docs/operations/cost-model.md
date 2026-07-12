@@ -1,6 +1,6 @@
 # Cost Model
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-12
 >
 > Free-first by policy. This documents what's free, the limits, and the **exact
 > triggers** that would push us to pay — so cost is a deliberate decision, never
@@ -21,7 +21,7 @@ app goes **commercial** (Vercel) or photo storage outgrows 1 GB (Supabase).
 |---|---|---|---|---|
 | **Vercel** (Hobby) | Generous bandwidth/builds; **non-commercial only** | Tiny | **Going commercial** ([R5](../product/risks-and-assumptions.md)) → must move plan | **Pro ~$20/mo** (or migrate to Cloudflare Pages free) |
 | **Supabase** | ~500 MB DB, **1 GB storage**, 50k MAU; **pauses after ~7 days idle** | A few users, mostly photos | **Storage > 1 GB** ([R4](../product/risks-and-assumptions.md)) or needing no-pause/backups | **Pro ~$25/mo** |
-| **GitHub** | Free private repos + Actions minutes (ample for solo) | CI + keep-warm | Heavy CI minutes (unlikely) | Usage-based |
+| **GitHub** | Free Actions minutes (ample for solo) | CI + scheduled ops (keep-warm, weekly encrypted backup, monthly photo mirror, storage sweep, B2 purge) | Heavy CI minutes (unlikely) | Usage-based |
 | **Domain** (optional) | — | Optional custom domain | If you want a custom domain | ≈ €10–15/yr |
 | **Email (auth)** | Supabase built-in sender (rate-limited) | Low volume | Reliable delivery / volume | Custom SMTP, often free tiers (e.g. Resend) |
 

@@ -1,6 +1,6 @@
 # Operations Runbook
 
-> **Status:** Current · **Updated:** 2026-07-06
+> **Status:** Current · **Updated:** 2026-07-12
 >
 > How to keep the app healthy and recover from problems. Grows as we hit (and
 > document) real situations. What's actually armed/live right now:
@@ -44,8 +44,13 @@ the project so a personal "production" app stays responsive.
 ## Backups & restore (R9 — free tier has NO managed backups)
 
 **What runs:** `.github/workflows/backup.yml` — every Sunday 05:00 UTC, dumps
-the hosted DB (schema + data) via `supabase db dump` and uploads
-`db-backup-<run>` artifacts kept **90 days**. **Fails loud** (since S08.8): a
+the hosted DB (schema + data) via `supabase db dump`, then **encrypts the
+tarball** (AES-256-CBC via `openssl`, using the `BACKUP_ENCRYPTION_KEY` secret)
+and uploads the resulting `db-backup-<run>` artifact (`backup.tar.gz.enc`) kept
+**35 days**. The repo is PUBLIC and the dump contains `auth.users` (emails,
+password hashes, session tokens), so the step **fails loud and uploads nothing**
+if `BACKUP_ENCRYPTION_KEY` is missing — it never uploads plaintext (addressed
+the beta-readiness CRITICAL, #116, 2026-07-11). **Fails loud** (since S08.8): a
 missing or malformed secret, a wrong connection type (direct/transaction
 pooler), a failed dump, or a trivially-empty dump all turn the run red and
 auto-file an "Ops alert" issue. A malformed-URL failure almost always means the
@@ -77,7 +82,13 @@ Editor** with no local tooling — the drill used that path.
    `bonsai-restore-drill`; delete it afterwards — it holds a real copy of
    `auth.users`).
 2. Download the latest `db-backup-…` artifact (Actions → Weekly database backup →
-   newest run → Artifacts); unzip → `backup-schema.sql` + `backup-data.sql`.
+   newest run → Artifacts) and unzip it → `backup.tar.gz.enc`. **Decrypt +
+   unpack** with the backup passphrase (`BACKUP_ENCRYPTION_KEY`):
+   `openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in backup.tar.gz.enc -pass env:BACKUP_ENCRYPTION_KEY | tar -xz`
+   → `backup-schema.sql` + `backup-data.sql`. (Artifacts auto-delete after 35
+   days. ⚠ The 2026-07-08 drill restored a pre-encryption plaintext dump, so
+   this decrypt step is not yet drill-tested — and a lost passphrase makes every
+   encrypted backup unrecoverable.)
 3. In the **new project's** SQL Editor, run `backup-schema.sql` (builds tables,
    RLS, functions, FKs → "Success, no rows"; a few "already exists" NOTICEs are
    normal), then run **the whole** `backup-data.sql`. Its first line
@@ -165,11 +176,29 @@ Singleton table (one row only). To change the owner later, `update
 private.app_config set owner_user_id = '<new uuid>';`. If `/admin` shows the
 fallback alert after seeding, confirm the seeded uuid equals `OWNER_USER_ID`.
 
+## Error visibility (`app_errors` → /admin)
+
+A durable, PII-poor error log — the interim record until a hosted tool like
+Sentry is worth adding (#134/#135). `public.app_errors` has RLS **on with NO
+policies** (direct API grants revoked), so it is reachable only through
+`SECURITY DEFINER` functions:
+
+- **Write path:** `record_client_error` (SECURITY DEFINER, self-stamps
+  `owner_id` from `auth.uid()`, granted to `anon` so a crash on the signed-out
+  `/login` screen still records). Client crashes are reported by `error.tsx` /
+  `global-error.tsx` via `navigator.sendBeacon` → the **public** `/api/log-error`
+  route (8 KB body cap, validates + length-bounds, best-effort `204`); server
+  errors are persisted via Next `after()`.
+- **Read path:** the owner reads them on **/admin → "Recent errors"** via
+  `recent_app_errors`, gated inside the DB on the same `private.app_config` owner
+  singleton as `owner_metrics` (must be seeded — see above; fails **CLOSED** to
+  `NULL`, and every field is HTML-escaped on render).
+
 ## Incident playbook
 
 | Situation | First checks | Action |
 |---|---|---|
-| **App down / 500s** | Vercel deploy status + logs; Supabase status | Roll back: Vercel → Deployments → promote last good. Check env vars exist for Production. |
+| **App down / 500s** | **/admin → Recent errors** (`app_errors`); Vercel deploy status + logs; Supabase status | Roll back: Vercel → Deployments → promote last good. Check env vars exist for Production. |
 | **Auth broken** | Supabase Auth URL config; `NEXT_PUBLIC_SITE_URL`; redirect URLs | Ensure prod URL is in redirect list; redeploy after env fix. |
 | **DB unreachable** | Supabase project state (paused?) | Resume project; verify keep-warm; check the password/keys weren't rotated. |
 | **RLS leak suspected** | Run the isolation test; review recent policy migrations | Patch policy via a new migration; rotate keys if exposure suspected; audit. |

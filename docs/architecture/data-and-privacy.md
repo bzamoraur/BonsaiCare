@@ -1,6 +1,6 @@
 # Data, Security & Privacy
 
-> **Status:** Current · **Updated:** 2026-07-05
+> **Status:** Current · **Updated:** 2026-07-12
 >
 > This app holds personal photos and private collection data for an EU-based
 > owner. Privacy is treated as a first-class constraint, not an afterthought.
@@ -54,6 +54,23 @@ Rules we hold ourselves to:
   storage budget and speeds loads). Original EXIF GPS is stripped on processing
   to avoid leaking photo locations.
 
+## Operational error log (`app_errors`)
+
+The interim error monitor (until a hosted tool is worth adding) is a durable
+`app_errors` table, and it is **PII-poor by construction**:
+
+- **What it records:** a machine `context` tag, the error `message`/`digest`,
+  the **pathname only** (never the query string), the user-agent, and the
+  release SHA. No collection content, no query params.
+- **Owner-only read:** the owner reads it on `/admin` via `recent_app_errors`,
+  gated on the `private.app_config` singleton and failing **closed**. The table
+  has RLS **on with no policies** and its API grants revoked.
+- **Safe to write while signed out:** the sole writer, `record_client_error`,
+  is `SECURITY DEFINER` and self-stamps `owner_id` from `auth.uid()`, so a crash
+  on `/login` records but is never attributable to another user.
+- **Inert on display:** `/admin` renders every field escaped, so a crafted
+  `message`/`user_agent` is shown as text and cannot execute.
+
 ## Secrets & configuration
 
 - All secrets via environment variables; see
@@ -87,9 +104,13 @@ For personal + trusted-user use this is light, but we build the right habits:
   data. No analytics/tracking by default.
 - **Right to access / portability:** satisfied by the CSV/JSON **export**
   feature.
-- **Right to erasure:** account deletion cascades to all owned rows and storage
-  objects (implement a real delete path, not a soft flag, for *account* deletion;
-  trees use soft-archive but that's user-facing, not legal deletion).
+- **Right to erasure:** account deletion is a real delete path, not a soft flag.
+  `delete_my_account()` cascades every owned row and the user's Storage objects,
+  and **enqueues the user's photo prefix for off-site purge** (`b2_purge_queue`)
+  so the scheduled B2-mirror cleanup (`b2-purge.yml`) removes their photos from
+  the off-site backup too — deletion reaches every copy, not just the live
+  bucket. (Trees use soft-archive, but that's a user-facing convenience, not
+  legal deletion.)
 - **Data residency:** choose an **EU region** for the Supabase project at
   creation (see [setup/02](../setup/02-supabase-project.md)). Document where data
   lives.
@@ -100,7 +121,11 @@ For personal + trusted-user use this is light, but we build the right habits:
 
 - The user-facing **export doubles as a manual backup**; encourage periodic
   exports.
-- Understand the free tier's backup limits during setup (see
-  [runbook](../operations/runbook.md), R9 in
-  [risks](../product/risks-and-assumptions.md)). Consider a scheduled `pg_dump`
-  via GitHub Actions if free backups prove insufficient.
+- The free tier has no managed backups, so a **weekly `pg_dump`** runs in GitHub
+  Actions (`backup.yml`, 35-day artifacts) and a **monthly photo-bytes mirror**
+  copies the private bucket to Backblaze B2 (`photo-backup.yml`, incremental,
+  never deletes). Restore verified once (drill, 2026-07-08). See R9 in
+  [risks](../product/risks-and-assumptions.md).
+- **The DB dump is encrypted (AES-256) before upload** and the job **fails loud**
+  if `BACKUP_ENCRYPTION_KEY` is missing — a public-repo artifact must never carry
+  a plaintext dump of `auth.users` (emails, password hashes, session tokens).
