@@ -193,6 +193,22 @@
     "errTypeDelete": "Type DELETE to confirm.",
     "errDeleteFailed": "We could not delete your account."
   },
+  "onboarding": {
+    "eyebrow": "Getting started",
+    "addTreeTitle": "Add your first tree",
+    "addTreeBody": "Snap a photo and give it a name — that's all it takes. Species, pot, and the rest can wait until you feel like it.",
+    "logCareTitle": "Log care in seconds",
+    "logCareBody": "Watering, feeding, pruning, repotting… tap the + from any screen to record what you did. Every entry is timestamped for you.",
+    "timelineTitle": "Follow each tree's story",
+    "timelineBody": "Your notes and photos merge into one timeline per tree, so you can watch it change across the seasons.",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Add my first tree",
+    "skipAria": "Skip the tour",
+    "settingsLabel": "Onboarding tour",
+    "settingsDescription": "Take the quick walkthrough again.",
+    "replay": "Replay tour"
+  },
   "taskTypes": {
     "watering": "Water",
     "fertilizing": "Fertilize",

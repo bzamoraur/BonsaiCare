@@ -62,6 +62,19 @@ export default async function globalSetup() {
   });
   if (signInError) throw new Error(`Failed to sign in e2e user: ${signInError.message}`);
 
+  // Treat the shared test user as already-onboarded (mirrors the production
+  // backfill for pre-existing users) so the first-run tour modal never overlays
+  // and focus-traps the flow specs. The dedicated onboarding spec opens the tour
+  // explicitly via the Settings "replay" control instead. RLS permits the own-row
+  // update through the authenticated client.
+  const { error: onboardingError } = await ssr
+    .from("profiles")
+    .update({ onboarding_seen_at: new Date().toISOString() })
+    .eq("id", created.user.id);
+  if (onboardingError) {
+    throw new Error(`Failed to mark e2e user onboarded: ${onboardingError.message}`);
+  }
+
   const cookies = Array.from(captured.values());
   if (cookies.length === 0) {
     throw new Error(
