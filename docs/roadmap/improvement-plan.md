@@ -191,8 +191,11 @@ register, runbook, env reference) ships with this plan's own PR — already done
 
 **Sprint 12 — "Welcome, and watch":**
 
-1. **First-run tour** — skippable 3-step (add tree → log care → plan), profile
-   flag, re-openable from Settings; tree-aware Today empty-state CTAs.
+1. ✅ **First-run tour — shipped (PRs #140–#141).** Skippable 3-step native-`<dialog>`
+   carousel (add a tree → log care → read the timeline), shown once per user via the
+   `profiles.onboarding_seen_at` flag, re-openable from Settings; ES/EN, no new
+   dependency. (The originally-listed "→ plan" third step became "→ read the
+   timeline" per the backlog's framing.)
 2. **Usage analytics** — ADR + `usage_events` table (event, user, ts; RLS;
    aggregate reads only) + key-action instrumentation; **admin v2**: per-feature
    counts, last-active, signups sparkline; Vercel Web Analytics on.

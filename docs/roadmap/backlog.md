@@ -117,12 +117,12 @@ list for the reasoning). Re-order from real usage evidence.
   rollout, restrict signup to invited emails via a Supabase auth hook or an
   `allowed_emails` check. Owner decides open vs. gated before inviting. (P1 for
   the friends stage, S)
-- **First-run tutorial / onboarding tour** — the moment a friend opens the app
-  cold, a short guided walk-through (add a tree → log care → read the timeline)
-  turns "empty app" into "I get it." Skippable, re-openable from Settings, and
-  never shown twice unless asked. State lives in a `profiles` flag so it's
-  per-user, not per-device. Gate the *friends* release on this. (P1 for the
-  friends stage, M)
+- [x] **First-run tutorial / onboarding tour — ✅ shipped (PRs #140–#141).** A
+  skippable 3-step native-`<dialog>` carousel (add a tree → log care → read the
+  timeline), shown once per user via the `profiles.onboarding_seen_at` flag (#140)
+  and re-openable from **Settings → "Replay tour"**; fully ES/EN, no new
+  dependency. State lives on the profile so it's per-user, not per-device. This was
+  the P1 friends-release onboarding gate — now met.
 - [x] **Language switch (ES / EN) — ✅ shipped (PRs #109–#132).** Full Spanish
   across every friend-facing surface (login, settings, today, collection, calendar,
   plan, quick-log, care/task/tree forms, tree-detail, error boundaries, enum label

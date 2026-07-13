@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 import { DeleteAccountSection } from "./delete-account-section";
 import { DownloadButton } from "./download-button";
+import { ReplayTourButton } from "./replay-tour-button";
 import { SettingsForm } from "./settings-form";
 
 export const metadata = {
@@ -18,6 +19,7 @@ export const metadata = {
 
 export default async function SettingsPage() {
   const t = await getTranslations("settings");
+  const tOnboarding = await getTranslations("onboarding");
   const supabase = await createClient();
   const {
     data: { user },
@@ -66,6 +68,16 @@ export default async function SettingsPage() {
           <p className="text-muted-foreground text-sm">{t("languageDescription")}</p>
         </div>
         <LocaleSwitcher />
+      </section>
+
+      <hr className="border-border" />
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-sm font-medium">{tOnboarding("settingsLabel")}</h2>
+          <p className="text-muted-foreground text-sm">{tOnboarding("settingsDescription")}</p>
+        </div>
+        <ReplayTourButton />
       </section>
 
       <hr className="border-border" />

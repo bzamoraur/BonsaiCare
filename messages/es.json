@@ -193,6 +193,23 @@
     "errTypeDelete": "Escribe DELETE para confirmar.",
     "errDeleteFailed": "No pudimos eliminar tu cuenta."
   },
+  "onboarding": {
+    "eyebrow": "Primeros pasos",
+    "stepCounter": "Paso {current} de {total}",
+    "addTreeTitle": "Añade tu primer árbol",
+    "addTreeBody": "Haz una foto y ponle un nombre: con eso basta. La especie, la maceta y lo demás pueden esperar a cuando te apetezca.",
+    "logCareTitle": "Registra cuidados en segundos",
+    "logCareBody": "Riego, abonado, poda, trasplante… toca el + desde cualquier pantalla para anotar lo que hiciste. Cada entrada se marca con la fecha.",
+    "timelineTitle": "Sigue la historia de cada árbol",
+    "timelineBody": "Tus notas y fotos se unen en una única línea de tiempo por árbol, para ver cómo cambia con las estaciones.",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "finish": "Añadir mi primer árbol",
+    "skipAria": "Saltar el tutorial",
+    "settingsLabel": "Tutorial de bienvenida",
+    "settingsDescription": "Vuelve a ver el recorrido rápido.",
+    "replay": "Repetir tutorial"
+  },
   "taskTypes": {
     "watering": "Regar",
     "fertilizing": "Abonar",
