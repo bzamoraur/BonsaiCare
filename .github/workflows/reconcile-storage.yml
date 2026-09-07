@@ -10,9 +10,11 @@ name: Reconcile storage (orphan sweep)
 # lists orphan candidates and never deletes. At beta scale (a handful of
 # objects) unattended deletion of user photos is not worth its risk. The only
 # way to delete is a MANUAL "Run workflow" with the dry_run box explicitly
-# UNTICKED, after reading a dry-run listing. The script enforces the same rule
-# independently of the expression below (it forces report-only on a
-# `schedule` event), so no single mistake can turn the cron destructive.
+# UNTICKED, after reading a dry-run listing. The script enforces the same
+# fail-safe rule independently of the step below (it deletes ONLY when
+# GITHUB_EVENT_NAME=workflow_dispatch AND DRY_RUN=false; anything else,
+# including a bare local invocation, is report-only), so no single mistake can
+# turn the cron destructive.
 
 on:
   schedule:

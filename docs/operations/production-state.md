@@ -11,7 +11,7 @@
 
 | Fact | Value | Verified |
 |---|---|---|
-| Migration high-water mark | `20260711130000_b2_purge_queue` (all 12 repo migrations pushed) | 2026-07-12 (owner ran `db push`; `app_errors` + `b2_purge_queue` live) |
+| Migration high-water mark | `20260713100000_onboarding_tour_flag` (all 13 repo migrations pushed) | 2026-09-06/07 (owner's read-only production SQL check: latest recorded migration `20260713100000` / `onboarding_tour_flag`; `profiles.onboarding_seen_at` column exists) |
 | Account deletion live-tested | Yes — throwaway-account acceptance test | 2026-07-06 |
 | `anon` EXECUTE on SECURITY DEFINER fns | ✅ Revoked in S08.3 (#72); advisors cleared | 2026-07-07 |
 

@@ -4,8 +4,9 @@ name: Weekly database backup
 # DATABASE (schema + data) every week and keeps it as a downloadable artifact
 # for 90 days — GitHub's maximum for a public repository. (35 days was not
 # enough: a 5-week outage in Aug–Sep 2026 let every artifact expire, leaving no
-# backup at all.) A run that fails for weeks still shortens the surviving
-# history — a red run here is urgent, not cosmetic.
+# surviving GitHub Actions DB backup artifact — the live Supabase database was
+# the only confirmed current relational copy.) A run that fails for weeks still
+# shortens the surviving history — a red run here is urgent, not cosmetic.
 # The repo is PUBLIC and the dump contains auth.users (emails, password hashes,
 # session tokens), so the artifact is ENCRYPTED (AES-256 via openssl) before upload.
 # It requires the BACKUP_ENCRYPTION_KEY secret and FAILS LOUD (never uploads

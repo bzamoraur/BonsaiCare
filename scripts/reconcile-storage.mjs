@@ -5,15 +5,16 @@
 // window (so in-flight uploads are never touched), and removes them.
 //
 // Run by .github/workflows/reconcile-storage.yml with a service-role key (which
-// lives only in GitHub Actions secrets, never in the app runtime). Set
-// DRY_RUN=true to list without deleting. A deleting run refuses pathological
-// orphan counts (see sweepGuard) unless FORCE_SWEEP=true.
+// lives only in GitHub Actions secrets, never in the app runtime). A deleting
+// run refuses pathological orphan counts (see sweepGuard) unless FORCE_SWEEP=true.
 //
-// Deletion policy (2026-09): a SCHEDULED run is always report-only. This is
-// enforced here from GITHUB_EVENT_NAME as well as in the workflow's mode step,
-// so a wrong expression in the YAML can never make the cron delete user photos.
-// Only a manual dispatch with dry_run explicitly unticked reaches the delete
-// path — and it still passes through sweepGuard.
+// Deletion policy (2026-09, FAIL-SAFE): deleting happens ONLY when
+// GITHUB_EVENT_NAME=workflow_dispatch AND DRY_RUN=false — i.e. an owner pressed
+// "Run workflow" and unticked dry_run. Every other state is report-only: any
+// scheduled run, and any local/ad-hoc invocation (no event, unset DRY_RUN, or
+// DRY_RUN=false without the dispatch event). Enforced here (resolveDryRun) as
+// well as in the workflow's mode step, so neither a wrong YAML expression nor
+// a bare `node scripts/reconcile-storage.mjs` can delete user photos.
 
 import { createClient } from "@supabase/supabase-js";
 import {
