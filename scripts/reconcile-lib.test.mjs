@@ -4,6 +4,7 @@ import {
   DB_PAGE,
   fetchKnownPaths,
   planUploads,
+  resolveDryRun,
   sweepGuard,
   walkBucket,
 } from "./reconcile-lib.mjs";
@@ -263,5 +264,31 @@ describe("planUploads", () => {
 
   it("uploads everything into an empty mirror", () => {
     expect(planUploads([src("a", 1), src("b", 2)], new Map())).toEqual(["a", "b"]);
+  });
+});
+
+describe("resolveDryRun (2026-09 policy: a scheduled run can never delete)", () => {
+  it("forces report-only on a schedule event even when DRY_RUN says otherwise", () => {
+    expect(resolveDryRun({ GITHUB_EVENT_NAME: "schedule", DRY_RUN: "false" }).dryRun).toBe(true);
+    expect(resolveDryRun({ GITHUB_EVENT_NAME: "schedule" }).dryRun).toBe(true);
+  });
+
+  it("keeps a manual dispatch report-only when DRY_RUN=true (the default input)", () => {
+    expect(resolveDryRun({ GITHUB_EVENT_NAME: "workflow_dispatch", DRY_RUN: "true" }).dryRun).toBe(
+      true,
+    );
+  });
+
+  it("deletes only for a non-scheduled run with DRY_RUN explicitly not 'true'", () => {
+    expect(resolveDryRun({ GITHUB_EVENT_NAME: "workflow_dispatch", DRY_RUN: "false" }).dryRun).toBe(
+      false,
+    );
+    // Pre-existing local-invocation semantics are unchanged: unset ⇒ deleting.
+    expect(resolveDryRun({}).dryRun).toBe(false);
+  });
+
+  it("explains its decision", () => {
+    expect(resolveDryRun({ GITHUB_EVENT_NAME: "schedule" }).reason).toMatch(/scheduled/);
+    expect(resolveDryRun({ DRY_RUN: "true" }).reason).toBe("DRY_RUN=true");
   });
 });

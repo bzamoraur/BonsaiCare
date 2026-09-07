@@ -1,7 +1,11 @@
 name: Weekly database backup
 
 # Free-tier Supabase has NO managed backups (Risk R9). This dumps the hosted
-# DATABASE (schema + data) every week and keeps it as a downloadable artifact.
+# DATABASE (schema + data) every week and keeps it as a downloadable artifact
+# for 90 days — GitHub's maximum for a public repository. (35 days was not
+# enough: a 5-week outage in Aug–Sep 2026 let every artifact expire, leaving no
+# backup at all.) A run that fails for weeks still shortens the surviving
+# history — a red run here is urgent, not cosmetic.
 # The repo is PUBLIC and the dump contains auth.users (emails, password hashes,
 # session tokens), so the artifact is ENCRYPTED (AES-256 via openssl) before upload.
 # It requires the BACKUP_ENCRYPTION_KEY secret and FAILS LOUD (never uploads
@@ -104,7 +108,7 @@ jobs:
         with:
           name: db-backup-${{ github.run_id }}
           path: backup.tar.gz.enc
-          retention-days: 35
+          retention-days: 90 # GitHub's maximum for a public repo
 
       - name: Open an ops-alert issue on failure
         if: ${{ failure() }}

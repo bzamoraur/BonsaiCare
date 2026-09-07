@@ -143,3 +143,22 @@ export function sweepGuard({ orphanCount, objectCount, knownCount, dryRun, force
   }
   return { ok: true };
 }
+
+// Report-only vs deleting, decided from the process environment. A GitHub
+// `schedule` event is ALWAYS report-only, whatever DRY_RUN says — this is the
+// script-side half of the 2026-09 policy (the workflow's mode step is the other
+// half), so a wrong YAML expression alone can never make the cron delete user
+// photos. Otherwise DRY_RUN="true" means report-only and anything else means
+// deleting (unchanged pre-existing semantics for manual dispatch / local runs).
+export function resolveDryRun(env) {
+  if (env.GITHUB_EVENT_NAME === "schedule") {
+    return { dryRun: true, reason: "scheduled runs are always report-only" };
+  }
+  if (env.DRY_RUN === "true") {
+    return { dryRun: true, reason: "DRY_RUN=true" };
+  }
+  return {
+    dryRun: false,
+    reason: `DRY_RUN=${env.DRY_RUN ?? "(unset)"} on event ${env.GITHUB_EVENT_NAME ?? "(none)"}`,
+  };
+}

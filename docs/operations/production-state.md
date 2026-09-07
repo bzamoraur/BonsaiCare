@@ -1,6 +1,6 @@
 # Production State
 
-> **Status:** Living · **Updated:** 2026-07-12
+> **Status:** Living · **Updated:** 2026-09-07
 >
 > The one-page answer to "what is actually live and armed in production?" —
 > the question no other doc could answer at the 2026-07-06 audit. The owner (or
@@ -36,10 +36,10 @@
 
 | Secret | Arms | State |
 |---|---|---|
-| `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` | keep-warm | ✅ Verified live 2026-07-06: run 28790896388 → `HTTP 200 — database queried` (the earlier 401 was the workflow's bug, fixed S08.8) |
-| `SUPABASE_DB_URL` | weekly DB backup | ✅ Verified live 2026-07-06: run 28816036702 SUCCESS after the owner reset the DB password (first value had URL-breaking characters) |
-| `BACKUP_ENCRYPTION_KEY` | weekly DB backup ENCRYPTION (AES-256) | `backup.yml` (#116) fails loud and uploads nothing without it (resolves the beta-readiness CRITICAL: a public-repo artifact must not leak `auth.users`). Owner to confirm it is set AND the passphrase is escrowed off-repo. |
-| `SUPABASE_SERVICE_ROLE_KEY` | orphan sweep + photo mirror + B2 purge | ✅ Verified live 2026-07-06: dry-run 28816343325 → `Scanned 1 object(s); 1 known; 0 orphans` (Supabase key label is `github_orphan_sweep` — underscores; hyphens not allowed) |
+| `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` | keep-warm (**3×/day since 2026-09**, was every 3 days) | ✅ Re-verified 2026-09-06: manual run #29 → `HTTP 200 — database queried`. ⚠ Every scheduled ping from 2026-08-10 to 2026-09-04 failed (`HTTP 000`, project unreachable — likely a Free-tier pause; see runbook §Keep-warm). |
+| `SUPABASE_DB_URL` | weekly DB backup (**90-day artifacts since 2026-09**, was 35) | ✅ Re-verified 2026-09-06: manual dispatch SUCCESS → artifact `db-backup-34061709481`. ⚠ Scheduled runs failed 2026-08-09 → 2026-09-06 (pooler "tenant not found"); all earlier artifacts expired — this artifact is the oldest surviving backup. |
+| `BACKUP_ENCRYPTION_KEY` | weekly DB backup ENCRYPTION (AES-256) | ✅ **Passphrase verified 2026-09-06/07**: the owner decrypted `db-backup-34061709481` locally (`… \| tar -tz` listed both `.sql` files). A full restore drill of an *encrypted* artifact is still pending (the 2026-07-08 drill was plaintext). |
+| `SUPABASE_SERVICE_ROLE_KEY` | orphan sweep (**scheduled = report-only since 2026-09**) + photo mirror + B2 purge | ✅ Re-verified 2026-09-06: sweep dry-run #4 → `Scanned 3 object(s); 2 known; 0 orphans`; mirror run #4 → `Source: 3 · mirror: 3 · to upload: 0`. B2 purge not re-run (queue empty; its delete path stays deliberately unexercised). (Supabase key label is `github_orphan_sweep` — underscores; hyphens not allowed) |
 | `B2_KEY_ID` / `B2_APP_KEY` / `B2_BUCKET` (+ `B2_ENDPOINT`, unused by the native-API script) | photo mirror + B2 purge (delete-path) | Set 2026-07-06 — reused as-is by `b2-purge.yml` (Read & Write key already grants `deleteFiles`; no new secret) |
 
 ## Owner decisions in force (2026-07-06)
