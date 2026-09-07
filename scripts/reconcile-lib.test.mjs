@@ -4,6 +4,7 @@ import {
   DB_PAGE,
   fetchKnownPaths,
   planUploads,
+  resolveDryRun,
   sweepGuard,
   walkBucket,
 } from "./reconcile-lib.mjs";
@@ -263,5 +264,49 @@ describe("planUploads", () => {
 
   it("uploads everything into an empty mirror", () => {
     expect(planUploads([src("a", 1), src("b", 2)], new Map())).toEqual(["a", "b"]);
+  });
+});
+
+describe("resolveDryRun (2026-09 fail-safe policy: delete ONLY on workflow_dispatch + DRY_RUN=false)", () => {
+  const mode = (env) => resolveDryRun(env).dryRun;
+
+  it("1. schedule + DRY_RUN=false → report-only", () => {
+    expect(mode({ GITHUB_EVENT_NAME: "schedule", DRY_RUN: "false" })).toBe(true);
+    expect(mode({ GITHUB_EVENT_NAME: "schedule" })).toBe(true);
+  });
+
+  it("2. workflow_dispatch + DRY_RUN=true (the default input) → report-only", () => {
+    expect(mode({ GITHUB_EVENT_NAME: "workflow_dispatch", DRY_RUN: "true" })).toBe(true);
+  });
+
+  it("3. workflow_dispatch + DRY_RUN=false → DELETING (the only deleting state)", () => {
+    expect(mode({ GITHUB_EVENT_NAME: "workflow_dispatch", DRY_RUN: "false" })).toBe(false);
+  });
+
+  it("4. no event, no DRY_RUN (bare local invocation) → report-only", () => {
+    expect(mode({})).toBe(true);
+  });
+
+  it("5. no event + DRY_RUN=false → report-only", () => {
+    expect(mode({ DRY_RUN: "false" })).toBe(true);
+  });
+
+  it("6. any other event + DRY_RUN=false → report-only", () => {
+    expect(mode({ GITHUB_EVENT_NAME: "push", DRY_RUN: "false" })).toBe(true);
+    expect(mode({ GITHUB_EVENT_NAME: "pull_request", DRY_RUN: "false" })).toBe(true);
+  });
+
+  it("never deletes on a non-'false' DRY_RUN value, even on workflow_dispatch", () => {
+    expect(mode({ GITHUB_EVENT_NAME: "workflow_dispatch" })).toBe(true);
+    expect(mode({ GITHUB_EVENT_NAME: "workflow_dispatch", DRY_RUN: "" })).toBe(true);
+    expect(mode({ GITHUB_EVENT_NAME: "workflow_dispatch", DRY_RUN: "FALSE" })).toBe(true);
+  });
+
+  it("explains its decision", () => {
+    expect(resolveDryRun({ GITHUB_EVENT_NAME: "schedule" }).reason).toMatch(/scheduled/);
+    expect(
+      resolveDryRun({ GITHUB_EVENT_NAME: "workflow_dispatch", DRY_RUN: "false" }).reason,
+    ).toMatch(/manual workflow_dispatch/);
+    expect(resolveDryRun({}).reason).toMatch(/event=\(unset\), DRY_RUN=\(unset\)/);
   });
 });

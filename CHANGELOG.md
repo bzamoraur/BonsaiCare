@@ -6,6 +6,24 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed — Ops resilience after the Aug–Sep 2026 outage (2026-09-07)
+
+- **Context.** Around 2026-08-08 the hosted Supabase project became unreachable
+  (likely a Free-tier inactivity pause — not forensically proven) and all five
+  scheduled ops workflows failed until the owner opened the dashboard on
+  2026-09-06. Every DB-backup artifact had expired by then. Controlled re-runs
+  on 2026-09-06 were green (keep-warm, backup, sweep dry-run, B2 mirror) and the
+  retained backup passphrase was verified against the fresh artifact.
+- **Keep-warm pings three times a day** (was every 3 days — below Supabase's
+  "a few requests each day" guidance) and now reports curl's transport exit code
+  separately from the HTTP status, names HTTP 540 as "project paused", and says
+  plainly that a ping cannot resume a paused project.
+- **DB-backup artifacts are kept 90 days** (GitHub's public-repo maximum; was 35).
+- **The scheduled orphan sweep is report-only.** Only a manual dispatch with
+  `dry_run` explicitly unticked deletes; enforced in both the workflow and the
+  script. The script now **fails loud** on missing secrets instead of exiting
+  green. **No schema change.**
+
 ### Added — Today, in season (M8 first slice, 2026-07-11)
 
 - **A hemisphere-aware "seasonal focus" card on Today.** The daily home now names

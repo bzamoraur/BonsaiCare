@@ -1,10 +1,17 @@
 name: Keep Supabase warm
 
-# Free Supabase projects pause after ~7 days of inactivity (Risk R1). This
-# scheduled ping runs a real (RLS-scoped, empty-for-anon) table read so the
-# database itself sees activity. NOTE: it deliberately queries a table endpoint,
-# NOT /rest/v1/ — the bare REST root requires a SECRET key under the 2026 API
-# key system and answers 401 to publishable keys.
+# Free Supabase projects are paused when they show LOW activity over the
+# previous 7 days (Risk R1) — Supabase's guidance is that "a few user requests
+# to the database each day" is enough. One ping every 3 days was NOT: the
+# project went unreachable in Aug 2026 with that cadence, so this now pings
+# three times a day. Each ping runs a real (RLS-scoped, empty-for-anon) table
+# read so the database itself sees activity. NOTE: it deliberately queries a
+# table endpoint, NOT /rest/v1/ — the bare REST root requires a SECRET key
+# under the 2026 API key system and answers 401 to publishable keys.
+#
+# A ping can only keep an ACTIVE project awake. It cannot resume a paused one —
+# that needs the owner in the dashboard (Resume project). A red run here is the
+# signal to go and look.
 #
 # The 200 relies on the HOSTED project's default anon table grants (RLS still
 # returns zero rows); the repo's migrations grant only `authenticated`, so a
@@ -22,7 +29,7 @@ name: Keep Supabase warm
 
 on:
   schedule:
-    - cron: "0 6 */3 * *" # every 3 days at 06:00 UTC
+    - cron: "0 */8 * * *" # three times a day: 00:00, 08:00, 16:00 UTC
   workflow_dispatch: {}
 
 permissions:
@@ -42,18 +49,44 @@ jobs:
             echo "::error::Secrets SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY are not set — keep-warm is NOT protecting the project. Add them (exact names, no NEXT_PUBLIC_ prefix)."
             exit 1
           fi
-          # `|| code="000"`: this step runs under bash -e, so without the fallback a
-          # transport-level curl failure (DNS, refused, timeout) would kill the step
-          # before the case below could print its diagnosis.
+          # Two separate facts are captured: curl's own exit status (transport:
+          # DNS, TCP, TLS, timeout) and the HTTP status (only meaningful when curl
+          # exited 0). The Aug 2026 outage was logged as a bare "HTTP 000", which
+          # hid whether the host failed to resolve or the request timed out.
+          # This step runs under bash -e, so the `|| rc=$?` keeps a transport
+          # failure from killing the step before it is diagnosed.
+          # curl's stderr is deliberately NOT shown: its messages embed the host
+          # name, and the URL is a secret here.
+          rc=0
           code=$(curl -s --max-time 60 -o /dev/null -w "%{http_code}" \
             "$SUPABASE_URL/rest/v1/species?select=id&limit=1" \
-            -H "apikey: $SUPABASE_PUBLISHABLE_KEY") || code="000"
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" 2>/dev/null) || rc=$?
+
+          if [ "$rc" -ne 0 ]; then
+            case "$rc" in
+              6)  why="could not resolve host (DNS)" ;;
+              7)  why="could not connect (TCP refused/unreachable)" ;;
+              28) why="timed out after 60s" ;;
+              35) why="TLS handshake failed" ;;
+              60) why="TLS certificate could not be verified" ;;
+              *)  why="see https://curl.se/docs/manpage.html#EXIT" ;;
+            esac
+            echo "::error::TRANSPORT FAILURE — curl exit $rc ($why). No HTTP response was received, so this is NOT an HTTP status. Possible causes: wrong SUPABASE_URL, a network/DNS problem, or the project being unreachable (a paused Free project normally answers HTTP 540, but unresolvable hosts were seen in the Aug 2026 outage). Check the Supabase dashboard; a paused project must be resumed there — this ping cannot do it. See docs/operations/runbook.md#keep-warm-free-tier-pause--r1."
+            exit 1
+          fi
+
           case "$code" in
-            2*) echo "Supabase responded with HTTP $code — database queried, project is active." ;;
+            2*)
+              echo "Supabase responded with HTTP $code — database queried, project is active." ;;
+            540)
+              echo "::error::HTTP 540 — Supabase reports the project is PAUSED. Keep-warm cannot resume it: open the Supabase dashboard → Resume project, then re-run this workflow. See docs/operations/runbook.md#keep-warm-free-tier-pause--r1."
+              exit 1 ;;
+            401)
+              echo "::error::HTTP 401 — the request reached Supabase but the key was rejected. Check that SUPABASE_PUBLISHABLE_KEY is the current publishable key (sb_publishable_…). See docs/operations/runbook.md#keep-warm-free-tier-pause--r1."
+              exit 1 ;;
             *)
-              echo "::error::Supabase responded with HTTP $code. 000 = wrong URL/unreachable (or a paused project); 401 = wrong key value. See docs/operations/runbook.md#keep-warm-free-tier-pause--r1."
-              exit 1
-              ;;
+              echo "::error::HTTP $code — the request reached Supabase but did not succeed. 5xx = Supabase-side problem (check status.supabase.com); 4xx = URL/key/grant problem. See docs/operations/runbook.md#keep-warm-free-tier-pause--r1."
+              exit 1 ;;
           esac
 
       - name: Open an ops-alert issue on failure

@@ -122,9 +122,12 @@ For personal + trusted-user use this is light, but we build the right habits:
 - The user-facing **export doubles as a manual backup**; encourage periodic
   exports.
 - The free tier has no managed backups, so a **weekly `pg_dump`** runs in GitHub
-  Actions (`backup.yml`, 35-day artifacts) and a **monthly photo-bytes mirror**
+  Actions (`backup.yml`, 90-day artifacts) and a **monthly photo-bytes mirror**
   copies the private bucket to Backblaze B2 (`photo-backup.yml`, incremental,
-  never deletes). Restore verified once (drill, 2026-07-08). See R9 in
+  never deletes). Restore drilled once from a pre-encryption plaintext dump
+  (2026-07-08); the encrypted path is verified only as far as artifact creation
+  + passphrase decrypt/list (2026-09-06/07) — a full decrypt → restore → verify
+  drill of an encrypted artifact is still pending. See R9 in
   [risks](../product/risks-and-assumptions.md).
 - **The DB dump is encrypted (AES-256) before upload** and the job **fails loud**
   if `BACKUP_ENCRYPTION_KEY` is missing — a public-repo artifact must never carry

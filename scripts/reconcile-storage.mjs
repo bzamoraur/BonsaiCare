@@ -5,26 +5,48 @@
 // window (so in-flight uploads are never touched), and removes them.
 //
 // Run by .github/workflows/reconcile-storage.yml with a service-role key (which
-// lives only in GitHub Actions secrets, never in the app runtime). Set
-// DRY_RUN=true to list without deleting. A deleting run refuses pathological
-// orphan counts (see sweepGuard) unless FORCE_SWEEP=true.
+// lives only in GitHub Actions secrets, never in the app runtime). A deleting
+// run refuses pathological orphan counts (see sweepGuard) unless FORCE_SWEEP=true.
+//
+// Deletion policy (2026-09, FAIL-SAFE): deleting happens ONLY when
+// GITHUB_EVENT_NAME=workflow_dispatch AND DRY_RUN=false — i.e. an owner pressed
+// "Run workflow" and unticked dry_run. Every other state is report-only: any
+// scheduled run, and any local/ad-hoc invocation (no event, unset DRY_RUN, or
+// DRY_RUN=false without the dispatch event). Enforced here (resolveDryRun) as
+// well as in the workflow's mode step, so neither a wrong YAML expression nor
+// a bare `node scripts/reconcile-storage.mjs` can delete user photos.
 
 import { createClient } from "@supabase/supabase-js";
-import { collectOrphans, fetchKnownPaths, sweepGuard, walkBucket } from "./reconcile-lib.mjs";
+import {
+  collectOrphans,
+  fetchKnownPaths,
+  resolveDryRun,
+  sweepGuard,
+  walkBucket,
+} from "./reconcile-lib.mjs";
 
 const url = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const DRY_RUN = process.env.DRY_RUN === "true";
+const { dryRun: DRY_RUN, reason: modeReason } = resolveDryRun(process.env);
 const FORCE = process.env.FORCE_SWEEP === "true";
 
 const BUCKET = "tree-photos";
 const GRACE_HOURS = 24;
 const PAGE = 100;
 
-if (!url || !serviceKey) {
-  console.log("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set — skipping reconciliation.");
-  process.exit(0);
+// Fail LOUD on missing secrets. Exiting 0 here (the pre-2026-09 behaviour)
+// produced a green run that had reconciled nothing.
+const missing = Object.entries({ SUPABASE_URL: url, SUPABASE_SERVICE_ROLE_KEY: serviceKey })
+  .filter(([, v]) => !v)
+  .map(([k]) => k);
+if (missing.length > 0) {
+  console.error(
+    `::error::Missing secret(s): ${missing.join(", ")} — the orphan sweep is NOT running.`,
+  );
+  process.exit(1);
 }
+
+console.log(`Mode: ${DRY_RUN ? "report-only" : "DELETING"} (${modeReason}).`);
 
 const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
 

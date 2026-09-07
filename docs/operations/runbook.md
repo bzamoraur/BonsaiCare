@@ -1,6 +1,6 @@
 # Operations Runbook
 
-> **Status:** Current · **Updated:** 2026-07-12
+> **Status:** Current · **Updated:** 2026-09-07
 >
 > How to keep the app healthy and recover from problems. Grows as we hit (and
 > document) real situations. What's actually armed/live right now:
@@ -22,24 +22,45 @@
   ([cost-model](./cost-model.md), R4).
 
 ## Keep-warm (free-tier pause — R1)
-Free Supabase projects pause after ~7 days idle. A scheduled GitHub Action pings
-the project so a personal "production" app stays responsive.
+Supabase pauses a Free project that shows **low activity over the previous 7
+days**; its guidance is that "a few user requests to the database each day" is
+enough to stay active. A scheduled GitHub Action pings the project so a
+personal "production" app stays responsive.
 
-- Workflow: `.github/workflows/keep-warm.yml` (cron, every 3 days).
+**What happened in Aug–Sep 2026:** with one ping every 3 days the project
+became unreachable around 2026-08-08 (likely a pause — not forensically
+proven) and every scheduled job failed for five weeks until the owner opened
+the dashboard. A ping can keep an *active* project awake; **it cannot resume a
+paused one** — only "Resume project" in the dashboard does that.
+
+- Workflow: `.github/workflows/keep-warm.yml` (cron, **three times a day**:
+  00:00 / 08:00 / 16:00 UTC — raised from every 3 days after the outage).
 - Needs GitHub **Action secrets** with exactly these names: `SUPABASE_URL`
   (`https://<ref>.supabase.co`, no trailing slash) and
   `SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`).
 - It queries a real table endpoint (`/rest/v1/species?select=id&limit=1`) —
   **not** the bare `/rest/v1/` root, which requires a *secret* key under the
   2026 API key system and 401s publishable keys.
-- **Verify: green now means pinged** (fails loud since S08.8: missing secrets
-  or a non-2xx response turn the run red and auto-file an "Ops alert" issue).
-  Success log line: `Supabase responded with HTTP 200 — database queried,
-  project is active.`
-- If the project still paused: open the Supabase dashboard once to resume, then
-  confirm the cron is enabled and the secrets are set. GitHub also disables
-  crons after ~60 days without repo activity — re-enable from the Actions tab
-  during quiet periods.
+- **Verify: green means pinged** (fails loud since S08.8: missing secrets, a
+  transport failure, or a non-2xx response turn the run red and auto-file an
+  "Ops alert" issue). Success log line: `Supabase responded with HTTP 200 —
+  database queried, project is active.`
+- **Reading a red run** (diagnostics reworked 2026-09; the old runs only said
+  `HTTP 000`, which hid the cause):
+  - `TRANSPORT FAILURE — curl exit N (…)`: **no HTTP response at all** — DNS
+    (exit 6), TCP (7), timeout (28) or TLS (35/60). This is *not* an HTTP
+    status and does not by itself prove a pause; check the dashboard. During
+    the 2026 outage the host stopped answering within ~50 ms (consistent with
+    not resolving).
+  - `HTTP 540`: Supabase's documented **"project paused"** code. Resume it in
+    the dashboard, then re-run the workflow.
+  - `HTTP 401`: the key is wrong (should be the current `sb_publishable_…`).
+  - other `HTTP 4xx/5xx`: reached Supabase but failed — 5xx → check
+    status.supabase.com; 4xx → URL/key/grant problem.
+- If the project is paused: open the Supabase dashboard → **Resume project**,
+  then re-run keep-warm and confirm the cron is enabled and the secrets are
+  set. GitHub also disables crons after ~60 days without repo activity —
+  re-enable from the Actions tab during quiet periods.
 
 ## Backups & restore (R9 — free tier has NO managed backups)
 
@@ -47,7 +68,10 @@ the project so a personal "production" app stays responsive.
 the hosted DB (schema + data) via `supabase db dump`, then **encrypts the
 tarball** (AES-256-CBC via `openssl`, using the `BACKUP_ENCRYPTION_KEY` secret)
 and uploads the resulting `db-backup-<run>` artifact (`backup.tar.gz.enc`) kept
-**35 days**. The repo is PUBLIC and the dump contains `auth.users` (emails,
+**90 days** (GitHub's maximum for a public repo; raised from 35 after the
+Aug–Sep 2026 outage let *every* artifact expire — a red backup run is urgent
+because the surviving history shrinks with each missed week). The repo is
+PUBLIC and the dump contains `auth.users` (emails,
 password hashes, session tokens), so the step **fails loud and uploads nothing**
 if `BACKUP_ENCRYPTION_KEY` is missing — it never uploads plaintext (addressed
 the beta-readiness CRITICAL, #116, 2026-07-11). **Fails loud** (since S08.8): a
@@ -85,10 +109,17 @@ Editor** with no local tooling — the drill used that path.
    newest run → Artifacts) and unzip it → `backup.tar.gz.enc`. **Decrypt +
    unpack** with the backup passphrase (`BACKUP_ENCRYPTION_KEY`):
    `openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in backup.tar.gz.enc -pass env:BACKUP_ENCRYPTION_KEY | tar -xz`
-   → `backup-schema.sql` + `backup-data.sql`. (Artifacts auto-delete after 35
-   days. ⚠ The 2026-07-08 drill restored a pre-encryption plaintext dump, so
-   this decrypt step is not yet drill-tested — and a lost passphrase makes every
-   encrypted backup unrecoverable.)
+   → `backup-schema.sql` + `backup-data.sql`. (Artifacts auto-delete after 90
+   days. ✅ **Passphrase verified 2026-09-06/07:** the owner decrypted the fresh
+   artifact `db-backup-34061709481` locally with the retained
+   `BACKUP_ENCRYPTION_KEY` — `… | tar -tz` listed both `.sql` files. ⚠ The only
+   *restore* drill (2026-07-08) used a pre-encryption plaintext dump; a full
+   decrypt → restore → verify drill of an encrypted artifact is **still
+   pending**. A lost passphrase makes every encrypted backup unrecoverable.)
+   Quick check of a downloaded artifact without extracting anything:
+   `openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in backup.tar.gz.enc -pass env:BACKUP_ENCRYPTION_KEY | tar -tz`
+   (set the variable with `read -s`, never `-pass pass:` — it lands in shell
+   history).
 3. In the **new project's** SQL Editor, run `backup-schema.sql` (builds tables,
    RLS, functions, FKs → "Success, no rows"; a few "already exists" NOTICEs are
    normal), then run **the whole** `backup-data.sql`. Its first line
@@ -130,11 +161,19 @@ bucket.
 
 ## Storage-orphan sweep
 
-`.github/workflows/reconcile-storage.yml` (monthly, 1st 04:00 UTC) removes
-photo objects with no `photos` row, older than a 24h grace window. Manual runs
-default to **dry-run**; scheduled runs delete. Armed by repo secrets
-`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (the service-role key lives ONLY
-here, never in the app). Safe to arm since S08.1: the DB read paginates past
+`.github/workflows/reconcile-storage.yml` (monthly, 1st 04:00 UTC) finds
+photo objects with no `photos` row, older than a 24h grace window.
+**Scheduled runs are report-only since 2026-09** — they list orphan candidates
+and never delete (at beta scale, unattended deletion of user photos is not
+worth its risk). **Deleting requires explicit owner action:** Actions → "Run
+workflow" with the *dry_run* box **unticked**, after reading a dry-run
+listing. Manual runs default to dry-run. The rule is enforced twice — in the
+workflow's mode step and inside the script (a `schedule` event is always
+report-only) — so a single mistake cannot make the cron destructive. Armed by
+repo secrets `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (the service-role key
+lives ONLY here, never in the app); since 2026-09 the script **fails loud**
+(red run + alert) if they are missing instead of exiting green having done
+nothing. Safe to arm since S08.1: the DB read paginates past
 PostgREST's 1,000-row cap (unit-tested — truncation once meant real photos
 classified as orphans), and a deleting run **refuses pathological counts**
 (orphans > max(20, 20% of the bucket), or a DB that claims zero photos) unless

@@ -143,3 +143,30 @@ export function sweepGuard({ orphanCount, objectCount, knownCount, dryRun, force
   }
   return { ok: true };
 }
+
+// Report-only vs deleting, decided from the process environment — FAIL-SAFE.
+// Deleting is allowed ONLY when BOTH hold: GITHUB_EVENT_NAME === "workflow_dispatch"
+// AND DRY_RUN === "false" (an owner pressed "Run workflow" and unticked dry_run).
+// Every other state — a schedule event, any other event, a missing event (a
+// local `node scripts/reconcile-storage.mjs` with production credentials), a
+// missing or non-"false" DRY_RUN — is report-only. This is the script-side half
+// of the 2026-09 policy (the workflow's mode step is the other half), so neither
+// a wrong YAML expression nor a bare local invocation can delete user photos.
+// There is deliberately NO local-delete escape hatch; design one explicitly if
+// it is ever needed.
+export function resolveDryRun(env) {
+  const event = env.GITHUB_EVENT_NAME;
+  const dryRunInput = env.DRY_RUN;
+  if (event === "workflow_dispatch" && dryRunInput === "false") {
+    return { dryRun: false, reason: "manual workflow_dispatch with DRY_RUN=false" };
+  }
+  if (event === "schedule") {
+    return { dryRun: true, reason: "scheduled runs are always report-only" };
+  }
+  return {
+    dryRun: true,
+    reason:
+      `deleting requires event=workflow_dispatch AND DRY_RUN=false; ` +
+      `got event=${event ?? "(unset)"}, DRY_RUN=${dryRunInput ?? "(unset)"}`,
+  };
+}
